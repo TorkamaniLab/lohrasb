@@ -41,7 +41,7 @@ There are some examples  available in the [examples](https://github.com/drhossei
 
 ### Import required libraries
 ```
-from lohrasb.feature_selectors.lohrasb_feature_selector import ScallyShapFeatureSelector
+from lohrasb.best_estimator import BaseModel
 import xgboost
 from optuna.pruners import HyperbandPruner
 from optuna.samplers._tpe.sampler import TPESampler
@@ -53,76 +53,89 @@ from feature_engine.imputation import (
     MeanMedianImputer
     )
 from category_encoders import OrdinalEncoder
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
-    r2_score
-    )
-from lohrasb.utils.helper_funcs import catboost
+    classification_report,
+    confusion_matrix,
+    f1_score)
 ```
 
-### Computer Hardware Data Set (a regression problem)
+### Use Adult Data Set (a classification problem)
 ```
-urldata= "https://archive.ics.uci.edu/ml/machine-learning-databases/cpu-performance/machine.data"
+urldata= "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
 # column names
-col_names=[
-    "vendor name",
-    "Model Name",
-    "MYCT",
-    "MMIN",
-    "MMAX",
-    "CACH",
-    "CHMIN",
-    "CHMAX",
-    "PRP"
+col_names=["age", "workclass", "fnlwgt" , "education" ,"education-num",
+"marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week",
+"native-country","label"
 ]
+data.head()
 # read data
 data = pd.read_csv(urldata,header=None,names=col_names,sep=',')
 ```
+### Define labels
+```
+data.loc[data['label']=='<=50K','label']=0
+data.loc[data['label']==' <=50K','label']=0
+
+data.loc[data['label']=='>50K','label']=1
+data.loc[data['label']==' >50K','label']=1
+
+data['label']=data['label'].astype(int)
+
+```
+
 ### Train test split
 ```
-X = data.loc[:, data.columns != "PRP"]
-y = data.loc[:, data.columns == "PRP"]
-X_train, X_test, y_train, y_test =train_test_split(X, y, test_size=0.33, random_state=42)
+X = data.loc[:, data.columns != "label"]
+y = data.loc[:, data.columns == "label"]
+X_train, X_test, y_train, y_test =train_test_split(X, y, test_size=0.33, stratify=y['label'], random_state=42)
+
 ```
+
 ### Find feature types for later use
+
 ```
 int_cols =  X_train.select_dtypes(include=['int']).columns.tolist()
 float_cols =  X_train.select_dtypes(include=['float']).columns.tolist()
 cat_cols =  X_train.select_dtypes(include=['object']).columns.tolist()
+
 ```
 
-###  Define Feature selector and set its arguments  
+### Define estimator and set its arguments 
 ```
-SFC_CATREG_OPTUNA = ScallyShapFeatureSelector(
-        n_features=5,
-        estimator=catboost.CatBoostRegressor(),
+
+
+SFC_XGBCLS_GRID = BaseModel(
+        estimator=xgboost.XGBClassifier(),
         estimator_params={
-                  # desired lower bound and upper bound for depth
-                  'depth'         : [6,10],
-                  # desired lower bound and upper bound for depth
-                  'learning_rate' : [0.05, 0.1],  
-                    },
-        hyper_parameter_optimization_method="optuna",
-        shap_version="v0",
-        measure_of_accuracy="r2",
-        list_of_obligatory_features=[],
+            "max_depth": [4, 5],
+            "min_child_weight": [0.1, 0.9],
+            "gamma": [1, 9],
+            "booster": ["gbtree"],
+        },
+        hyper_parameter_optimization_method="grid",
+        measure_of_accuracy="f1",
         test_size=0.33,
-        cv=KFold(n_splits=3, random_state=42, shuffle=True),
-        with_shap_summary_plot=True,
-        with_stratified=False,
-        verbose=0,
+        cv=KFold(n_splits=3,random_state=42,shuffle=True),
+        with_stratified=True,
+        verbose=3,
         random_state=42,
         n_jobs=-1,
         n_iter=100,
-        eval_metric=None,
-        number_of_trials=20,
+        eval_metric="auc",
+        number_of_trials=10,
         sampler=TPESampler(),
         pruner=HyperbandPruner(),
+
     )
+
+
 ```
 
 ### Build sklearn Pipeline  
 ```
+
+
 pipeline =Pipeline([
             # int missing values imputers
             ('intimputer', MeanMedianImputer(
@@ -131,23 +144,19 @@ pipeline =Pipeline([
             ('catimputer', CategoricalImputer(variables=cat_cols)),
             #
             ('catencoder', OrdinalEncoder()),
-            # feature selection
-            ('SFC_CATREG_OPTUNA', SFC_CATREG_OPTUNA),
-            # add any regression model from sklearn e.g., LinearRegression
-            ('regression', LinearRegression())
+            # classification model
+            ('xgboost', SFC_XGBCLS_GRID)
 
 
  ])
 
-pipeline.fit(X_train,y_train)
-y_pred = pipeline.predict(X_test)
-
-
-print('r2 score : ')
-print(r2_score(y_test,y_pred))
+```
+### Run Pipeline  
 
 ```
-
+pipeline.fit(X_train,y_train)
+y_pred = pipeline.predict(X_test)
+```
 
 ## License
 Licensed under the [BSD 2-Clause](https://opensource.org/licenses/BSD-2-Clause) License.
