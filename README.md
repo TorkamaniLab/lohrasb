@@ -16,7 +16,7 @@ pip install lohrasb
 ```
 
 
-## Supported estimators
+## Supported estimators for this package
 
 - XGBRegressor  [XGBoost](https://github.com/dmlc/xgboost)
 - XGBClassifier [XGBoost](https://github.com/dmlc/xgboost)
