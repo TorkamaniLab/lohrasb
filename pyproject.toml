@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "lohrasp"
+version = "0.1.0"
+description = "Using optuna search optimizer on sklearn"
+authors = ["drhosseinjavedani <h.javedani@gmail.com>"]
+license = "BSD-3-Clause license"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+numpy = "^1.23.0"
+scipy = "^1.8.1"
+sklearn = "^0.0"
+optuna = "^2.10.1"
+pandas = "^1.4.3"
+catboost = "^1.0.6"
+xgboost = "^1.6.1"
+imblearn = "^0.0"
+lightgbm = "^3.3.2"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^4.0.1"
+black = "^22.6.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
