@@ -1,11 +1,11 @@
 # lohrasb
 
-lohrasb is a package built to ease machine learning development. It uses Optuna to tune most of tree-based estimator of sickit-learn. It is compatible with [scikit-learn](https://scikit-learn.org) pipeline.
+lohrasb is a package built to ease machine learning development. It uses [Optuna](https://optuna.readthedocs.io/en/stable/index.html) to tune most of the tree-based estimators of sickit-learn. It is compatible with [scikit-learn](https://scikit-learn.org) pipeline.
 
 
 ## Introduction
 
-BaseModel of lohrasb package can receive various parameters. From a tree-based estimator class to its tunning parameters and from Grid search, Random Search, or Optuna to their parameters. Samples will be split to train and validation set, and then optimization will estimate optimal related parameters.
+BaseModel of lohrasb package can receive various parameters. From a tree-based estimator class to its tunning parameters and from Grid search, Random Search, or [Optuna](https://optuna.readthedocs.io/en/stable/index.html)  to their parameters. Samples will be split to train and validation set, and then optimization will estimate optimal related parameters.
 
 ## Installation
 
@@ -30,9 +30,7 @@ pip install lohrasb
 
 ## Usage
 
-- Find features using specific tree-based models with the highest shap values after hyper-parameter optimization
-- Plot the shap summary plot for selected features
-- Return a sorted two-column Pandas data frame with a list of features and shap values. 
+- Tunning best parameters of a tree-based model using [Optuna](https://optuna.readthedocs.io/en/stable/index.html) , [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) or [RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html).
 
 
 ## Examples 
@@ -64,9 +62,10 @@ from sklearn.metrics import (
 ```
 urldata= "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
 # column names
-col_names=["age", "workclass", "fnlwgt" , "education" ,"education-num",
-"marital-status","occupation","relationship","race","sex","capital-gain","capital-loss","hours-per-week",
-"native-country","label"
+col_names=[
+"age", "workclass", "fnlwgt" , "education" ,"education-num",
+"marital-status","occupation","relationship","race","sex","capital-gain",
+"capital-loss","hours-per-week","native-country","label"
 ]
 data.head()
 # read data
@@ -88,7 +87,8 @@ data['label']=data['label'].astype(int)
 ```
 X = data.loc[:, data.columns != "label"]
 y = data.loc[:, data.columns == "label"]
-X_train, X_test, y_train, y_test =train_test_split(X, y, test_size=0.33, stratify=y['label'], random_state=42)
+X_train, X_test, y_train, y_test =train_test_split(X, y, 
+    test_size=0.33, stratify=y['label'], random_state=42)
 
 ```
 
