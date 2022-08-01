@@ -33,11 +33,11 @@ jenkins-lts
 # this is for creating new version info
 bump2version   minor 
 # this is for runnig nox to crease version as well
-nox -s release -- minor
+nox -s release_lohrasb -- minor
 # this is only for lint
-nox -s lint 
+nox -s lint_lohrasb 
 # this is only for tests
-nox -s tests 
+nox -s tests_lohrasb 
 
 # before everything 
 git pull origin  main  

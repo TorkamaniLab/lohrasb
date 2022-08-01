@@ -1,12 +1,11 @@
 from abc import ABCMeta
-import numpy as np
-import pandas as pd
+
+import xgboost
 from optuna.pruners import HyperbandPruner
 from optuna.samplers import TPESampler
 from sklearn.base import BaseEstimator
-import xgboost
 
-from lohrasp.model_conf import (
+from lohrasb.model_conf import (
     BLF_CLASSIFICATION_PARAMS_DEFAULT,
     CATBOOST_CLASSIFICATION_PARAMS_DEFAULT,
     CATBOOST_REGRESSION_PARAMS_DEFAULT,
@@ -18,7 +17,7 @@ from lohrasp.model_conf import (
     XGBOOST_CLASSIFICATION_PARAMS_DEFAULT,
     XGBOOST_REGRESSION_PARAMS_DEFAULT,
 )
-from lohrasp.utils.helper_funcs import (
+from lohrasb.utils.helper_funcs import (
     _calc_best_estimator_grid_search,
     _calc_best_estimator_optuna_univariate,
     _calc_best_estimator_random_search,
@@ -729,6 +728,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         if (
             self.estimator.__class__.__name__ == "XGBRegressor"
             or self.estimator.__class__.__name__ == "XGBClassifier"
+            and self.hyper_parameter_optimization_method == "optuna"
         ):
             X = xgboost.DMatrix(X)
         return self.best_estimator.predict(X)

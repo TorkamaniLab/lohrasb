@@ -22,7 +22,33 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
-from ..model_conf import Integer_list, Categorical_list
+from ..model_conf import Categorical_list, Integer_list
+
+
+maping_mesurements={
+    "accuracy_score":accuracy_score,
+    "explained_variance_score":explained_variance_score,
+    "f1":f1_score,
+    "f1_score":f1_score,
+    "mean_absolute_error":mean_absolute_error,
+    "mae":mean_absolute_error,
+    "mean_absolute_percentage_error":mean_absolute_percentage_error,
+    "mape":mean_absolute_percentage_error,
+    "mean_squared_error":mean_squared_error,
+    "mse":mean_squared_error,
+    "median_absolute_error":median_absolute_error,
+    "mae":median_absolute_error,
+    "precision_score":precision_score,
+    "precision":precision_score,
+    "r2":r2_score,
+    "r2_score":r2_score,
+    "recall_score":recall_score,
+    "recall":recall_score,
+    "roc_auc_score":roc_auc_score,
+    "roc":roc_auc_score,
+    "roc_auc":roc_auc_score,
+
+    }
 
 def _trail_param_retrive(trial, dict, keyword):
     """An internal function. Return a trial suggest using dict params of estimator and
@@ -384,7 +410,7 @@ def _calc_best_estimator_grid_search(
         param_grid=estimator_params,
         cv=cv,
         n_jobs=n_jobs,
-        scoring=make_scorer(measure_of_accuracy),
+        scoring=make_scorer(maping_mesurements[measure_of_accuracy]),
         verbose=verbose,
     )
     grid_search.fit(X, y)
@@ -529,9 +555,10 @@ def _calc_best_estimator_random_search(
         cv=cv,
         n_iter=n_iter,
         n_jobs=n_jobs,
-        scoring=make_scorer(measure_of_accuracy),
+        scoring=make_scorer(maping_mesurements[measure_of_accuracy]),
         verbose=verbose,
     )
+
     random_search.fit(X, y)
     best_estimator = random_search.best_estimator_
     return best_estimator

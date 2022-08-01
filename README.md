@@ -1,21 +1,18 @@
-# Zoish
+# lohrasb
 
-Zoish is a package built to ease machine learning development. One of its main parts is a class that uses  [SHAP](https://arxiv.org/abs/1705.07874) (SHapley Additive exPlanation)  for a better feature selection. It is compatible with [scikit-learn](https://scikit-learn.org) pipeline . This package  uses [FastTreeSHAP](https://arxiv.org/abs/2109.09847) while calculation shap values and [SHAP](https://shap.readthedocs.io/en/latest/index.html) for plotting. 
+lohrasb is a package built to ease machine learning development. It uses Optuna to tune most of tree-based estimator of sickit-learn. It is compatible with [scikit-learn](https://scikit-learn.org) pipeline.
 
 
 ## Introduction
 
-ScallyShapFeatureSelector of Zoish package can receive various parameters. From a tree-based estimator class to its tunning parameters and from Grid search, Random Search, or Optuna to their parameters. Samples will be split to train and validation set, and then optimization will estimate optimal related parameters.
-
- After that, the best subset of features with higher shap values will be returned. This subset can be used as the next steps of the Sklearn pipeline. 
-
+BaseModel of lohrasb package can receive various parameters. From a tree-based estimator class to its tunning parameters and from Grid search, Random Search, or Optuna to their parameters. Samples will be split to train and validation set, and then optimization will estimate optimal related parameters.
 
 ## Installation
 
-Zoish package is available on PyPI and can be installed with pip:
+lohrasb package is available on PyPI and can be installed with pip:
 
 ```sh
-pip install zoish
+pip install lohrasb
 ```
 
 
@@ -40,9 +37,11 @@ pip install zoish
 
 ## Examples 
 
+There are some examples  available in the [examples](https://github.com/drhosseinjavedani/lohrasb/tree/main/lohrasb/examples). 
+
 ### Import required libraries
 ```
-from zoish.feature_selectors.zoish_feature_selector import ScallyShapFeatureSelector
+from lohrasb.feature_selectors.lohrasb_feature_selector import ScallyShapFeatureSelector
 import xgboost
 from optuna.pruners import HyperbandPruner
 from optuna.samplers._tpe.sampler import TPESampler
@@ -58,7 +57,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import (
     r2_score
     )
-from zoish.utils.helper_funcs import catboost
+from lohrasb.utils.helper_funcs import catboost
 ```
 
 ### Computer Hardware Data Set (a regression problem)
@@ -149,7 +148,6 @@ print(r2_score(y_test,y_pred))
 
 ```
 
-More examples are available in the [examples](https://github.com/drhosseinjavedani/zoish/tree/main/zoish/examples). 
 
 ## License
 Licensed under the [BSD 2-Clause](https://opensource.org/licenses/BSD-2-Clause) License.

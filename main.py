@@ -7,11 +7,11 @@ import catboost
 from optuna.pruners import HyperbandPruner
 from optuna.samplers._tpe.sampler import TPESampler
 from sklearn.model_selection import KFold, train_test_split
-from lohrasp.best_estimator import BaseModel
+from lohrasb.best_estimator import BaseModel
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from imblearn.ensemble import BalancedRandomForestClassifier
 import lightgbm
-from lohrasp.project_conf import ROOT_PROJECT
+from lohrasb.project_conf import ROOT_PROJECT
 
 SFC_XGBREG_OPTUNA = BaseModel(
     estimator=xgboost.XGBRegressor(),
@@ -170,10 +170,10 @@ SFC_CAT_OPTUNA = BaseModel(
 )
 
 try: 
-    print(ROOT_PROJECT / "lohrasp" / "data" / "data.csv")
-    data = pd.read_csv(ROOT_PROJECT / "lohrasp" / "data" / "data.csv")
+    print(ROOT_PROJECT / "lohrasb" / "data" / "data.csv")
+    data = pd.read_csv(ROOT_PROJECT / "lohrasb" / "data" / "data.csv")
 except Exception as e:
-    print(ROOT_PROJECT / "lohrasp" / "data" / "data.csv")
+    print(ROOT_PROJECT / "lohrasb" / "data" / "data.csv")
     print(e)
 
 print(data.columns.to_list())
@@ -196,8 +196,9 @@ def run_xgboost_regressor():
 
 def run_xgboost_classifier():
     SFC_XGBCLS_OPTUNA.fit(X_train, y_train)
-    y_pred = SFC_XGBCLS_OPTUNA.predict(X_test)
-    print(y_pred)
+    y_preds = SFC_XGBCLS_OPTUNA.predict(X_test)
+    pred_labels = np.rint(y_preds)
+    print(pred_labels)
 
 def run_randomforest_regressor():
     SFC_RFREG_OPTUNA.fit(X_train, y_train)
@@ -219,8 +220,9 @@ def run_balancedrandomforest_classifier():
 
 def run_catboost_classifier():
     SFC_CAT_OPTUNA.fit(X_train, y_train)
-    y_pred = SFC_CAT_OPTUNA.predict(X_test)
-    print(y_pred)
+    y_preds= SFC_CAT_OPTUNA.predict(X_test)
+    pred_labels = np.rint(y_preds)
+    print(pred_labels)
 
 
 def run_lgb_classifier():

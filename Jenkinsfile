@@ -6,14 +6,14 @@ pipeline {
 
     stages {
 
-        stage("Download-data-build-test"){
+        stage("Download-data-build-test-lohrasb"){
 
              steps {
 
                                             sh '''
                                                  docker version
                                                  docker info
-                                                 docker build -f Dockerfile.test -t build-image-test .
+                                                 docker build -f Dockerfile.test -t build-image-test-lohrasb .
                                             '''
 
 
@@ -21,7 +21,7 @@ pipeline {
 
         }
 
-        stage("build-container-test") {
+        stage("build-container-test-lohrasb") {
             
 
                  
@@ -30,7 +30,7 @@ pipeline {
                                             
 
                                                 sh '''
-                                                 docker run build-image-test
+                                                 docker run build-image-test-lohrasb
                                                 '''
                                             
             
@@ -39,21 +39,21 @@ pipeline {
 
          
         
-        stage("build-image-pypi") {
+        stage("build-image-pypi-lohrasb") {
                  
              steps {
 
                                                  sh '''
                                                  docker version
                                                  docker info
-                                                 docker build -f Dockerfile.publish -t build-image-pypi .
+                                                 docker build -f Dockerfile.publish -t build-image-pypi-lohrasb .
                                                  '''
 
             
                  }
             }
     
-        stage("build-container-pypi") {
+        stage("build-container-pypi-lohrasb") {
             
 
                  
@@ -74,7 +74,7 @@ pipeline {
                                               {
 
                                                  sh '''
-                                                 docker run --env username=${username} --env password=${password} --env gitusername=${gitusername}  --env gitpassword=${gitpassword} build-image-pypi
+                                                 docker run --env username=${username} --env password=${password} --env gitusername=${gitusername}  --env gitpassword=${gitpassword} build-image-pypi-lohrasb
                                                  '''
                                               }
             

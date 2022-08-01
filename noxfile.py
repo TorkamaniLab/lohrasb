@@ -1,25 +1,23 @@
 import nox
 import argparse
 
-
-
 @nox.session(python=False)
-def tests(session):
+def tests_lohrasb(session):
     session.run('poetry', 'shell')
     session.run('poetry', 'install')
     session.run('pytest')
 
 @nox.session
-def lint(session):
+def lint_lohrasb(session):
     session.install("flake8","black","isort")
-    session.run("isort","./zoish/")
-    session.run("black","./zoish/")
+    session.run("isort","./lohrasb/")
+    session.run("black","./lohrasb/")
     session.run(
         'flake8',
-        '--ignore=E501,I202,W503,E203',"./zoish/")
+        '--ignore=E501,I202,W503,E203',"./lohrasb/")
 
 @nox.session
-def release(session):
+def release_lohrasb(session):
     """
     Kicks off an automated release process by creating and pushing a new tag.
 
@@ -89,7 +87,7 @@ def release(session):
     session.run("git", "config","--global","user.email",useremail,external=True)
     session.run("git", "config","--global","user.name",username,external=True)
     session.run("git", "config","--global","user.password",gitpassword,external=True)
-    session.run("git", "remote","set-url","origin",f"https://{username}:{gitpassword}@github.com/{username}/zoish.git",external=True)
+    session.run("git", "remote","set-url","origin",f"https://{username}:{gitpassword}@github.com/{username}/lohrasb.git",external=True)
     session.run("git", "branch","temp-branch",external=True)
     session.run("git", "checkout", 'main',external=True)
     session.run("git", "merge", 'temp-branch',external=True)

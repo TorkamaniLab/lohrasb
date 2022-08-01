@@ -1,9 +1,18 @@
 [tool.poetry]
-name = "lohrasp"
+name = "lohrasb"
 version = "0.1.0"
-description = "Using optuna search optimizer on sklearn"
+description = "Using optuna search optimizer to estimate best tree based estimator compatible with scikit-learn"
 authors = ["drhosseinjavedani <h.javedani@gmail.com>"]
+homepage = "https://github.com/drhosseinjavedani/lohrasb"
 license = "BSD-3-Clause license"
+
+readme = "README.md"
+keywords = [
+    "Auto ML",
+    "Pipeline",
+    "Machine learning"
+]
+
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
@@ -11,15 +20,23 @@ numpy = "^1.23.0"
 scipy = "^1.8.1"
 sklearn = "^0.0"
 optuna = "^2.10.1"
-pandas = "^1.4.3"
 catboost = "^1.0.6"
 xgboost = "^1.6.1"
 imblearn = "^0.0"
 lightgbm = "^3.3.2"
+nox = "^2022.1.7"
+feature-engine = "^1.4.1"
+category-encoders = "^2.5.0"
+pandas = "^1.4.3"
+ipykernel = "^6.15.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
 black = "^22.6.0"
+nox = "^2022.1.7"
+bump2version = "^1.0.1"
+isort = "^5.10.1"
+pytest = "^7.1.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
