@@ -93,5 +93,5 @@ def release_lohrasb(session):
     session.run("git", "checkout", 'main',external=True)
     session.run("git", "merge", 'temp-branch',external=True)
     session.run("git", "branch", '--delete','temp-branch',external=True)
-    session.run("git", "push", 'origin',external=True)
+    session.run("git", "push","--set-upstream", "origin","main",external=True)
     session.run("git", "push", "--tags", external=True)
