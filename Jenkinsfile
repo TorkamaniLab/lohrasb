@@ -60,11 +60,11 @@ pipeline {
              steps {
 
                  withCredentials([
-                              usernamePassword(credentialsId: 'twine-login-info',
+                              usernamePassword(credentialsId: 'twine-login-info-lohrasb',
                               usernameVariable: 'username',
                               passwordVariable: 'password',
                               ),
-                              usernamePassword(credentialsId: 'git-login-info-token	',
+                              usernamePassword(credentialsId: 'lohrasb-git-login-info',
                               usernameVariable: 'gitusername',
                               passwordVariable: 'gitpassword',
                               )
