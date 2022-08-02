@@ -22,33 +22,32 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
+
 from ..model_conf import Categorical_list, Integer_list
 
+maping_mesurements = {
+    "accuracy_score": accuracy_score,
+    "explained_variance_score": explained_variance_score,
+    "f1": f1_score,
+    "f1_score": f1_score,
+    "mean_absolute_error": mean_absolute_error,
+    "mae": mean_absolute_error,
+    "mean_absolute_percentage_error": mean_absolute_percentage_error,
+    "mape": mean_absolute_percentage_error,
+    "mean_squared_error": mean_squared_error,
+    "mse": mean_squared_error,
+    "median_absolute_error": median_absolute_error,
+    "precision_score": precision_score,
+    "precision": precision_score,
+    "r2": r2_score,
+    "r2_score": r2_score,
+    "recall_score": recall_score,
+    "recall": recall_score,
+    "roc_auc_score": roc_auc_score,
+    "roc": roc_auc_score,
+    "roc_auc": roc_auc_score,
+}
 
-maping_mesurements={
-    "accuracy_score":accuracy_score,
-    "explained_variance_score":explained_variance_score,
-    "f1":f1_score,
-    "f1_score":f1_score,
-    "mean_absolute_error":mean_absolute_error,
-    "mae":mean_absolute_error,
-    "mean_absolute_percentage_error":mean_absolute_percentage_error,
-    "mape":mean_absolute_percentage_error,
-    "mean_squared_error":mean_squared_error,
-    "mse":mean_squared_error,
-    "median_absolute_error":median_absolute_error,
-    "mae":median_absolute_error,
-    "precision_score":precision_score,
-    "precision":precision_score,
-    "r2":r2_score,
-    "r2_score":r2_score,
-    "recall_score":recall_score,
-    "recall":recall_score,
-    "roc_auc_score":roc_auc_score,
-    "roc":roc_auc_score,
-    "roc_auc":roc_auc_score,
-
-    }
 
 def _trail_param_retrive(trial, dict, keyword):
     """An internal function. Return a trial suggest using dict params of estimator and
