@@ -1,4 +1,4 @@
 #!/bin/bash
-nox -s tests
-nox -s lint
+nox -s tests_lohrasb
+nox -s lint_lohrasb
 
