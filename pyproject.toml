@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lohrasb"
-version = "0.3.0"
+version = "0.4.0"
 description = "Using optuna search optimizer to estimate best tree based estimator compatible with scikit-learn"
 authors = ["drhosseinjavedani <h.javedani@gmail.com>"]
 homepage = "https://github.com/drhosseinjavedani/lohrasb"
