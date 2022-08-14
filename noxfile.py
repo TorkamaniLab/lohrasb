@@ -82,16 +82,14 @@ def release_lohrasb(session):
 
     session.log(f"Bumping the {version!r} version")
     session.run("bump2version",  '--allow-dirty',version)
-
     session.log("Pushing the new tag")
     session.run("git", "config","--global","user.email",useremail,external=True)
     session.run("git", "config","--global","user.name",username,external=True)
     session.run("git", "config","--global","user.password",gitpassword,external=True)
-    session.run("git", "branch","main",external=True)
     session.run("git", "remote","set-url","origin",f"https://{username}:{gitpassword}@github.com/{username}/lohrasb.git",external=True)
     session.run("git", "branch","temp-branch",external=True)
     session.run("git", "checkout", 'main',external=True)
     session.run("git", "merge", 'temp-branch',external=True)
     session.run("git", "branch", '--delete','temp-branch',external=True)
-    session.run("git", "push","--set-upstream", "origin","main",external=True)
+    session.run("git", "push", 'origin',external=True)
     session.run("git", "push", "--tags", external=True)
