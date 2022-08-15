@@ -11,9 +11,12 @@ from lohrasb.model_conf import (
     CATBOOST_REGRESSION_PARAMS_DEFAULT,
     LGB_CLASSIFICATION_PARAMS_DEFAULT,
     LGB_REGRESSION_PARAMS_DEFAULT,
+    LINEARREGRESSION_REGRESSION_PARAMS_DEFAULT,
+    LOGISTICREGRESSION_CLASSIFICATION_PARAMS_DEFAULT,
     RANDOMFOREST_CLASSIFICATION_PARAMS_DEFAULT,
     RANDOMFOREST_REGRESSION_PARAMS_DEFAULT,
     SUPPORTED_MODELS,
+    SVC_CLASSIFICATION_PARAMS_DEFAULT,
     XGBOOST_CLASSIFICATION_PARAMS_DEFAULT,
     XGBOOST_REGRESSION_PARAMS_DEFAULT,
 )
@@ -117,6 +120,20 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         "min_split_gain","min_child_weight","min_child_samples","subsample",
         "subsample_freq","colsample_bytree","reg_alpha","reg_lambda","random_state",
         "n_jobs","silent","importance_type"
+
+        For SVC_CLASSIFICATION_PARAMS_DEFAULT are :
+        "C", "kernel", "degree", "gamma", "coef0", "shrinking","probability",
+        "tol", "cache_size", "class_weight", "verbose", "max_iter","decision_function_shape"
+
+        For LINEARREGRESSION_REGRESSION_PARAMS_DEFAULT are :
+        "fit_intercept", "normalize", "copy_X", "n_jobs",
+        "positive"
+
+        For LOGISTICREGRESSION_CLASSIFICATION_PARAMS_DEFAULT are :
+        "penalty", "dual", "tol","C", "fit_intercept","intercept_scaling",
+        "class_weightt", "random_state", "solver", "max_iter","multi_class",
+        "verbose","warm_start", "n_jobs", "l1_ratio"
+
     hyper_parameter_optimization_method : str
         Type of method for hyperparameter optimization of the estimator.
         Supported methods are: Grid Search, Random Search, and Optuna.
@@ -410,6 +427,39 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     @estimator_params.setter
     def estimator_params(self, value):
         print(self.estimator)
+        # get parameters for SVC and check if
+        # the selected parameters in the list or not
+        if self.estimator.__class__.__name__ == "SVC":
+            if value.keys() <= SVC_CLASSIFICATION_PARAMS_DEFAULT.keys():
+                print("Setting value for estimator_params")
+                self._estimator_params = value
+            else:
+                raise TypeError(
+                    f"error occures during parameter checking for \
+                        {value.__class__.__name__}"
+                )
+        # get parameters for LinearRegression and check if
+        # the selected parameters in the list or not
+        if self.estimator.__class__.__name__ == "LinearRegression":
+            if value.keys() <= LINEARREGRESSION_REGRESSION_PARAMS_DEFAULT.keys():
+                print("Setting value for estimator_params")
+                self._estimator_params = value
+            else:
+                raise TypeError(
+                    f"error occures during parameter checking for \
+                        {value.__class__.__name__}"
+                )
+        # get parameters for LogisticRegression and check if
+        # the selected parameters in the list or not
+        if self.estimator.__class__.__name__ == "LogisticRegression":
+            if value.keys() <= LOGISTICREGRESSION_CLASSIFICATION_PARAMS_DEFAULT.keys():
+                print("Setting value for estimator_params")
+                self._estimator_params = value
+            else:
+                raise TypeError(
+                    f"error occures during parameter checking for \
+                        {value.__class__.__name__}"
+                )
         # get parameters for lightgbm.LGBMRegressor and check if
         # the selected parameters in the list or not
         if self.estimator.__class__.__name__ == "LGBMRegressor":

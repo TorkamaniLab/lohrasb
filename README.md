@@ -27,6 +27,9 @@ pip install lohrasb
 - BalancedRandomForestClassifier 
 - LGBMClassifier [LightGBM](https://github.com/microsoft/LightGBM)
 - LGBMRegressor [LightGBM](https://github.com/microsoft/LightGBM)
+- LinearRegression [LinearRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn.linear_model.LinearRegression)
+- LogisticRegression [LogisticRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html#sklearn.linear_model.LogisticRegression)
+- SVC [SVC](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html)
 
 ## Usage
 

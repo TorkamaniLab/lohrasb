@@ -10,10 +10,10 @@ SUPPORTED_MODELS = [
     "BalancedRandomForestClassifier",
     "LGBMClassifier",
     "LGBMRegressor",
+    "LogisticRegression",
+    "LinearRegression",
+    "SVC",
 ]
-
-# list of Integer parameters for the estimator. This is needed for breaking down parameters for trial
-# suggestion
 
 Integer_list = [
     "iterations",
@@ -46,6 +46,9 @@ Integer_list = [
     "min_child_weight",
     "max_leaves",
     "max_bin",
+    "degree",
+    "cache_size",
+    "max_iter",
 ]
 
 # list of Categorical parameters for the estimator. This is needed for breaking down parameters for trial
@@ -96,7 +99,68 @@ Categorical_list = [
     "oob_score",
     "warm_start",
     "validate_parameters",
+    "class_weights",
+    "kernel",
+    "gamma",
+    "shrinking",
+    "probability",
+    "class_weight",
+    "verbose",
+    "penalty",
+    "dual",
+    "fit_intercept",
+    "solver",
+    "multi_class",
+    "warm_start",
+    "normalize",
+    "copy_X",
+    "positive",
 ]
+
+# LinearRegression
+LINEARREGRESSION_REGRESSION_PARAMS_DEFAULT = {
+    "fit_intercept": True,
+    "normalize": False,
+    "copy_X": True,
+    "n_jobs": None,
+    "positive": False,
+}
+
+# svc
+SVC_CLASSIFICATION_PARAMS_DEFAULT = {
+    "C": 1.0,
+    "kernel": "rbf",
+    "degree": 3,
+    "gamma": "scale",
+    "coef0": 0.0,
+    "shrinking": True,
+    "probability": False,
+    "tol": 1e-3,
+    "cache_size": 200,
+    "class_weight": None,
+    "verbose": False,
+    "max_iter": -1,
+    "decision_function_shape": "ovr",
+}
+
+# logisticregression
+LOGISTICREGRESSION_CLASSIFICATION_PARAMS_DEFAULT = {
+    "penalty": "l2",
+    "dual": False,
+    "tol": 1e-4,
+    "C": 1.0,
+    "fit_intercept": True,
+    "intercept_scaling": 1,
+    "class_weightt": None,
+    "random_state": None,
+    "solver": "lbfgs",
+    "max_iter": 100,
+    "multi_class": "auto",
+    "verbose": 0,
+    "warm_start": False,
+    "n_jobs": None,
+    "l1_ratio": None,
+}
 
 
 # Catboost
@@ -141,6 +205,10 @@ CATBOOST_CLASSIFICATION_PARAMS_DEFAULT = {
     "leaf_estimation_iterations": 10,
     "bootstrap_type": "MVS",
     "max_leaves": 64,
+    "scale_pos_weight": None,
+    "class_weights": None,
+    "eta": None,
+    "n_estimators": None,
 }
 
 
@@ -183,6 +251,8 @@ CATBOOST_REGRESSION_PARAMS_DEFAULT = {
     "leaf_estimation_iterations": 1,
     "bootstrap_type": "MVS",
     "max_leaves": 64,
+    "eta": None,
+    "n_estimators": None,
 }
 
 

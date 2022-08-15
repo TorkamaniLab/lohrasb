@@ -5,6 +5,7 @@ import optuna
 import xgboost
 from imblearn.ensemble import BalancedRandomForestClassifier
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
@@ -22,6 +23,7 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
+from sklearn.svm import SVC
 
 from ..model_conf import Categorical_list, Integer_list
 
@@ -710,6 +712,28 @@ def _calc_best_estimator_optuna_univariate(
     with_stratified : bool
         Set True if you want data split in a stratified fashion. (default ``True``).
     """
+    if estimator.__class__.__name__ == "LogisticRegression" and with_stratified:
+        train_x, valid_x, train_y, valid_y = train_test_split(
+            X, y, stratify=y[y.columns.to_list()[0]], test_size=test_size
+        )
+        print(train_x)
+
+    if estimator.__class__.__name__ == "LogisticRegression" and not with_stratified:
+        train_x, valid_x, train_y, valid_y = train_test_split(
+            X, y, test_size=test_size, random_state=random_state
+        )
+
+    if estimator.__class__.__name__ == "SVC" and with_stratified:
+        train_x, valid_x, train_y, valid_y = train_test_split(
+            X, y, stratify=y[y.columns.to_list()[0]], test_size=test_size
+        )
+        print(train_x)
+
+    if estimator.__class__.__name__ == "SVC" and not with_stratified:
+        train_x, valid_x, train_y, valid_y = train_test_split(
+            X, y, test_size=test_size, random_state=random_state
+        )
+
     if estimator.__class__.__name__ == "XGBClassifier" and with_stratified:
         train_x, valid_x, train_y, valid_y = train_test_split(
             X, y, stratify=y[y.columns.to_list()[0]], test_size=test_size
@@ -725,6 +749,10 @@ def _calc_best_estimator_optuna_univariate(
         train_x, valid_x, train_y, valid_y = train_test_split(
             X, y, test_size=test_size, random_state=random_state
         )
+    if estimator.__class__.__name__ == "LinearRegression":
+        train_x, valid_x, train_y, valid_y = train_test_split(
+            X, y, test_size=test_size, random_state=random_state
+        )
 
     if estimator.__class__.__name__ == "CatBoostClassifier" and with_stratified:
         train_x, valid_x, train_y, valid_y = train_test_split(
@@ -733,6 +761,8 @@ def _calc_best_estimator_optuna_univariate(
     if estimator.__class__.__name__ == "CatBoostClassifier" and not with_stratified:
         train_x, valid_x, train_y, valid_y = train_test_split(X, y, test_size=test_size)
     if estimator.__class__.__name__ == "CatBoostRegressor":
+        train_x, valid_x, train_y, valid_y = train_test_split(X, y, test_size=test_size)
+    if estimator.__class__.__name__ == "LinearRegression":
         train_x, valid_x, train_y, valid_y = train_test_split(X, y, test_size=test_size)
 
     if estimator.__class__.__name__ == "RandomForestClassifier" and with_stratified:
@@ -806,6 +836,31 @@ def _calc_best_estimator_optuna_univariate(
                     callbacks=[pruning_callback],
                 )
             preds = est.predict(dvalid)
+            pred_labels = np.rint(preds)
+
+        if estimator.__class__.__name__ == "LogisticRegression":
+
+            param = {}
+            for param_key in estimator_params.keys():
+                param[param_key] = _trail_param_retrive(
+                    trial, estimator_params, param_key
+                )
+            param["verbose"] = verbose
+            lgc = LogisticRegression(**param)
+            lgc.fit(train_x, train_y)
+            preds = lgc.predict(valid_x)
+            pred_labels = np.rint(preds)
+
+        if estimator.__class__.__name__ == "SVC":
+
+            param = {}
+            for param_key in estimator_params.keys():
+                param[param_key] = _trail_param_retrive(
+                    trial, estimator_params, param_key
+                )
+            svc = SVC(**param)
+            svc.fit(train_x, train_y)
+            preds = svc.predict(valid_x)
             pred_labels = np.rint(preds)
 
         if estimator.__class__.__name__ == "CatBoostClassifier":
@@ -901,7 +956,23 @@ def _calc_best_estimator_optuna_univariate(
             rfest.fit(train_x, train_y)
             preds = rfest.predict(valid_x)
 
-        if "classifier" in estimator.__class__.__name__.lower():
+        if estimator.__class__.__name__ == "LinearRegression":
+            param = {}
+            for param_key in estimator_params.keys():
+                param[param_key] = _trail_param_retrive(
+                    trial, estimator_params, param_key
+                )
+
+            param["verbose"] = verbose
+            lr = LinearRegression(**param)
+            lr.fit(train_x, train_y)
+            preds = lr.predict(valid_x)
+
+        if (
+            "classifier" in estimator.__class__.__name__.lower()
+            or "svc" in estimator.__class__.__name__.lower()
+            or "logisticregression" in estimator.__class__.__name__.lower()
+        ):
             accr = _calc_metric_for_single_output_classification(
                 valid_y, pred_labels, measure_of_accuracy
             )
@@ -928,6 +999,18 @@ def _calc_best_estimator_optuna_univariate(
             dtrain,
             evals=[(dvalid, "validation")],
         )
+    if estimator.__class__.__name__ == "LogisticRegression":
+        print(trial.params)
+        clf = LogisticRegression(**trial.params)
+        best_estimator = clf.fit(train_x, train_y)
+    if estimator.__class__.__name__ == "LinearRegression":
+        print(trial.params)
+        regressor = LinearRegression(**trial.params)
+        best_estimator = regressor.fit(train_x, train_y)
+    if estimator.__class__.__name__ == "SVC":
+        print(trial.params)
+        clf = SVC(**trial.params)
+        best_estimator = clf.fit(train_x, train_y)
     if estimator.__class__.__name__ == "CatBoostClassifier":
         print(trial.params)
         clf = catboost.CatBoostClassifier(**trial.params)

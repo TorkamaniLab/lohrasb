@@ -12,6 +12,8 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from imblearn.ensemble import BalancedRandomForestClassifier
 import lightgbm
 from lohrasb.project_conf import ROOT_PROJECT
+from sklearn.linear_model import LogisticRegression, LinearRegression
+from sklearn.svm import SVC
 
 SFC_XGBREG_OPTUNA = BaseModel(
     estimator=xgboost.XGBRegressor(),
@@ -60,6 +62,26 @@ SFC_XGBCLS_OPTUNA = BaseModel(
 SFC_RFREG_OPTUNA = BaseModel(
     estimator=RandomForestRegressor(),
     estimator_params={"max_depth": [4, 5], "verbose": [0]},
+    hyper_parameter_optimization_method="optuna",
+    measure_of_accuracy="r2",
+    test_size=0.33,
+    cv=KFold(n_splits=3, random_state=42, shuffle=True),
+    with_stratified=False,
+    verbose=3,
+    random_state=42,
+    n_jobs=-1,
+    n_iter=100,
+    eval_metric="no",
+    number_of_trials=10,
+    sampler=TPESampler(),
+    pruner=HyperbandPruner(),
+)
+
+SFC_LRREG_OPTUNA = BaseModel(
+    estimator=LinearRegression(),
+    estimator_params={
+        "positive": [True,False],
+         },
     hyper_parameter_optimization_method="optuna",
     measure_of_accuracy="r2",
     test_size=0.33,
@@ -146,6 +168,49 @@ SFC_BRFCLS_OPTUNA = BaseModel(
     pruner=HyperbandPruner(),
 )
 
+SFC_LGCLS_OPTUNA = BaseModel(
+    estimator=LogisticRegression(),
+    estimator_params={
+        "C": [1, 12]
+        },
+    hyper_parameter_optimization_method="optuna",
+    measure_of_accuracy="f1",
+    test_size=0.33,
+    cv=KFold(n_splits=3, random_state=42, shuffle=True),
+    with_stratified=True,
+    verbose=3,
+    random_state=42,
+    n_jobs=-1,
+    n_iter=100,
+    eval_metric="auc",
+    number_of_trials=10,
+    sampler=TPESampler(),
+    pruner=HyperbandPruner(),
+)
+
+
+SFC_SVCCLS_OPTUNA = BaseModel(
+    estimator=SVC(),
+    estimator_params={
+        "C": [1, 2] ,
+        "kernel" : ["rbf"]
+    },
+    hyper_parameter_optimization_method="optuna",
+    measure_of_accuracy="f1",
+    test_size=0.33,
+    cv=KFold(n_splits=3, random_state=42, shuffle=True),
+    with_stratified=True,
+    verbose=3,
+    random_state=42,
+    n_jobs=-1,
+    n_iter=10,
+    eval_metric="auc",
+    number_of_trials=5,
+    sampler=TPESampler(),
+    pruner=HyperbandPruner(),
+)
+
+
 SFC_CAT_OPTUNA = BaseModel(
     estimator=catboost.CatBoostClassifier(),
     estimator_params={
@@ -217,6 +282,15 @@ def run_balancedrandomforest_classifier():
     y_pred = SFC_BRFCLS_OPTUNA.predict(X_test)
     print(y_pred)
 
+def run_svc_classifier():
+    SFC_SVCCLS_OPTUNA.fit(X_train, y_train)
+    y_pred = SFC_SVCCLS_OPTUNA.predict(X_test)
+    print(y_pred)
+
+def run_logistic_classifier():
+    SFC_LGCLS_OPTUNA.fit(X_train, y_train)
+    y_pred = SFC_LGCLS_OPTUNA.predict(X_test)
+    print(y_pred)
 
 def run_catboost_classifier():
     SFC_CAT_OPTUNA.fit(X_train, y_train)
@@ -236,6 +310,10 @@ def run_lgb_regressor():
     y_pred = SFC_LGBREG_OPTUNA.predict(X_test)
     print(y_pred)
 
+def run_linear_regression():
+    SFC_LRREG_OPTUNA.fit(X_train, y_train)
+    y_pred = SFC_LRREG_OPTUNA.predict(X_test)
+    print(y_pred)
 
 if __name__ == "__main__":
     # run random forest regressor on test data
@@ -246,10 +324,13 @@ if __name__ == "__main__":
     # run_balancedrandomforest_classifier() # OK
     # run xgboost regressor on test data
     # run_xgboost_regressor() # OK
-    run_xgboost_classifier() # OK
+    # run_xgboost_classifier() # OK
+    # run_svc_classifier() # OK
+    # run_logistic_classifier() # OK
+    # run_linear_regression() # OK
     # run catboost classifier on test data
     # run_catboost_classifier() # OK
     # run lgb classifier on test data
     # run_lgb_classifier() # OK
     # run lgb regressor on test data
-    # run_lgb_regressor() # OK
+    run_lgb_regressor() # OK
