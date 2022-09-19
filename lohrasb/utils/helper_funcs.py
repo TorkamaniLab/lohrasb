@@ -25,8 +25,6 @@ from sklearn.metrics import (
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
 from sklearn.svm import SVC
 
-from ..model_conf import Categorical_list, Integer_list
-
 maping_mesurements = {
     "accuracy_score": accuracy_score,
     "explained_variance_score": explained_variance_score,
@@ -54,31 +52,7 @@ maping_mesurements = {
 def _trail_param_retrive(trial, dict, keyword):
     """An internal function. Return a trial suggest using dict params of estimator and
     one keyword of it. Based on the keyword, it will return an
-    Optuna.trial.suggest. If the keyword be in
-    "iterations", "penalties_coefficient", "l2_leaf_reg","random_strength",
-    "rsm,","depth","border_count","classes_count","sparse_features_conflict_fraction",
-    "best_model_min_trees","model_shrink_rate","min_data_in_leaf","leaf_estimation_iterations",
-    "max_leaves","n_estimators","min_samples_split","min_samples_leaf","num_leaves",
-    "max_depth","subsample_for_bin","min_child_samples","n_jobs","random_state",
-    "max_leaf_nodes","verbosity","num_parallel_tree","min_child_weight","max_leaves",
-    "max_bin"
-
-    then the return will be trial.suggest_int(keyword, min(dict[keyword]), max(dict[keyword]))
-
-    If the keyword is in
-    "nan_mode","eval_metric","sampling_frequency","leaf_estimation_method","grow_policy",
-    "boosting_type","model_shrink_mode","feature_border_type","auto_class_weights",
-    "leaf_estimation_backtracking","loss_function","score_function","task_type",
-    "bootstrap_type","objective","criterion", "max_features","sampling_strategy",
-    "silent","importance_type","class_weight","tree_method","sampling_method",
-    "predictor","grow_policy","eval_metric","booster","force_unit_auto_pair_weights",
-    "boost_from_average","use_best_model","force_unit_auto_pair_weights","boost_from_average",
-    "use_best_model","posterior_sampling","use_label_encoder","enable_categorical",
-    "oob_score","warm_start","bootstrap","oob_score","warm_start","validate_parameters"
-
-    then the return will be a return trial.suggest_categorical(keyword, dict[keyword])
-    for some other keywords not in the above lists
-    then the return will be trial.suggest_float(keyword, min(dict[keyword]), max(dict[keyword]))
+    Optuna.trial.suggest. The return will be trial.suggest_int(keyword, min(dict[keyword]), max(dict[keyword]))
 
     Example : _trail_param_retrive(trial, {
             "max_depth": [2, 3],
@@ -102,12 +76,15 @@ def _trail_param_retrive(trial, dict, keyword):
     Keyword: str
         A keyword of estimator key params. e.g., "gamma"
     """
-    if keyword in Integer_list:
-        return trial.suggest_int(keyword, min(dict[keyword]), max(dict[keyword]))
-    if keyword in Categorical_list:
+    if isinstance(dict[keyword][0] , str)  or dict[keyword][0] is None:
         return trial.suggest_categorical(keyword, dict[keyword])
-
-    else:
+    if isinstance(dict[keyword][0] , int):
+        if len(dict[keyword]) >=2:
+            if isinstance(dict[keyword][1] , int):
+                return trial.suggest_int(keyword, min(dict[keyword]), max(dict[keyword]))
+        else :
+            return trial.suggest_float(keyword, min(dict[keyword]), max(dict[keyword]))
+    if isinstance(dict[keyword][0] , float):
         return trial.suggest_float(keyword, min(dict[keyword]), max(dict[keyword]))
 
 
@@ -279,292 +256,6 @@ def _calc_metric_for_single_output_regression(valid_y, pred_labels, SCORE_TYPE):
         return mean_absolute_percentage_error_err
 
 
-def _calc_best_estimator_grid_search(
-    X, y, estimator, estimator_params, measure_of_accuracy, verbose, n_jobs, cv
-):
-    """Internal function for returning best estimator using
-    assigned parameters by GridSearch.
-
-    Parameters
-    ----------
-    X : Pandas DataFrame
-        Training data. Must fulfill input requirements of the feature selection
-        step of the pipeline.
-    y : Pandas DataFrame or Pandas series
-        Training targets. Must fulfill label requirements of the feature selection
-        step of the pipeline.
-    estimator: object
-        An unfitted estimator. For now, only tree-based estimators. Supported
-        methods are, "XGBRegressor",
-        ``XGBClassifier``, ``RandomForestClassifier``,``RandomForestRegressor``,
-        ``CatBoostClassifier``,``CatBoostRegressor``,
-        ``BalancedRandomForestClassifier``,
-        ``LGBMClassifier``, and ``LGBMRegressor``.
-    estimator_params: dict
-        Parameters passed to find the best estimator using optimization
-        method. For CATBOOST_CLASSIFICATION_PARAMS_DEFAULT are :     "nan_mode": "Min",
-        "eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-        "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-        "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-        "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-        "pool_metainfo_options","subsample","use_best_model","class_names",
-        "random_seed","depth","posterior_sampling","border_count",
-        "classes_count","auto_class_weights","sparse_features_conflict_fraction",
-        "leaf_estimation_backtracking","best_model_min_trees","model_shrink_rate",
-        "min_data_in_leaf","loss_function","learning_rate","score_function",
-        "task_type","leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-        For CATBOOST_REGRESSION_PARAMS_DEFAULT are :
-        "nan_mode","eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-        "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-        "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-        "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-        "pool_metainfo_options","subsample","use_best_model","random_seed","depth",
-        "posterior_sampling","border_count","classes_count","auto_class_weights",
-        "sparse_features_conflict_fraction","leaf_estimation_backtracking",
-        "best_model_min_trees","model_shrink_rate","min_data_in_leaf",
-        "loss_function","learning_rate","score_function","task_type",
-        "leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-        For XGBOOST_CLASSIFICATION_PARAMS_DEFAULT are :
-        "objective","use_label_encoder","base_score","booster",
-        "callbacks","colsample_bylevel","colsample_bynode","colsample_bytree",
-        "early_stopping_rounds","enable_categorical","eval_metric","gamma",
-        "gpu_id","grow_policy","importance_type","interaction_constraints",
-        "learning_rate","max_bin","max_cat_to_onehot","max_delta_step",
-        "max_depth","max_leaves","min_child_weight","missing","monotone_constraints",
-        "n_estimators","n_jobs","num_parallel_tree","predictor","random_state",
-        "reg_alpha","reg_lambda","sampling_method","scale_pos_weight","subsample",
-        "tree_method","validate_parameters","verbosity"
-
-        For XGBOOST_REGRESSION_PARAMS_DEFAULT are :
-        "objective","base_score","booster","callbacks","colsample_bylevel","colsample_bynode",
-        "colsample_bytree","early_stopping_rounds","enable_categorical","eval_metric",
-        "gamma","gpu_id","grow_policy","importance_type","interaction_constraints",
-        "learning_rate","max_bin","max_cat_to_onehot","max_delta_step","max_depth",
-        "max_leaves","min_child_weight","missing","monotone_constraints","n_estimators",
-        "n_jobs","num_parallel_tree","predictor","random_state","reg_alpha","reg_lambda",
-        "sampling_method","scale_pos_weight","subsample","tree_method","validate_parameters",
-        "verbosity"
-
-        For RANDOMFOREST_CLASSIFICATION_PARAMS_DEFAULT are :
-        "n_estimators","criterion","max_depth","min_samples_split",
-        "min_samples_leaf","min_weight_fraction_leaf","max_features",
-        "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-        "n_jobs","random_state","verbose","warm_start","class_weight",
-        "ccp_alpha","max_samples"
-
-        For RANDOMFOREST_REGRESSION_PARAMS_DEFAULT are :
-        "n_estimators","criterion","max_depth","min_samples_split",
-        "min_samples_leaf","min_weight_fraction_leaf","max_features",
-        "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-        "n_jobs","random_state","verbose","warm_start","ccp_alpha","max_samples"
-
-        For BLF_CLASSIFICATION_PARAMS_DEFAULT are :
-        "n_estimators","criterion"","max_depth","min_samples_split","min_samples_leaf",
-        "min_weight_fraction_leaf","max_features","max_leaf_nodes","min_impurity_decrease",
-        "bootstrap","oob_score","sampling_strategy","replacement","n_jobs","random_state",
-        "verbose","warm_start","class_weight","ccp_alpha","max_samples"
-
-        For LGB_CLASSIFICATION_PARAMS_DEFAULT are:
-        "boosting_type","num_leaves","max_depth","learning_rate","n_estimators",
-        "subsample_for_bin","objective","class_weight","min_split_gain","min_child_weight",
-        "min_child_samples","subsample","subsample_freq","colsample_bytree","reg_alpha",
-        "reg_lambda","random_state","n_jobs","silent","importance_type"
-
-        For LGB_REGRESSION_PARAMS_DEFAULT are:
-        "boosting_type","num_leaves","max_depth","learning_rate",
-        "n_estimators","subsample_for_bin","objective","class_weight",
-        "min_split_gain","min_child_weight","min_child_samples","subsample",
-        "subsample_freq","colsample_bytree","reg_alpha","reg_lambda","random_state",
-        "n_jobs","silent","importance_type"
-    measure_of_accuracy : str
-        Measurement of performance for classification and
-        regression estimator during hyperparameter optimization while
-        estimating best estimator. Classification-supported measurments are
-        f1, f1_score, acc, accuracy_score, pr, precision_score,
-        recall, recall_score, roc, roc_auc_score, roc_auc,
-        tp, true positive, tn, true negative. Regression supported
-        measurements are r2, r2_score, explained_variance_score,
-        max_error, mean_absolute_error, mean_squared_error,
-        median_absolute_error, and mean_absolute_percentage_error.    ----------
-    verbose : int
-        Controls the verbosity across all objects: the higher, the more messages.
-    n_jobs : int
-        Number of jobs to run in parallel for Grid Search, Random Search, and Optuna.
-        ``-1`` means using all processors. (default -1)
-    cv : int
-            cross-validation generator or an iterable.
-            Determines the cross-validation splitting strategy. Possible inputs
-            for cv are: None, to use the default 5-fold cross-validation,
-            int, to specify the number of folds in a (Stratified)KFold,
-            CV splitter, An iterable yielding (train, test) splits
-            as arrays of indices. For int/None inputs, if the estimator
-            is a classifier and y is either binary or multiclass,
-            StratifiedKFold is used. In all other cases, Fold is used.
-            These splitters are instantiated with shuffle=False, so the splits
-            will be the same across calls.
-
-    """
-    grid_search = GridSearchCV(
-        estimator,
-        param_grid=estimator_params,
-        cv=cv,
-        n_jobs=n_jobs,
-        scoring=make_scorer(maping_mesurements[measure_of_accuracy]),
-        verbose=verbose,
-    )
-    grid_search.fit(X, y)
-    best_estimator = grid_search.best_estimator_
-    return best_estimator
-
-
-def _calc_best_estimator_random_search(
-    X, y, estimator, estimator_params, measure_of_accuracy, verbose, n_jobs, n_iter, cv
-):
-    """Internal function for returning best estimator using
-    assigned parameters by RandomSearch.
-
-    Parameters
-    ----------
-    X : Pandas DataFrame
-        Training data. Must fulfill input requirements of the feature selection
-        step of the pipeline.
-    y : Pandas DataFrame or Pandas series
-        Training targets. Must fulfill label requirements of the feature selection
-        step of the pipeline.
-    estimator: object
-        An unfitted estimator. For now, only tree-based estimators. Supported
-        methods are, "XGBRegressor",
-        ``XGBClassifier``, ``RandomForestClassifier``,``RandomForestRegressor``,
-        ``CatBoostClassifier``,``CatBoostRegressor``,
-        ``BalancedRandomForestClassifier``,
-        ``LGBMClassifier``, and ``LGBMRegressor``.
-    estimator_params: dict
-        Parameters passed to find the best estimator using optimization
-        method. For CATBOOST_CLASSIFICATION_PARAMS_DEFAULT are :     "nan_mode": "Min",
-        "eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-        "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-        "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-        "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-        "pool_metainfo_options","subsample","use_best_model","class_names",
-        "random_seed","depth","posterior_sampling","border_count",
-        "classes_count","auto_class_weights","sparse_features_conflict_fraction",
-        "leaf_estimation_backtracking","best_model_min_trees","model_shrink_rate",
-        "min_data_in_leaf","loss_function","learning_rate","score_function",
-        "task_type","leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-        For CATBOOST_REGRESSION_PARAMS_DEFAULT are :
-        "nan_mode","eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-        "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-        "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-        "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-        "pool_metainfo_options","subsample","use_best_model","random_seed","depth",
-        "posterior_sampling","border_count","classes_count","auto_class_weights",
-        "sparse_features_conflict_fraction","leaf_estimation_backtracking",
-        "best_model_min_trees","model_shrink_rate","min_data_in_leaf",
-        "loss_function","learning_rate","score_function","task_type",
-        "leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-        For XGBOOST_CLASSIFICATION_PARAMS_DEFAULT are :
-        "objective","use_label_encoder","base_score","booster",
-        "callbacks","colsample_bylevel","colsample_bynode","colsample_bytree",
-        "early_stopping_rounds","enable_categorical","eval_metric","gamma",
-        "gpu_id","grow_policy","importance_type","interaction_constraints",
-        "learning_rate","max_bin","max_cat_to_onehot","max_delta_step",
-        "max_depth","max_leaves","min_child_weight","missing","monotone_constraints",
-        "n_estimators","n_jobs","num_parallel_tree","predictor","random_state",
-        "reg_alpha","reg_lambda","sampling_method","scale_pos_weight","subsample",
-        "tree_method","validate_parameters","verbosity"
-
-        For XGBOOST_REGRESSION_PARAMS_DEFAULT are :
-        "objective","base_score","booster","callbacks","colsample_bylevel","colsample_bynode",
-        "colsample_bytree","early_stopping_rounds","enable_categorical","eval_metric",
-        "gamma","gpu_id","grow_policy","importance_type","interaction_constraints",
-        "learning_rate","max_bin","max_cat_to_onehot","max_delta_step","max_depth",
-        "max_leaves","min_child_weight","missing","monotone_constraints","n_estimators",
-        "n_jobs","num_parallel_tree","predictor","random_state","reg_alpha","reg_lambda",
-        "sampling_method","scale_pos_weight","subsample","tree_method","validate_parameters",
-        "verbosity"
-
-        For RANDOMFOREST_CLASSIFICATION_PARAMS_DEFAULT are :
-        "n_estimators","criterion","max_depth","min_samples_split",
-        "min_samples_leaf","min_weight_fraction_leaf","max_features",
-        "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-        "n_jobs","random_state","verbose","warm_start","class_weight",
-        "ccp_alpha","max_samples"
-
-        For RANDOMFOREST_REGRESSION_PARAMS_DEFAULT are :
-        "n_estimators","criterion","max_depth","min_samples_split",
-        "min_samples_leaf","min_weight_fraction_leaf","max_features",
-        "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-        "n_jobs","random_state","verbose","warm_start","ccp_alpha","max_samples"
-
-        For BLF_CLASSIFICATION_PARAMS_DEFAULT are :
-        "n_estimators","criterion"","max_depth","min_samples_split","min_samples_leaf",
-        "min_weight_fraction_leaf","max_features","max_leaf_nodes","min_impurity_decrease",
-        "bootstrap","oob_score","sampling_strategy","replacement","n_jobs","random_state",
-        "verbose","warm_start","class_weight","ccp_alpha","max_samples"
-
-        For LGB_CLASSIFICATION_PARAMS_DEFAULT are:
-        "boosting_type","num_leaves","max_depth","learning_rate","n_estimators",
-        "subsample_for_bin","objective","class_weight","min_split_gain","min_child_weight",
-        "min_child_samples","subsample","subsample_freq","colsample_bytree","reg_alpha",
-        "reg_lambda","random_state","n_jobs","silent","importance_type"
-
-        For LGB_REGRESSION_PARAMS_DEFAULT are:
-        "boosting_type","num_leaves","max_depth","learning_rate",
-        "n_estimators","subsample_for_bin","objective","class_weight",
-        "min_split_gain","min_child_weight","min_child_samples","subsample",
-        "subsample_freq","colsample_bytree","reg_alpha","reg_lambda","random_state",
-        "n_jobs","silent","importance_type"
-    measure_of_accuracy : str
-        Measurement of performance for classification and
-        regression estimator during hyperparameter optimization while
-        estimating best estimator. Classification-supported measurments are
-        f1, f1_score, acc, accuracy_score, pr, precision_score,
-        recall, recall_score, roc, roc_auc_score, roc_auc,
-        tp, true positive, tn, true negative. Regression supported
-        measurements are r2, r2_score, explained_variance_score,
-        max_error, mean_absolute_error, mean_squared_error,
-        median_absolute_error, and mean_absolute_percentage_error.    ----------
-    verbose : int
-        Controls the verbosity across all objects: the higher, the more messages.
-    n_jobs : int
-        Number of jobs to run in parallel for Grid Search, Random Search, and Optuna.
-        ``-1`` means using all processors. (default -1)
-    n_iter : int
-        Only it means full in Random Search. it is several parameter
-        settings that are sampled. n_iter trades off runtime vs quality of the solution.
-    cv : int
-            cross-validation generator or an iterable.
-            Determines the cross-validation splitting strategy. Possible inputs
-            for cv are: None, to use the default 5-fold cross-validation,
-            int, to specify the number of folds in a (Stratified)KFold,
-            CV splitter, An iterable yielding (train, test) splits
-            as arrays of indices. For int/None inputs, if the estimator
-            is a classifier and y is either binary or multiclass,
-            StratifiedKFold is used. In all other cases, Fold is used.
-            These splitters are instantiated with shuffle=False, so the splits
-            will be the same across calls.
-
-
-    """
-    random_search = RandomizedSearchCV(
-        estimator,
-        param_distributions=estimator_params,
-        cv=cv,
-        n_iter=n_iter,
-        n_jobs=n_jobs,
-        scoring=make_scorer(maping_mesurements[measure_of_accuracy]),
-        verbose=verbose,
-    )
-
-    random_search.fit(X, y)
-    best_estimator = random_search.best_estimator_
-    return best_estimator
-
-
 def _calc_best_estimator_optuna_univariate(
     X,
     y,
@@ -600,82 +291,7 @@ def _calc_best_estimator_optuna_univariate(
         ``LGBMClassifier``, and ``LGBMRegressor``.
     estimator_params: dict
         Parameters passed to find the best estimator using optimization
-        method. For CATBOOST_CLASSIFICATION_PARAMS_DEFAULT are :     "nan_mode": "Min",
-        "eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-        "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-        "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-        "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-        "pool_metainfo_options","subsample","use_best_model","class_names",
-        "random_seed","depth","posterior_sampling","border_count",
-        "classes_count","auto_class_weights","sparse_features_conflict_fraction",
-        "leaf_estimation_backtracking","best_model_min_trees","model_shrink_rate",
-        "min_data_in_leaf","loss_function","learning_rate","score_function",
-        "task_type","leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-        For CATBOOST_REGRESSION_PARAMS_DEFAULT are :
-        "nan_mode","eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-        "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-        "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-        "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-        "pool_metainfo_options","subsample","use_best_model","random_seed","depth",
-        "posterior_sampling","border_count","classes_count","auto_class_weights",
-        "sparse_features_conflict_fraction","leaf_estimation_backtracking",
-        "best_model_min_trees","model_shrink_rate","min_data_in_leaf",
-        "loss_function","learning_rate","score_function","task_type",
-        "leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-        For XGBOOST_CLASSIFICATION_PARAMS_DEFAULT are :
-        "objective","use_label_encoder","base_score","booster",
-        "callbacks","colsample_bylevel","colsample_bynode","colsample_bytree",
-        "early_stopping_rounds","enable_categorical","eval_metric","gamma",
-        "gpu_id","grow_policy","importance_type","interaction_constraints",
-        "learning_rate","max_bin","max_cat_to_onehot","max_delta_step",
-        "max_depth","max_leaves","min_child_weight","missing","monotone_constraints",
-        "n_estimators","n_jobs","num_parallel_tree","predictor","random_state",
-        "reg_alpha","reg_lambda","sampling_method","scale_pos_weight","subsample",
-        "tree_method","validate_parameters","verbosity"
-
-        For XGBOOST_REGRESSION_PARAMS_DEFAULT are :
-        "objective","base_score","booster","callbacks","colsample_bylevel","colsample_bynode",
-        "colsample_bytree","early_stopping_rounds","enable_categorical","eval_metric",
-        "gamma","gpu_id","grow_policy","importance_type","interaction_constraints",
-        "learning_rate","max_bin","max_cat_to_onehot","max_delta_step","max_depth",
-        "max_leaves","min_child_weight","missing","monotone_constraints","n_estimators",
-        "n_jobs","num_parallel_tree","predictor","random_state","reg_alpha","reg_lambda",
-        "sampling_method","scale_pos_weight","subsample","tree_method","validate_parameters",
-        "verbosity"
-
-        For RANDOMFOREST_CLASSIFICATION_PARAMS_DEFAULT are :
-        "n_estimators","criterion","max_depth","min_samples_split",
-        "min_samples_leaf","min_weight_fraction_leaf","max_features",
-        "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-        "n_jobs","random_state","verbose","warm_start","class_weight",
-        "ccp_alpha","max_samples"
-
-        For RANDOMFOREST_REGRESSION_PARAMS_DEFAULT are :
-        "n_estimators","criterion","max_depth","min_samples_split",
-        "min_samples_leaf","min_weight_fraction_leaf","max_features",
-        "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-        "n_jobs","random_state","verbose","warm_start","ccp_alpha","max_samples"
-
-        For BLF_CLASSIFICATION_PARAMS_DEFAULT are :
-        "n_estimators","criterion"","max_depth","min_samples_split","min_samples_leaf",
-        "min_weight_fraction_leaf","max_features","max_leaf_nodes","min_impurity_decrease",
-        "bootstrap","oob_score","sampling_strategy","replacement","n_jobs","random_state",
-        "verbose","warm_start","class_weight","ccp_alpha","max_samples"
-
-        For LGB_CLASSIFICATION_PARAMS_DEFAULT are:
-        "boosting_type","num_leaves","max_depth","learning_rate","n_estimators",
-        "subsample_for_bin","objective","class_weight","min_split_gain","min_child_weight",
-        "min_child_samples","subsample","subsample_freq","colsample_bytree","reg_alpha",
-        "reg_lambda","random_state","n_jobs","silent","importance_type"
-
-        For LGB_REGRESSION_PARAMS_DEFAULT are:
-        "boosting_type","num_leaves","max_depth","learning_rate",
-        "n_estimators","subsample_for_bin","objective","class_weight",
-        "min_split_gain","min_child_weight","min_child_samples","subsample",
-        "subsample_freq","colsample_bytree","reg_alpha","reg_lambda","random_state",
-        "n_jobs","silent","importance_type"
+        method. 
     measure_of_accuracy : str
         Measurement of performance for classification and
         regression estimator during hyperparameter optimization while
@@ -712,6 +328,8 @@ def _calc_best_estimator_optuna_univariate(
     with_stratified : bool
         Set True if you want data split in a stratified fashion. (default ``True``).
     """
+
+
     if estimator.__class__.__name__ == "LogisticRegression" and with_stratified:
         train_x, valid_x, train_y, valid_y = train_test_split(
             X, y, stratify=y[y.columns.to_list()[0]], test_size=test_size
@@ -817,10 +435,6 @@ def _calc_best_estimator_optuna_univariate(
                     trial, estimator_params, param_key
                 )
 
-            # Add a callback for pruning.
-            pruning_callback = optuna.integration.XGBoostPruningCallback(
-                trial, "validation-" + eval_metric
-            )
             if estimator.__class__.__name__ == "XGBRegressor":
                 est = xgboost.train(
                     param,
@@ -833,7 +447,6 @@ def _calc_best_estimator_optuna_univariate(
                     param,
                     dtrain,
                     evals=[(dvalid, "validation")],
-                    callbacks=[pruning_callback],
                 )
             preds = est.predict(dvalid)
             pred_labels = np.rint(preds)
@@ -1040,4 +653,4 @@ def _calc_best_estimator_optuna_univariate(
         regressor = lightgbm.LGBMRegressor(**trial.params)
         best_estimator = regressor.fit(train_x, train_y)
 
-    return best_estimator
+    return best_estimator, study, trial

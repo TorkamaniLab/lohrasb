@@ -1,30 +1,293 @@
-from abc import ABCMeta
+# https://www.geeksforgeeks.org/inspect-module-in-python/
 
+from abc import ABCMeta
+from pickletools import optimize
 import xgboost
+import optuna
 from optuna.pruners import HyperbandPruner
 from optuna.samplers import TPESampler
 from sklearn.base import BaseEstimator
+from lohrasb.abstracts.optimizerOptuna import OptimizerOptuna
+from lohrasb.decorators.decorators import trackcalls
+from lohrasb.abstracts.optimizerCV import OptimizerCV
+from lohrasb.factories.factories import OptimizerFactory
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
-from lohrasb.model_conf import (
-    BLF_CLASSIFICATION_PARAMS_DEFAULT,
-    CATBOOST_CLASSIFICATION_PARAMS_DEFAULT,
-    CATBOOST_REGRESSION_PARAMS_DEFAULT,
-    LGB_CLASSIFICATION_PARAMS_DEFAULT,
-    LGB_REGRESSION_PARAMS_DEFAULT,
-    LINEARREGRESSION_REGRESSION_PARAMS_DEFAULT,
-    LOGISTICREGRESSION_CLASSIFICATION_PARAMS_DEFAULT,
-    RANDOMFOREST_CLASSIFICATION_PARAMS_DEFAULT,
-    RANDOMFOREST_REGRESSION_PARAMS_DEFAULT,
-    SUPPORTED_MODELS,
-    SVC_CLASSIFICATION_PARAMS_DEFAULT,
-    XGBOOST_CLASSIFICATION_PARAMS_DEFAULT,
-    XGBOOST_REGRESSION_PARAMS_DEFAULT,
+from lohrasb.model_conf import SUPPORTED_MODELS
+from sklearn.metrics import (
+    make_scorer,
 )
+
 from lohrasb.utils.helper_funcs import (
-    _calc_best_estimator_grid_search,
     _calc_best_estimator_optuna_univariate,
-    _calc_best_estimator_random_search,
 )
+
+from lohrasb.utils.helper_funcs import maping_mesurements
+
+
+class OptunaSearch(OptimizerOptuna):
+    def __init__(
+        self,
+        X,
+        y,
+        estimator,
+        estimator_params,
+        measure_of_accuracy,
+        verbose,
+        n_jobs,
+        cv,
+    ):
+        self.X = X
+        self.y = y
+        self.estimator = estimator
+        self.estimator_params = estimator_params
+        self.measure_of_accuracy = measure_of_accuracy
+        self.verbose = verbose
+        self.n_jobs = n_jobs
+        self.cv = cv
+        self.grid_search = None
+        self.best_estimator = None
+
+    @trackcalls
+    def optimize(self):
+        self.grid_search = GridSearchCV(
+            self.estimator,
+            param_grid=self.estimator_params,
+            cv=self.cv,
+            n_jobs=self.n_jobs,
+            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
+            verbose=self.verbose,
+        )
+        self.grid_search.fit(self.X, self.y)
+        self.best_estimator = self.grid_search.best_estimator_
+        return self
+
+    def get_best_estimator(self, *args, **kwargs):
+        if self.optimize.has_been_called and self.best_estimator is not None:
+            return self.best_estimator
+        else:
+            self.best_estimator, self.random_search = self.optimize(
+            self.estimator,
+            param_grid=self.estimator_params,
+            cv=self.cv,
+            n_jobs=self.n_jobs,
+            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
+            verbose=self.verbose,
+            )
+            if optimize.has_been_called and self.best_estimator is not None:
+                return self.best_estimator
+            else:
+                raise NotImplementedError(
+                    "RandomSearch has not been implemented \
+                    or best_estomator is null"
+                )
+        return False
+
+    def get_optimized_object(self, *args, **kwargs):
+        if optimize.has_been_called and self.grid_search is not None:
+            return self.grid_search
+        else:
+            raise NotImplementedError(
+                "GridSearch has not been implemented \
+                or best_estomator is null"
+            )
+
+
+
+class GridSearch(OptimizerCV):
+    def __init__(
+        self,
+        X,
+        y,
+        estimator,
+        estimator_params,
+        measure_of_accuracy,
+        verbose,
+        n_jobs,
+        cv,
+    ):
+        self.X = X
+        self.y = y
+        self.estimator = estimator
+        self.estimator_params = estimator_params
+        self.measure_of_accuracy = measure_of_accuracy
+        self.verbose = verbose
+        self.n_jobs = n_jobs
+        self.cv = cv
+        self.grid_search = None
+        self.best_estimator = None
+
+    @trackcalls
+    def optimize(self):
+        self.grid_search = GridSearchCV(
+            self.estimator,
+            param_grid=self.estimator_params,
+            cv=self.cv,
+            n_jobs=self.n_jobs,
+            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
+            verbose=self.verbose,
+        )
+        self.grid_search.fit(self.X, self.y)
+        self.best_estimator = self.grid_search.best_estimator_
+        return self
+
+    def get_best_estimator(self, *args, **kwargs):
+        if self.optimize.has_been_called and self.best_estimator is not None:
+            return self.best_estimator
+        else:
+            self.best_estimator, self.random_search = self.optimize(
+            self.estimator,
+            param_grid=self.estimator_params,
+            cv=self.cv,
+            n_jobs=self.n_jobs,
+            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
+            verbose=self.verbose,
+            )
+            if optimize.has_been_called and self.best_estimator is not None:
+                return self.best_estimator
+            else:
+                raise NotImplementedError(
+                    "RandomSearch has not been implemented \
+                    or best_estomator is null"
+                )
+        return False
+
+    def get_optimized_object(self, *args, **kwargs):
+        if optimize.has_been_called and self.grid_search is not None:
+            return self.grid_search
+        else:
+            raise NotImplementedError(
+                "GridSearch has not been implemented \
+                or best_estomator is null"
+            )
+
+
+class RandomSearch(OptimizerCV):
+    def __init__(
+        self,
+        X,
+        y,
+        estimator,
+        estimator_params,
+        measure_of_accuracy,
+        verbose,
+        n_jobs,
+        n_iter,
+        cv,
+    ):
+        self.X = X
+        self.y = y
+        self.estimator = estimator
+        self.estimator_params = estimator_params
+        self.measure_of_accuracy = measure_of_accuracy
+        self.verbose = verbose
+        self.n_jobs = n_jobs
+        self.n_iter = n_iter
+        self.cv = cv
+        self.random_search = None
+        self.best_estimator = None
+
+    @trackcalls
+    def optimize(self):
+        self.random_search = RandomizedSearchCV(
+            self.estimator,
+            param_distributions=self.estimator_params,
+            cv=self.cv,
+            n_iter=self.n_iter,
+            n_jobs=self.n_jobs,
+            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
+            verbose=self.verbose,
+        )
+
+        self.random_search.fit(self.X, self.y)
+        self.best_estimator = self.random_search.best_estimator_
+        return self
+
+    def get_best_estimator(self, *args, **kwargs):
+        if self.optimize.has_been_called and self.best_estimator is not None:
+            return self.best_estimator
+        else:
+            self.best_estimator, self.random_search = self.optimize(
+            self.estimator,
+            param_distributions=self.estimator_params,
+            cv=self.cv,
+            n_iter=self.n_iter,
+            n_jobs=self.n_jobs,
+            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
+            verbose=self.verbose,
+            )
+            if optimize.has_been_called and self.best_estimator is not None:
+                return self.best_estimator
+            else:
+                raise NotImplementedError(
+                    "RandomSearch has not been implemented \
+                    or best_estomator is null"
+                )
+        return False
+
+    def get_optimized_object(self, *args, **kwargs):
+        if optimize.has_been_called and self.grid_search is not None:
+            return self.grid_search
+        else:
+            raise NotImplementedError(
+                "RandomSearch has not been implemented \
+                or best_estomator is null"
+            )
+
+
+class GridSeachFactory(OptimizerFactory):
+    """Factory for building GridSeachCv."""
+
+    def optimizer_builder(
+        self,
+        X,
+        y,
+        estimator,
+        estimator_params,
+        measure_of_accuracy,
+        verbose,
+        n_jobs,
+        cv,
+    ):
+        print("Initializing GridSEarchCV")
+        return GridSearch(
+            X,
+            y,
+            estimator,
+            estimator_params,
+            measure_of_accuracy,
+            verbose,
+            n_jobs,
+            cv,
+        )
+
+class RandomSeachFactory(OptimizerFactory):
+    """Factory for building GridSeachCv."""
+
+    def optimizer_builder(
+        self,
+        X,
+        y,
+        estimator,
+        estimator_params,
+        measure_of_accuracy,
+        verbose,
+        n_jobs,
+        n_iter,
+        cv,
+    ):
+        print("Initializing RandomSeachCV")
+        return RandomSearch(
+            X,
+            y,
+            estimator,
+            estimator_params,
+            measure_of_accuracy,
+            verbose,
+            n_jobs,
+            n_iter,
+            cv,
+        )
 
 
 class BaseModel(BaseEstimator, metaclass=ABCMeta):
@@ -44,96 +307,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         ``LGBMClassifier``, and ``LGBMRegressor``.
     estimator_params: dict
         Parameters passed to find the best estimator using optimization
-        method. For CATBOOST_CLASSIFICATION_PARAMS_DEFAULT are :     "nan_mode": "Min",
-        "eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-        "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-        "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-        "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-        "pool_metainfo_options","subsample","use_best_model","class_names",
-        "random_seed","depth","posterior_sampling","border_count",
-        "classes_count","auto_class_weights","sparse_features_conflict_fraction",
-        "leaf_estimation_backtracking","best_model_min_trees","model_shrink_rate",
-        "min_data_in_leaf","loss_function","learning_rate","score_function",
-        "task_type","leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-        For CATBOOST_REGRESSION_PARAMS_DEFAULT are :
-        "nan_mode","eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-        "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-        "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-        "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-        "pool_metainfo_options","subsample","use_best_model","random_seed","depth",
-        "posterior_sampling","border_count","classes_count","auto_class_weights",
-        "sparse_features_conflict_fraction","leaf_estimation_backtracking",
-        "best_model_min_trees","model_shrink_rate","min_data_in_leaf",
-        "loss_function","learning_rate","score_function","task_type",
-        "leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-        For XGBOOST_CLASSIFICATION_PARAMS_DEFAULT are :
-        "objective","use_label_encoder","base_score","booster",
-        "callbacks","colsample_bylevel","colsample_bynode","colsample_bytree",
-        "early_stopping_rounds","enable_categorical","eval_metric","gamma",
-        "gpu_id","grow_policy","importance_type","interaction_constraints",
-        "learning_rate","max_bin","max_cat_to_onehot","max_delta_step",
-        "max_depth","max_leaves","min_child_weight","missing","monotone_constraints",
-        "n_estimators","n_jobs","num_parallel_tree","predictor","random_state",
-        "reg_alpha","reg_lambda","sampling_method","scale_pos_weight","subsample",
-        "tree_method","validate_parameters","verbosity"
-
-        For XGBOOST_REGRESSION_PARAMS_DEFAULT are :
-        "objective","base_score","booster","callbacks","colsample_bylevel","colsample_bynode",
-        "colsample_bytree","early_stopping_rounds","enable_categorical","eval_metric",
-        "gamma","gpu_id","grow_policy","importance_type","interaction_constraints",
-        "learning_rate","max_bin","max_cat_to_onehot","max_delta_step","max_depth",
-        "max_leaves","min_child_weight","missing","monotone_constraints","n_estimators",
-        "n_jobs","num_parallel_tree","predictor","random_state","reg_alpha","reg_lambda",
-        "sampling_method","scale_pos_weight","subsample","tree_method","validate_parameters",
-        "verbosity"
-
-        For RANDOMFOREST_CLASSIFICATION_PARAMS_DEFAULT are :
-        "n_estimators","criterion","max_depth","min_samples_split",
-        "min_samples_leaf","min_weight_fraction_leaf","max_features",
-        "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-        "n_jobs","random_state","verbose","warm_start","class_weight",
-        "ccp_alpha","max_samples"
-
-        For RANDOMFOREST_REGRESSION_PARAMS_DEFAULT are :
-        "n_estimators","criterion","max_depth","min_samples_split",
-        "min_samples_leaf","min_weight_fraction_leaf","max_features",
-        "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-        "n_jobs","random_state","verbose","warm_start","ccp_alpha","max_samples"
-
-        For BLF_CLASSIFICATION_PARAMS_DEFAULT are :
-        "n_estimators","criterion"","max_depth","min_samples_split","min_samples_leaf",
-        "min_weight_fraction_leaf","max_features","max_leaf_nodes","min_impurity_decrease",
-        "bootstrap","oob_score","sampling_strategy","replacement","n_jobs","random_state",
-        "verbose","warm_start","class_weight","ccp_alpha","max_samples"
-
-        For LGB_CLASSIFICATION_PARAMS_DEFAULT are:
-        "boosting_type","num_leaves","max_depth","learning_rate","n_estimators",
-        "subsample_for_bin","objective","class_weight","min_split_gain","min_child_weight",
-        "min_child_samples","subsample","subsample_freq","colsample_bytree","reg_alpha",
-        "reg_lambda","random_state","n_jobs","silent","importance_type"
-
-        For LGB_REGRESSION_PARAMS_DEFAULT are:
-        "boosting_type","num_leaves","max_depth","learning_rate",
-        "n_estimators","subsample_for_bin","objective","class_weight",
-        "min_split_gain","min_child_weight","min_child_samples","subsample",
-        "subsample_freq","colsample_bytree","reg_alpha","reg_lambda","random_state",
-        "n_jobs","silent","importance_type"
-
-        For SVC_CLASSIFICATION_PARAMS_DEFAULT are :
-        "C", "kernel", "degree", "gamma", "coef0", "shrinking","probability",
-        "tol", "cache_size", "class_weight", "verbose", "max_iter","decision_function_shape"
-
-        For LINEARREGRESSION_REGRESSION_PARAMS_DEFAULT are :
-        "fit_intercept", "normalize", "copy_X", "n_jobs",
-        "positive"
-
-        For LOGISTICREGRESSION_CLASSIFICATION_PARAMS_DEFAULT are :
-        "penalty", "dual", "tol","C", "fit_intercept","intercept_scaling",
-        "class_weightt", "random_state", "solver", "max_iter","multi_class",
-        "verbose","warm_start", "n_jobs", "l1_ratio"
-
+        method.
     hyper_parameter_optimization_method : str
         Type of method for hyperparameter optimization of the estimator.
         Supported methods are: Grid Search, Random Search, and Optuna.
@@ -205,21 +379,40 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
 
     def __init__(
         self,
+        # general argument setting
+        hyper_parameter_optimization_method=None,
+        verbose=0,
+        random_state=0,
         estimator=None,
         estimator_params=None,
-        hyper_parameter_optimization_method="optuna",
+        # grid search and random search
         measure_of_accuracy=None,
+        n_jobs=None,
+        n_iter=None,
+        cv=None,
+        # optuna params
         test_size=0.33,
-        cv=3,
-        with_stratified=True,
-        verbose=1,
-        random_state=0,
-        n_jobs=-1,
-        n_iter=20,
-        eval_metric="auc",
-        number_of_trials=100,
-        sampler=TPESampler(),
-        pruner=HyperbandPruner(),
+        with_stratified=False,
+        # number_of_trials=100,
+        # optuna study init params
+        study=optuna.create_study(
+            storage=None,
+            sampler=TPESampler(),
+            pruner=HyperbandPruner(),
+            study_name=None,
+            direction="maximize",
+            load_if_exists=False,
+            directions=None,
+        ),
+        # optuna optimization params
+        study_optimize_objective=None,
+        study_optimize_objective_n_trials=100,
+        study_optimize_objective_timeout=600,
+        study_optimize_n_jobs=-1,
+        study_optimize_catch=(),
+        study_optimize_callbacks=None,
+        study_optimize_gc_after_trial=False,
+        study_optimize_show_progress_bar=False,
     ):
         """
         Parameters
@@ -236,82 +429,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             ``LGBMClassifier``, and ``LGBMRegressor``.
         estimator_params: dict
             Parameters passed to find the best estimator using optimization
-            method. For CATBOOST_CLASSIFICATION_PARAMS_DEFAULT are :     "nan_mode": "Min",
-            "eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-            "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-            "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-            "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-            "pool_metainfo_options","subsample","use_best_model","class_names",
-            "random_seed","depth","posterior_sampling","border_count",
-            "classes_count","auto_class_weights","sparse_features_conflict_fraction",
-            "leaf_estimation_backtracking","best_model_min_trees","model_shrink_rate",
-            "min_data_in_leaf","loss_function","learning_rate","score_function",
-            "task_type","leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-            For CATBOOST_REGRESSION_PARAMS_DEFAULT are :
-            "nan_mode","eval_metric","iterations","sampling_frequency","leaf_estimation_method",
-            "grow_policy","penalties_coefficient","boosting_type","model_shrink_mode",
-            "feature_border_type","bayesian_matrix_reg","force_unit_auto_pair_weights",
-            "l2_leaf_reg","random_strength","rsm","boost_from_average","model_size_reg",
-            "pool_metainfo_options","subsample","use_best_model","random_seed","depth",
-            "posterior_sampling","border_count","classes_count","auto_class_weights",
-            "sparse_features_conflict_fraction","leaf_estimation_backtracking",
-            "best_model_min_trees","model_shrink_rate","min_data_in_leaf",
-            "loss_function","learning_rate","score_function","task_type",
-            "leaf_estimation_iterations","bootstrap_type","max_leaves"
-
-            For XGBOOST_CLASSIFICATION_PARAMS_DEFAULT are :
-            "objective","use_label_encoder","base_score","booster",
-            "callbacks","colsample_bylevel","colsample_bynode","colsample_bytree",
-            "early_stopping_rounds","enable_categorical","eval_metric","gamma",
-            "gpu_id","grow_policy","importance_type","interaction_constraints",
-            "learning_rate","max_bin","max_cat_to_onehot","max_delta_step",
-            "max_depth","max_leaves","min_child_weight","missing","monotone_constraints",
-            "n_estimators","n_jobs","num_parallel_tree","predictor","random_state",
-            "reg_alpha","reg_lambda","sampling_method","scale_pos_weight","subsample",
-            "tree_method","validate_parameters","verbosity"
-
-            For XGBOOST_REGRESSION_PARAMS_DEFAULT are :
-            "objective","base_score","booster","callbacks","colsample_bylevel","colsample_bynode",
-            "colsample_bytree","early_stopping_rounds","enable_categorical","eval_metric",
-            "gamma","gpu_id","grow_policy","importance_type","interaction_constraints",
-            "learning_rate","max_bin","max_cat_to_onehot","max_delta_step","max_depth",
-            "max_leaves","min_child_weight","missing","monotone_constraints","n_estimators",
-            "n_jobs","num_parallel_tree","predictor","random_state","reg_alpha","reg_lambda",
-            "sampling_method","scale_pos_weight","subsample","tree_method","validate_parameters",
-            "verbosity"
-
-            For RANDOMFOREST_CLASSIFICATION_PARAMS_DEFAULT are :
-            "n_estimators","criterion","max_depth","min_samples_split",
-            "min_samples_leaf","min_weight_fraction_leaf","max_features",
-            "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-            "n_jobs","random_state","verbose","warm_start","class_weight",
-            "ccp_alpha","max_samples"
-
-            For RANDOMFOREST_REGRESSION_PARAMS_DEFAULT are :
-            "n_estimators","criterion","max_depth","min_samples_split",
-            "min_samples_leaf","min_weight_fraction_leaf","max_features",
-            "max_leaf_nodes","min_impurity_decrease","bootstrap","oob_score",
-            "n_jobs","random_state","verbose","warm_start","ccp_alpha","max_samples"
-
-            For BLF_CLASSIFICATION_PARAMS_DEFAULT are :
-            "n_estimators","criterion"","max_depth","min_samples_split","min_samples_leaf",
-            "min_weight_fraction_leaf","max_features","max_leaf_nodes","min_impurity_decrease",
-            "bootstrap","oob_score","sampling_strategy","replacement","n_jobs","random_state",
-            "verbose","warm_start","class_weight","ccp_alpha","max_samples"
-
-            For LGB_CLASSIFICATION_PARAMS_DEFAULT are:
-            "boosting_type","num_leaves","max_depth","learning_rate","n_estimators",
-            "subsample_for_bin","objective","class_weight","min_split_gain","min_child_weight",
-            "min_child_samples","subsample","subsample_freq","colsample_bytree","reg_alpha",
-            "reg_lambda","random_state","n_jobs","silent","importance_type"
-
-            For LGB_REGRESSION_PARAMS_DEFAULT are:
-            "boosting_type","num_leaves","max_depth","learning_rate",
-            "n_estimators","subsample_for_bin","objective","class_weight",
-            "min_split_gain","min_child_weight","min_child_samples","subsample",
-            "subsample_freq","colsample_bytree","reg_alpha","reg_lambda","random_state",
-            "n_jobs","silent","importance_type"
+            method.
         hyper_parameter_optimization_method : str
             Type of method for hyperparameter optimization of the estimator.
             Supported methods are: Grid Search, Random Search, and Optuna.
@@ -385,23 +503,33 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             (default HyperbandPruner())
         """
 
-        self.estimator = estimator
-        self.estimator_params = estimator_params
-        self.hyper_parameter_optimization_method = hyper_parameter_optimization_method
-        self.measure_of_accuracy = measure_of_accuracy
-        self.test_size = test_size
-        self.cv = cv
-        self.with_stratified = with_stratified
-        self.verbose = verbose
-        self.random_state = random_state
-        self.n_jobs = n_jobs
-        self.n_iter = n_iter
-        self.eval_metric = eval_metric
-        self.number_of_trials = number_of_trials
-        self.sampler = sampler
-        self.pruner = pruner
-        self.best_estimator = None
-        self.importance_df = None
+         # general argument setting
+        self.hyper_parameter_optimization_method=hyper_parameter_optimization_method
+        self.verbose=verbose
+        self.random_state=random_state
+        self.estimator=estimator
+        self.estimator_params=estimator_params
+        # grid search and random search
+        self.measure_of_accuracy=measure_of_accuracy
+        self.n_jobs=n_jobs
+        self.n_iter=n_iter
+        self.cv=cv
+        # optuna params
+        self.test_size=test_size
+        self.with_stratified=with_stratified
+        # number_of_trials=100,
+        # optuna study init params
+        self.study=study
+        # optuna optimization params
+        self.study_optimize_objective=study_optimize_objective
+        self.study_optimize_objective_n_trials=study_optimize_objective_n_trials
+        self.study_optimize_objective_timeout=study_optimize_objective_timeout
+        self.study_optimize_n_jobs=study_optimize_n_jobs
+        self.study_optimize_catch=study_optimize_catch
+        self.study_optimize_callbacks=study_optimize_callbacks
+        self.study_optimize_gc_after_trial=study_optimize_gc_after_trial
+        self.study_optimize_show_progress_bar=study_optimize_show_progress_bar
+
 
     @property
     def estimator(self):
@@ -426,141 +554,8 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
 
     @estimator_params.setter
     def estimator_params(self, value):
-        print(self.estimator)
-        # get parameters for SVC and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "SVC":
-            if value.keys() <= SVC_CLASSIFICATION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-        # get parameters for LinearRegression and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "LinearRegression":
-            if value.keys() <= LINEARREGRESSION_REGRESSION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-        # get parameters for LogisticRegression and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "LogisticRegression":
-            if value.keys() <= LOGISTICREGRESSION_CLASSIFICATION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-        # get parameters for lightgbm.LGBMRegressor and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "LGBMRegressor":
-            if value.keys() <= LGB_REGRESSION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-        # get parameters for lightgbm.LGBMClassifier and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "LGBMClassifier":
-            if value.keys() <= LGB_CLASSIFICATION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-        # get parameters for XGBRegressor and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "BalancedRandomForestClassifier":
-            if value.keys() <= BLF_CLASSIFICATION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-        # get parameters for XGBRegressor and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "RandomForestRegressor":
-            if value.keys() <= RANDOMFOREST_REGRESSION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-        # get parameters for XGBRegressor and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "RandomForestClassifier":
-            if value.keys() <= RANDOMFOREST_CLASSIFICATION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-
-        # get parameters for XGBRegressor and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "XGBRegressor":
-            if value.keys() <= XGBOOST_REGRESSION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-        # get parameters for XGBClassifier and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "XGBClassifier":
-            if value.keys() <= XGBOOST_CLASSIFICATION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-
-        # get parameters for CatBoostClassifier and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "CatBoostClassifier":
-            if value.keys() <= CATBOOST_CLASSIFICATION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
-        # get parameters for CatBoostRegressor and check if
-        # the selected parameters in the list or not
-        if self.estimator.__class__.__name__ == "CatBoostRegressor":
-            if value.keys() <= CATBOOST_REGRESSION_PARAMS_DEFAULT.keys():
-                print("Setting value for estimator_params")
-                self._estimator_params = value
-            else:
-                raise TypeError(
-                    f"error occures during parameter checking for \
-                        {value.__class__.__name__}"
-                )
+        print("Setting value for  estimator params")
+        self._estimator_params = value
 
     @property
     def hyper_parameter_optimization_method(self):
@@ -726,7 +721,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         """
         self.cols = X.columns
         if self.hyper_parameter_optimization_method.lower() == "grid":
-            self.best_estimator = _calc_best_estimator_grid_search(
+            self.best_estimator  = GridSeachFactory().optimizer_builder(
                 X,
                 y,
                 self.estimator,
@@ -734,20 +729,22 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 self.measure_of_accuracy,
                 self.verbose,
                 self.n_jobs,
-                self.cv,
-            )
+                self.cv
+            ).optimize().get_best_estimator()
+
         if self.hyper_parameter_optimization_method.lower() == "random":
-            self.best_estimator = _calc_best_estimator_random_search(
+            self.best_estimator = RandomSeachFactory().optimizer_builder(
                 X,
                 y,
-                self.estimator,
-                self.estimator_params,
-                self.measure_of_accuracy,
-                self.verbose,
-                self.n_jobs,
-                self.n_iter,
-                self.cv,
-            )
+                estimator=self.estimator,
+                estimator_params=self.estimator_params,
+                measure_of_accuracy=self.measure_of_accuracy,
+                verbose=self.verbose,
+                n_jobs=self.n_jobs,
+                n_iter=self.n_iter,
+                cv=self.cv,
+            ).optimize().get_best_estimator()
+
         if self.hyper_parameter_optimization_method.lower() == "optuna":
             self.best_estimator = _calc_best_estimator_optuna_univariate(
                 X,
@@ -765,7 +762,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 self.with_stratified,
             )
 
-        return self
+        return True
 
     def predict(self, X):
         """Predict using the best estimator model.
@@ -782,3 +779,4 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         ):
             X = xgboost.DMatrix(X)
         return self.best_estimator.predict(X)
+
