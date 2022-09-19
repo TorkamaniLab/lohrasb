@@ -104,89 +104,48 @@ def test_best_estimator():
     # )
 
 
-    SFC_GRID = BaseModel(
-        estimator=xgboost.XGBClassifier(),
-        estimator_params={
-            "max_depth": [4, 5],
-            "min_child_weight": [0.1, 0.9],
-            "gamma": [1, 9],
-            "booster": ["gbtree"],
-        },
-        measure_of_accuracy="f1",
-        hyper_parameter_optimization_method="grid",
-        test_size=0.33,
-        with_stratified=True,
-        verbose=3,
-        n_jobs=-1,
-        random_state=42,
-        n_iter=100,
-        cv=KFold(n_splits=3,random_state=42,shuffle=True),
-        # optuna params
-        # optuna study init params
-        study=optuna.create_study(
-            storage=None,
-            sampler=TPESampler(),
-            pruner=HyperbandPruner(),
-            study_name=None,
-            direction="maximize",
-            load_if_exists=False,
-            directions=None,
-        ),
-        # optuna optimization params
-        study_optimize_objective=None,
-        study_optimize_objective_n_trials=100,
-        study_optimize_objective_timeout=600,
-        study_optimize_n_jobs=-1,
-        study_optimize_catch=(),
-        study_optimize_callbacks=None,
-        study_optimize_gc_after_trial=False,
-        study_optimize_show_progress_bar=False,
+    # SFC_GRID = BaseModel(
+    #     estimator=xgboost.XGBClassifier(),
+    #     estimator_params={
+    #         "eval_metric":['auc'],
+    #         "max_depth": [4, 5],
+    #         "min_child_weight": [0.1, 0.9],
+    #         "gamma": [1, 9],
+    #     },
+    #     measure_of_accuracy="f1",
+    #     hyper_parameter_optimization_method="grid",
+    #     test_size=0.33,
+    #     with_stratified=True,
+    #     verbose=3,
+    #     n_jobs=-1,
+    #     random_state=42,
+    #     n_iter=100,
+    #     cv=KFold(n_splits=3,random_state=42,shuffle=True),
+    #     # optuna params
+    #     # optuna study init params
+    #     study=optuna.create_study(
+    #         storage=None,
+    #         sampler=TPESampler(),
+    #         pruner=HyperbandPruner(),
+    #         study_name=None,
+    #         direction="maximize",
+    #         load_if_exists=False,
+    #         directions=None,
+    #     ),
+    #     # optuna optimization params
+    #     study_optimize_objective=None,
+    #     study_optimize_objective_n_trials=100,
+    #     study_optimize_objective_timeout=600,
+    #     study_optimize_n_jobs=-1,
+    #     study_optimize_catch=(),
+    #     study_optimize_callbacks=None,
+    #     study_optimize_gc_after_trial=False,
+    #     study_optimize_show_progress_bar=False,
 
 
-    )
+    # )
 
-    SFC_RANDOM = BaseModel(
-        estimator=xgboost.XGBClassifier(),
-        estimator_params={
-            "max_depth": [4, 5],
-            "min_child_weight": [0.1, 0.9],
-            "gamma": [1, 9],
-            "booster": ["gbtree"],
-        },
-        measure_of_accuracy="f1",
-        hyper_parameter_optimization_method="random",
-        test_size=0.33,
-        with_stratified=True,
-        verbose=3,
-        n_jobs=-1,
-        random_state=42,
-        n_iter=100,
-        cv=KFold(n_splits=3,random_state=42,shuffle=True),
-
-        # optuna params
-        # optuna study init params
-        study=optuna.create_study(
-            storage=None,
-            sampler=TPESampler(),
-            pruner=HyperbandPruner(),
-            study_name=None,
-            direction="maximize",
-            load_if_exists=False,
-            directions=None,
-        ),
-        # optuna optimization params
-        study_optimize_objective=None,
-        study_optimize_objective_n_trials=100,
-        study_optimize_objective_timeout=600,
-        study_optimize_n_jobs=-1,
-        study_optimize_catch=(),
-        study_optimize_callbacks=None,
-        study_optimize_gc_after_trial=False,
-        study_optimize_show_progress_bar=False,
-
-    )
-
-    # SFC_OPTUNA_XGB_CLASSIFIER = BaseModel(
+    # SFC_RANDOM = BaseModel(
     #     estimator=xgboost.XGBClassifier(),
     #     estimator_params={
     #         "max_depth": [4, 5],
@@ -194,21 +153,75 @@ def test_best_estimator():
     #         "gamma": [1, 9],
     #         "booster": ["gbtree"],
     #     },
-    #     hyper_parameter_optimization_method="optuna",
     #     measure_of_accuracy="f1",
+    #     hyper_parameter_optimization_method="random",
     #     test_size=0.33,
-    #     cv=KFold(n_splits=3,random_state=42,shuffle=True),
     #     with_stratified=True,
     #     verbose=3,
-    #     random_state=42,
     #     n_jobs=-1,
+    #     random_state=42,
     #     n_iter=100,
-    #     eval_metric="auc",
-    #     number_of_trials=10,
-    #     sampler=TPESampler(),
-    #     pruner=HyperbandPruner(),
+    #     cv=KFold(n_splits=3,random_state=42,shuffle=True),
+
+    #     # optuna params
+    #     # optuna study init params
+    #     study=optuna.create_study(
+    #         storage=None,
+    #         sampler=TPESampler(),
+    #         pruner=HyperbandPruner(),
+    #         study_name="TEST XGBClassifier",
+    #         direction="maximize",
+    #         load_if_exists=False,
+    #         directions=None,
+    #     ),
+    #     # optuna optimization params
+    #     study_optimize_objective=None,
+    #     study_optimize_objective_n_trials=100,
+    #     study_optimize_objective_timeout=600,
+    #     study_optimize_n_jobs=-1,
+    #     study_optimize_catch=(),
+    #     study_optimize_callbacks=None,
+    #     study_optimize_gc_after_trial=False,
+    #     study_optimize_show_progress_bar=False,
 
     # )
+
+    SFC_OPTUNA_XGB_CLASSIFIER = BaseModel(
+        estimator=xgboost.XGBClassifier(),
+        estimator_params={
+            "max_depth": [4, 5],
+        },
+         measure_of_accuracy="f1",
+        hyper_parameter_optimization_method="optuna",
+        test_size=0.33,
+        with_stratified=True,
+        verbose=3,
+        n_jobs=-1,
+        random_state=42,
+        n_iter=100,
+        cv=KFold(n_splits=3,random_state=42,shuffle=True),
+
+        # optuna params
+        # optuna study init params
+        study=optuna.create_study(
+            storage=None,
+            sampler=TPESampler(),
+            pruner=HyperbandPruner(),
+            study_name="TEST XGBClassifier",
+            direction="maximize",
+            load_if_exists=False,
+            directions=None,
+        ),
+        # optuna optimization params
+        study_optimize_objective=None,
+        study_optimize_objective_n_trials=100,
+        study_optimize_objective_timeout=600,
+        study_optimize_n_jobs=-1,
+        study_optimize_catch=(),
+        study_optimize_callbacks=None,
+        study_optimize_gc_after_trial=False,
+        study_optimize_show_progress_bar=False,
+    )
 
 
     try:
@@ -246,29 +259,29 @@ def test_best_estimator():
     # print(len(y_preds_xgboost_regressor))
 
 
-    SFC_GRID.fit(X_train, y_train)
-    y_preds_xgboost_classifier_grid = SFC_GRID.predict(X_test)
-    y_preds_xgboost_classifier_grid = np.rint(y_preds_xgboost_classifier_grid)
-    print(len(y_preds_xgboost_classifier_grid))
+    # SFC_GRID.fit(X_train, y_train)
+    # y_preds_xgboost_classifier_grid = SFC_GRID.predict(X_test)
+    # y_preds_xgboost_classifier_grid = np.rint(y_preds_xgboost_classifier_grid)
+    # print(len(y_preds_xgboost_classifier_grid))
 
-    SFC_RANDOM.fit(X_train, y_train)
-    y_preds_xgboost_classifier_random = SFC_RANDOM.predict(X_test)
-    y_preds_xgboost_classifier_random = np.rint(y_preds_xgboost_classifier_random)
-    print(len(y_preds_xgboost_classifier_random))
+    # SFC_RANDOM.fit(X_train, y_train)
+    # y_preds_xgboost_classifier_random = SFC_RANDOM.predict(X_test)
+    # y_preds_xgboost_classifier_random = np.rint(y_preds_xgboost_classifier_random)
+    # print(len(y_preds_xgboost_classifier_random))
 
 
-    # SFC_OPTUNA_XGB_CLASSIFIER.fit(X_train, y_train)
-    # y_preds_xgboost_classifier_optuna= SFC_OPTUNA_XGB_CLASSIFIER.predict(X_test)
-    # y_preds_xgboost_classifier_optuna = np.rint(y_preds_xgboost_classifier_optuna)
-    # print(len(y_preds_xgboost_classifier_optuna))
+    SFC_OPTUNA_XGB_CLASSIFIER.fit(X_train, y_train)
+    y_preds_xgboost_classifier_optuna= SFC_OPTUNA_XGB_CLASSIFIER.predict(X_test)
+    y_preds_xgboost_classifier_optuna = np.rint(y_preds_xgboost_classifier_optuna)
+    print(len(y_preds_xgboost_classifier_optuna))
 
 
     #assert len(y_preds_catboost_regressor)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
     #assert len(y_preds_xgboost_regressor)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
     #assert len(y_preds_xgboost_regressor)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    #assert len(y_preds_xgboost_classifier_optuna)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    assert len(y_preds_xgboost_classifier_grid)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    assert len(y_preds_xgboost_classifier_grid)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
+    assert len(y_preds_xgboost_classifier_optuna)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
+    # assert len(y_preds_xgboost_classifier_grid)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
+    # assert len(y_preds_xgboost_classifier_random)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
 
 
     #assert len(pred_labels)==4#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']

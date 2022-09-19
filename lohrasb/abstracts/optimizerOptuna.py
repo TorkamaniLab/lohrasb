@@ -85,20 +85,7 @@ class OptimizerOptuna(metaclass=ABCMeta):
             A dict of possible argumnets
         """
         pass
-    @abstractmethod
-    def optimizer(self,*args,**kwargs):
-        """
-        Optimizing the objective.
-        ...
-
-        Attributes 
-        ----------
-        *args: list
-            A list of possible argumnets
-        **kwargs: dict
-            A dict of possible argumnets
-        """
-        pass
+    
     @abstractmethod
     def get_optimized_object(self,*args,**kwargs):
         """
