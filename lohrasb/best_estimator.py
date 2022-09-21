@@ -2,403 +2,20 @@
 
 from abc import ABCMeta
 from pickletools import optimize
-from xgboost import XGBClassifier, XGBRegressor
 import optuna
 from optuna.pruners import HyperbandPruner
 from optuna.samplers import TPESampler
 from sklearn.base import BaseEstimator
-from lohrasb.abstracts.optimizerOptuna import OptimizerOptuna
-from lohrasb.decorators.decorators import trackcalls
-from lohrasb.abstracts.optimizerCV import OptimizerCV
-from lohrasb.factories.factories import OptimizerFactory, OptimizerOptunaFactory
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV,train_test_split
 import numpy as np
 from lohrasb.model_conf import SUPPORTED_MODELS
-from sklearn.metrics import (
-    make_scorer,
+from xgboost import XGBClassifier, XGBRegressor
+
+from lohrasb.utils.helper_funcs import install_and_import
+from lohrasb.base_classes.optimizer_bases import (
+    GridSearchFactory,
+    OptunaFactory,
+    RandomSearchFactory
 )
-
-from lohrasb.utils.helper_funcs import (
-    _calc_best_estimator_optuna_univariate,
-    _calc_metric_for_single_output_classification,
-    _calc_metric_for_single_output_regression,
-    _trail_param_retrive,
-    _trail_params_retrive,
-
-)
-
-from lohrasb.utils.helper_funcs import maping_mesurements
-
-
-class OptunaSearch(OptimizerOptuna):
-    def __init__(
-        self,
-        X,
-        y,
-        verbose,
-        random_state,
-        estimator,
-        estimator_params,
-        # grid search and random search
-        measure_of_accuracy,
-        n_jobs,
-        # optuna params
-        test_size,
-        with_stratified,
-        # number_of_trials=100,
-        # optuna study init params
-        study,
-        # optuna optimization params
-        study_optimize_objective,
-        study_optimize_objective_n_trials,
-        study_optimize_objective_timeout,
-        study_optimize_n_jobs,
-        study_optimize_catch,
-        study_optimize_callbacks,
-        study_optimize_gc_after_trial,
-        study_optimize_show_progress_bar,
-    ):
-        self.X = X
-        self.y = y
-        self.verbose =verbose
-        self.random_state=random_state
-        self.estimator=estimator
-        self.estimator_params=estimator_params
-        # grid search and random search
-        self.measure_of_accuracy=measure_of_accuracy
-        self.n_jobs=n_jobs
-        # optuna params
-        self.test_size=test_size
-        self.with_stratified=with_stratified
-        # number_of_trials=100,
-        # optuna study init params
-        self.study=study
-        # optuna optimization params
-        self.study_optimize_objective=study_optimize_objective
-        self.study_optimize_objective_n_trials=study_optimize_objective_n_trials
-        self.study_optimize_objective_timeout=study_optimize_objective_timeout
-        self.study_optimize_n_jobs=study_optimize_n_jobs
-        self.study_optimize_catch=study_optimize_catch
-        self.study_optimize_callbacks=study_optimize_callbacks
-        self.study_optimize_gc_after_trial=study_optimize_gc_after_trial
-        self.study_optimize_show_progress_bar=study_optimize_show_progress_bar
-        self.X_train = None
-        self.X_test = None
-        self.y_train = None
-        self.y_test = None
-        self.objective = None
-        self.trial = None
-    
-    def train_test_split(self):
-        if self.with_stratified:
-             self.X_train,  self.X_test, self.y_train, self.y_test = \
-                 train_test_split(self.X, self.y, test_size=self.test_size,\
-                     stratify=self.y[self.y.columns.to_list()[0]],\
-                        random_state=self.random_state)
-        else:
-             self.X_train,  self.X_test, self.y_train, self.y_test = \
-                 train_test_split(self.X, self.y, test_size=self.test_size,\
-                        random_state=self.random_state)
-
-        return self
-    def define_objective_func(self):
-        def objective(trial):
-            
-            params = _trail_params_retrive(trial, self.estimator_params)
-            est = eval(self.estimator.__class__.__name__+'(**params)'+'.fit(self.X_train, self.y_train)')
-            preds = est.predict(self.X_test)
-            pred_labels = np.rint(preds)
-        
-            if self.measure_of_accuracy in [
-                     "f1" , "f1_score", "acc", "accuracy_score", "accuracy","pr", 
-                     "precision_score", "precision","recall", "recall_score","recall",
-                      "roc", "roc_auc_score","roc_auc","tp" , "true possitive","tn" 
-                      ,"true negative"
-                      ]:
-                        accr = _calc_metric_for_single_output_classification(
-                        self.y_test, pred_labels, self.measure_of_accuracy)
-            elif self.measure_of_accuracy in [
-                      "r2", "r2_score", "explained_variance_score", 
-                      "max_error", "mean_absolute_error", "mean_squared_error", 
-                      "median_absolute_error","mean_absolute_percentage_error"
-                      ]:
-                        accr = _calc_metric_for_single_output_regression(self.y_test, \
-                            preds, self.measure_of_accuracy)
-
-            return accr
-        # study = optuna.create_study(direction="maximize", sampler=sampler, pruner=pruner)
-        self.study.optimize(
-            objective,
-            n_trials=self.study_optimize_objective_n_trials,
-            timeout=self.study_optimize_objective_timeout,
-            n_jobs=self.study_optimize_n_jobs,
-            catch=self.study_optimize_catch,
-            callbacks=self.study_optimize_callbacks,
-            gc_after_trial=self.study_optimize_gc_after_trial,
-            show_progress_bar=self.study_optimize_show_progress_bar,
-        )
-        self.trial = self.study.best_trial
-        return self
-    def get_optimized_object(self):
-        self.estimator = eval(self.estimator.__class__.__name__+'(**self.trial.params)')
-        self.best_estimator = self.estimator.fit(self.X_train, self.y_train)
-        return self.best_estimator
-
-
-
-class GridSearch(OptimizerCV):
-    def __init__(
-        self,
-        X,
-        y,
-        estimator,
-        estimator_params,
-        measure_of_accuracy,
-        verbose,
-        n_jobs,
-        cv,
-    ):
-        self.X = X
-        self.y = y
-        self.estimator = estimator
-        self.estimator_params = estimator_params
-        self.measure_of_accuracy = measure_of_accuracy
-        self.verbose = verbose
-        self.n_jobs = n_jobs
-        self.cv = cv
-        self.grid_search = None
-        self.best_estimator = None
-
-    @trackcalls
-    def optimize(self):
-        self.grid_search = GridSearchCV(
-            self.estimator,
-            param_grid=self.estimator_params,
-            cv=self.cv,
-            n_jobs=self.n_jobs,
-            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
-            verbose=self.verbose,
-        )
-        self.grid_search.fit(self.X, self.y)
-        self.best_estimator = self.grid_search.best_estimator_
-        return self
-
-    def get_best_estimator(self, *args, **kwargs):
-        if self.optimize.has_been_called and self.best_estimator is not None:
-            return self.best_estimator
-        else:
-            self.best_estimator, self.random_search = self.optimize(
-            self.estimator,
-            param_grid=self.estimator_params,
-            cv=self.cv,
-            n_jobs=self.n_jobs,
-            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
-            verbose=self.verbose,
-            )
-            if optimize.has_been_called and self.best_estimator is not None:
-                return self.best_estimator
-            else:
-                raise NotImplementedError(
-                    "RandomSearch has not been implemented \
-                    or best_estomator is null"
-                )
-        return False
-
-    def get_optimized_object(self, *args, **kwargs):
-        if optimize.has_been_called and self.grid_search is not None:
-            return self.grid_search
-        else:
-            raise NotImplementedError(
-                "GridSearch has not been implemented \
-                or best_estomator is null"
-            )
-
-
-class RandomSearch(OptimizerCV):
-    def __init__(
-        self,
-        X,
-        y,
-        estimator,
-        estimator_params,
-        measure_of_accuracy,
-        verbose,
-        n_jobs,
-        n_iter,
-        cv,
-    ):
-        self.X = X
-        self.y = y
-        self.estimator = estimator
-        self.estimator_params = estimator_params
-        self.measure_of_accuracy = measure_of_accuracy
-        self.verbose = verbose
-        self.n_jobs = n_jobs
-        self.n_iter = n_iter
-        self.cv = cv
-        self.random_search = None
-        self.best_estimator = None
-
-    @trackcalls
-    def optimize(self):
-        self.random_search = RandomizedSearchCV(
-            self.estimator,
-            param_distributions=self.estimator_params,
-            cv=self.cv,
-            n_iter=self.n_iter,
-            n_jobs=self.n_jobs,
-            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
-            verbose=self.verbose,
-        )
-
-        self.random_search.fit(self.X, self.y)
-        self.best_estimator = self.random_search.best_estimator_
-        return self
-
-    def get_best_estimator(self, *args, **kwargs):
-        if self.optimize.has_been_called and self.best_estimator is not None:
-            return self.best_estimator
-        else:
-            self.best_estimator, self.random_search = self.optimize(
-            self.estimator,
-            param_distributions=self.estimator_params,
-            cv=self.cv,
-            n_iter=self.n_iter,
-            n_jobs=self.n_jobs,
-            scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
-            verbose=self.verbose,
-            )
-            if optimize.has_been_called and self.best_estimator is not None:
-                return self.best_estimator
-            else:
-                raise NotImplementedError(
-                    "RandomSearch has not been implemented \
-                    or best_estomator is null"
-                )
-        return False
-
-    def get_optimized_object(self, *args, **kwargs):
-        if optimize.has_been_called and self.grid_search is not None:
-            return self.grid_search
-        else:
-            raise NotImplementedError(
-                "RandomSearch has not been implemented \
-                or best_estomator is null"
-            )
-
-
-class GridSeachFactory(OptimizerFactory):
-    """Factory for building GridSeachCv."""
-
-    def optimizer_builder(
-        self,
-        X,
-        y,
-        estimator,
-        estimator_params,
-        measure_of_accuracy,
-        verbose,
-        n_jobs,
-        cv,
-    ):
-        print("Initializing GridSEarchCV")
-        return GridSearch(
-            X,
-            y,
-            estimator,
-            estimator_params,
-            measure_of_accuracy,
-            verbose,
-            n_jobs,
-            cv,
-        )
-
-class OptunaFactory(OptimizerOptunaFactory):
-    """Factory for building Optuna."""
-
-    def optimizer_builder(
-        self,
-        X,
-        y,
-        verbose,
-        random_state,
-        estimator,
-        estimator_params,
-        # grid search and random search
-        measure_of_accuracy,
-        n_jobs,
-        # optuna params
-        test_size,
-        with_stratified,
-        # number_of_trials=100,
-        # optuna study init params
-        study,
-        # optuna optimization params
-        study_optimize_objective,
-        study_optimize_objective_n_trials,
-        study_optimize_objective_timeout,
-        study_optimize_n_jobs,
-        study_optimize_catch,
-        study_optimize_callbacks,
-        study_optimize_gc_after_trial,
-        study_optimize_show_progress_bar,
-    ):
-        print("Initializing Optuna")
-        return OptunaSearch(
-            X,
-            y,
-            verbose,
-            random_state,
-            estimator,
-            estimator_params,
-            # grid search and random search
-            measure_of_accuracy,
-            n_jobs,
-            # optuna params
-            test_size,
-            with_stratified,
-            # number_of_trials=100,
-            # optuna study init params
-            study,
-            # optuna optimization params
-            study_optimize_objective,
-            study_optimize_objective_n_trials,
-            study_optimize_objective_timeout,
-            study_optimize_n_jobs,
-            study_optimize_catch,
-            study_optimize_callbacks,
-            study_optimize_gc_after_trial,
-            study_optimize_show_progress_bar,
-        )
-
-
-class RandomSeachFactory(OptimizerFactory):
-    """Factory for building GridSeachCv."""
-
-    def optimizer_builder(
-        self,
-        X,
-        y,
-        estimator,
-        estimator_params,
-        measure_of_accuracy,
-        verbose,
-        n_jobs,
-        n_iter,
-        cv,
-    ):
-        print("Initializing RandomSeachCV")
-        return RandomSearch(
-            X,
-            y,
-            estimator,
-            estimator_params,
-            measure_of_accuracy,
-            verbose,
-            n_jobs,
-            n_iter,
-            cv,
-        )
 
 
 class BaseModel(BaseEstimator, metaclass=ABCMeta):
@@ -650,12 +267,6 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     @estimator.setter
     def estimator(self, value):
         print("Setting value for estimator")
-        if value.__class__.__name__ not in SUPPORTED_MODELS:
-
-            raise TypeError(
-                f"{value.__class__.__name__} \
-                 model is not supported yet"
-            )
         self._estimator = value
 
     @property
@@ -831,59 +442,34 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             step of the pipeline.
         """
         self.cols = X.columns
-        if self.hyper_parameter_optimization_method.lower() == "grid":
-            self.best_estimator  = GridSeachFactory().optimizer_builder(
-                X,
-                y,
-                self.estimator,
-                self.estimator_params,
-                self.measure_of_accuracy,
-                self.verbose,
-                self.n_jobs,
-                self.cv
-            ).optimize().get_best_estimator()
-
-        if self.hyper_parameter_optimization_method.lower() == "random":
-            self.best_estimator = RandomSeachFactory().optimizer_builder(
-                X,
-                y,
-                estimator=self.estimator,
-                estimator_params=self.estimator_params,
-                measure_of_accuracy=self.measure_of_accuracy,
-                verbose=self.verbose,
-                n_jobs=self.n_jobs,
-                n_iter=self.n_iter,
-                cv=self.cv,
-            ).optimize().get_best_estimator()
-
-        if self.hyper_parameter_optimization_method.lower() == "optuna":
-            self.best_estimator = OptunaFactory().optimizer_builder(
-                    X,
-                    y,
-                    verbose=self.verbose,
-                    random_state=self.random_state,
-                    estimator=self.estimator,
-                    estimator_params=self.estimator_params,
-                    # grid search and random search
-                    measure_of_accuracy=self.measure_of_accuracy,
-                    n_jobs=self.n_jobs,
-                    # optuna params
-                    test_size=self.test_size,
-                    with_stratified=self.with_stratified,
-                    # number_of_trials=100,
-                    # optuna study init params
-                    study=self.study,
-                    # optuna optimization params
-                    study_optimize_objective=self.study_optimize_objective,
-                    study_optimize_objective_n_trials=self.study_optimize_objective_n_trials,
-                    study_optimize_objective_timeout=self.study_optimize_objective_timeout,
-                    study_optimize_n_jobs=self.study_optimize_n_jobs,
-                    study_optimize_catch=self.study_optimize_catch,
-                    study_optimize_callbacks=self.study_optimize_callbacks,
-                    study_optimize_gc_after_trial=self.study_optimize_gc_after_trial,
-                    study_optimize_show_progress_bar=self.study_optimize_show_progress_bar,
-            ).train_test_split().define_objective_func().get_optimized_object()
-
+        self.best_estimator  = BestEstimatorFactory(
+            type_engine=self.hyper_parameter_optimization_method,
+            X=X,
+            y=y,
+            estimator = self.estimator,
+            estimator_params=self.estimator_params,
+            measure_of_accuracy=self.measure_of_accuracy,
+            verbose=self.verbose,
+            n_jobs=self.n_jobs,
+            n_iter=self.n_iter,
+            cv=self.cv,
+            random_state=self.random_state,
+            # optuna params
+            test_size=self.test_size,
+            with_stratified=self.with_stratified,
+            # number_of_trials=100,
+            # optuna study init params
+            study=self.study,
+            # optuna optimization params
+            study_optimize_objective=self.study_optimize_objective,
+            study_optimize_objective_n_trials=self.study_optimize_objective_n_trials,
+            study_optimize_objective_timeout=self.study_optimize_objective_timeout,
+            study_optimize_n_jobs=self.study_optimize_n_jobs,
+            study_optimize_catch=self.study_optimize_catch,
+            study_optimize_callbacks=self.study_optimize_callbacks,
+            study_optimize_gc_after_trial=self.study_optimize_gc_after_trial,
+            study_optimize_show_progress_bar=self.study_optimize_show_progress_bar,
+            ).return_engine()
     def predict(self, X):
         """Predict using the best estimator model.
         Parameters
@@ -893,4 +479,251 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             step of the pipeline.
         """
         return self.best_estimator.predict(X)
+
+    class BestModelFactory:
+        def using_optuna(
+                self,
+                hyper_parameter_optimization_method='optuna',
+                verbose=0,
+                random_state=0,
+                estimator=None,
+                estimator_params=None,
+                # grid search and random search
+                measure_of_accuracy=None,
+                n_jobs=None,
+                # optuna params
+                test_size=0.33,
+                with_stratified=False,
+                # number_of_trials=100,
+                # optuna study init params
+                study=optuna.create_study(
+                    storage=None,
+                    sampler=TPESampler(),
+                    pruner=HyperbandPruner(),
+                    study_name=None,
+                    direction="maximize",
+                    load_if_exists=False,
+                    directions=None,
+                ),
+                # optuna optimization params
+                study_optimize_objective=None,
+                study_optimize_objective_n_trials=100,
+                study_optimize_objective_timeout=600,
+                study_optimize_n_jobs=-1,
+                study_optimize_catch=(),
+                study_optimize_callbacks=None,
+                study_optimize_gc_after_trial=False,
+                study_optimize_show_progress_bar=False,
+            ):
+            best_model = BaseModel(hyper_parameter_optimization_method='optuna')
+            best_model.verbose=verbose
+            best_model.random_state=random_state
+            best_model.estimator=estimator
+            best_model.estimator_params=estimator_params
+            best_model.measure_of_accuracy=measure_of_accuracy
+            best_model.n_jobs=n_jobs
+            # optuna params
+            best_model.test_size=test_size
+            best_model.with_stratified=with_stratified
+            # number_of_trials=100,
+            # optuna study init params
+            best_model.study=study
+            # optuna optimization params
+            best_model.study_optimize_objective=study_optimize_objective
+            best_model.study_optimize_objective_n_trials=study_optimize_objective_n_trials
+            best_model.study_optimize_objective_timeout=study_optimize_objective_timeout
+            best_model.study_optimize_n_jobs=study_optimize_n_jobs
+            best_model.study_optimize_catch=study_optimize_catch
+            best_model.study_optimize_callbacks=study_optimize_callbacks
+            best_model.study_optimize_gc_after_trial=study_optimize_gc_after_trial
+            best_model.study_optimize_show_progress_bar=study_optimize_show_progress_bar
+            return best_model
+
+        def using_gridsearch(
+                self,
+                hyper_parameter_optimization_method='grid',
+                verbose=0,
+                random_state=0,
+                estimator=None,
+                estimator_params=None,
+                # grid search and random search
+                measure_of_accuracy=None,
+                n_jobs=None,
+                cv=None,
+
+                
+            ):
+            best_model = BaseModel(hyper_parameter_optimization_method='grid')
+            best_model.hyper_parameter_optimization_method='grid'
+            best_model.verbose=verbose
+            best_model.random_state=random_state
+            best_model.estimator=estimator
+            best_model.estimator_params=estimator_params
+            best_model.measure_of_accuracy=measure_of_accuracy
+            best_model.n_jobs=n_jobs
+            best_model.cv = cv
+            return best_model
+
+        def using_randomsearch(
+                self,
+                hyper_parameter_optimization_method='random',
+                verbose=0,
+                random_state=0,
+                estimator=None,
+                estimator_params=None,
+                # grid search and random search
+                measure_of_accuracy=None,
+                n_jobs=None,
+                cv=None,
+                n_iter = None,
+
+                
+            ):
+            best_model = BaseModel(hyper_parameter_optimization_method='random')
+            best_model.hyper_parameter_optimization_method='random'
+            best_model.verbose=verbose
+            best_model.random_state=random_state
+            best_model.estimator=estimator
+            best_model.estimator_params=estimator_params
+            best_model.measure_of_accuracy=measure_of_accuracy
+            best_model.n_jobs=n_jobs
+            best_model.cv = cv
+            best_model.n_iter = n_iter
+            return best_model
+        
+    bestmodel_factory = BestModelFactory()
+
+
+class BestEstimatorFactory:
+    def __init__(
+        self,
+        type_engine,
+        X,
+        y,
+        estimator,
+        estimator_params,
+        measure_of_accuracy,
+        verbose,
+        n_jobs,
+        n_iter,
+        cv,
+        random_state,
+        # optuna params
+        test_size,
+        with_stratified,
+        # number_of_trials=100,
+        # optuna study init params
+        study,
+        # optuna optimization params
+        study_optimize_objective,
+        study_optimize_objective_n_trials,
+        study_optimize_objective_timeout,
+        study_optimize_n_jobs,
+        study_optimize_catch,
+        study_optimize_callbacks,
+        study_optimize_gc_after_trial,
+        study_optimize_show_progress_bar,
+        
+        ):
+            self.type_engine=type_engine
+            self.X = X
+            self.y= y
+            self.estimator=estimator
+            self.estimator_params = estimator_params
+            self.measure_of_accuracy=measure_of_accuracy
+            self.verbose=verbose
+            self.n_jobs=n_jobs
+            self.n_iter=n_iter
+            self.cv=cv
+            self.random_state=random_state
+            # optuna params
+            self.test_size=test_size
+            self.with_stratified=with_stratified
+            # number_of_trials=100,
+            # optuna study init params
+            self.study=study
+            # optuna optimization params
+            self.study_optimize_objective=study_optimize_objective
+            self.study_optimize_objective_n_trials=study_optimize_objective_n_trials
+            self.study_optimize_objective_timeout=study_optimize_objective_timeout
+            self.study_optimize_n_jobs=study_optimize_n_jobs
+            self.study_optimize_catch=study_optimize_catch
+            self.study_optimize_callbacks=study_optimize_callbacks
+            self.study_optimize_gc_after_trial=study_optimize_gc_after_trial
+            self.study_optimize_show_progress_bar=study_optimize_show_progress_bar
+
+    def using_randomsearch(self):
+        return RandomSearchFactory().optimizer_builder(
+                self.X,
+                self.y,
+                self.estimator,
+                self.estimator_params,
+                self.measure_of_accuracy,
+                self.verbose,
+                self.n_jobs,
+                self.n_iter,
+                self.cv,
+            ).optimize().get_best_estimator()
+    def using_gridsearch(self):
+        return GridSearchFactory().optimizer_builder(
+                self.X,
+                self.y,
+                self.estimator,
+                self.estimator_params,
+                self.measure_of_accuracy,
+                self.verbose,
+                self.n_jobs,
+                self.cv,
+            ).optimize().get_best_estimator()
+    def using_optunasearch(self):
+        return OptunaFactory().optimizer_builder(
+                self.X,
+                self.y,
+                self.verbose,
+                self.random_state,
+                self.estimator,
+                self.estimator_params,
+                # grid search and random search
+                self.measure_of_accuracy,
+                self.n_jobs,
+                # optuna params
+                self.test_size,
+                self.with_stratified,
+                # number_of_trials=100,
+                # optuna study init params
+                self.study,
+                # optuna optimization params
+                self.study_optimize_objective,
+                self.study_optimize_objective_n_trials,
+                self.study_optimize_objective_timeout,
+                self.study_optimize_n_jobs,
+                self.study_optimize_catch,
+                self.study_optimize_callbacks,
+                self.study_optimize_gc_after_trial,
+                self.study_optimize_show_progress_bar,
+            ).prepare_data().optimize().get_best_estimator()
+    def return_engine(self):
+        if self.type_engine == 'grid':
+            return self.using_gridsearch()
+        if self.type_engine == 'random':
+            return self.using_randomsearch()
+        if self.type_engine == 'optuna':
+            print(self.using_optunasearch())
+            return self.using_optunasearch()
+        else:
+            return None
+
+
+
+
+
+        
+
+
+
+            
+
+
+
+
 

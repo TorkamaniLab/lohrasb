@@ -8,6 +8,15 @@ from optuna.samplers._tpe.sampler import TPESampler
 from sklearn.model_selection import KFold, train_test_split
 from lohrasb.best_estimator import BaseModel
 import numpy as np
+from sklearn.linear_model import *
+from sklearn.svm import *
+from xgboost import *
+from sklearn.linear_model import *
+from catboost import *
+from lightgbm import *
+from sklearn.neural_network import *
+from imblearn.ensemble import *
+from sklearn.ensemble import *
 
 def test_best_estimator():
     """Test feature scally selector add"""
