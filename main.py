@@ -30,6 +30,7 @@ except Exception as e:
 print(data.columns.to_list())
 X = data.loc[:, data.columns != "default payment next month"]
 y = data.loc[:, data.columns == "default payment next month"]
+y = y.values.ravel()
 
 X = X.select_dtypes(include=np.number)
 
@@ -41,6 +42,27 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # functions for classifications
 def run_classifiers(obj, X_train, y_train, X_test, y_test):
+    """
+    A function to get best estimator fit it again, calculate predictions
+    and calculate f1 score.
+
+    Parameters
+    ----------
+    obj: Object
+        Best estimator for classification
+    X_train: pd.DataFrame
+        Training dataframe
+    y_train : pd.DataFrame
+        Training target
+    X_test: pd.DataFrame
+        Testing dataframe
+    y_test : pd.DataFrame
+        Testing target
+    Return
+    ----------
+        True
+
+    """
     obj.fit(X_train, y_train)
     y_preds = obj.predict(X_test)
     pred_labels = np.rint(y_preds)
@@ -49,9 +71,32 @@ def run_classifiers(obj, X_train, y_train, X_test, y_test):
     print("f1 score for classification :")
     print(f1_score(y_test, pred_labels))
 
+    return True
+
 
 # functions for regressions
 def run_regressors(obj, X_train, y_train, X_test, y_test):
+    """
+    A function to get best estimator fit it again, calculate predictions
+    and calculate mean_absolute_error.
+
+    Parameters
+    ----------
+    obj: Object
+        Best estimator for regression
+    X_train: pd.DataFrame
+        Training dataframe
+    y_train : pd.DataFrame
+        Training target
+    X_test: pd.DataFrame
+        Testing dataframe
+    y_test : pd.DataFrame
+        Testing target
+    Return
+    ----------
+        True
+
+    """
     obj.fit(X_train, y_train)
     y_preds = obj.predict(X_test)
     print("model output : ")
@@ -59,7 +104,8 @@ def run_regressors(obj, X_train, y_train, X_test, y_test):
     print("mean absolute error score for regression :")
     print(mean_absolute_error(y_test, y_preds))
 
-
+# A dictonary of many classification predictive models and
+# some of their parameters in some ranges.
 models_classifiers = {
     "XGBClassifier": {
         "eval_metric": ["auc"],
@@ -86,15 +132,15 @@ models_classifiers = {
     },
 }
 
-
+# A dictonary of many regression predictive models and
+# some of their parameters in some ranges.
 models_regressors = {
     "XGBRegressor": {
         "max_depth": [4, 5],
         "min_child_weight": [0.1, 0.9],
         "gamma": [1, 9],
     },
-    "LogisticRegression": {
-        "C": [0.5, 1],
+    "LinearRegression": {
         "fit_intercept": [True, False],
     },
     "RandomForestRegressor": {
@@ -109,6 +155,19 @@ models_regressors = {
 
 # check grid search on selected classification models
 def run_gird_classifiers(pause_iteration=True):
+    """
+    Loop trough some of the classifiers that already 
+    created and to test if grid search works on them
+    or not.
+    Parameters
+    ----------
+    pause_iteration: boolean
+        To pause the running of the function after each iteration.
+    Return
+    ----------
+        None
+    
+    """
     for model in models_classifiers:
         obj = BaseModel.bestmodel_factory.using_gridsearch(
             estimator=eval(model + "()"),
@@ -129,6 +188,19 @@ def run_gird_classifiers(pause_iteration=True):
 
 # check grid search on selected regression models
 def run_gird_regressoros(pause_iteration=True):
+    """
+    Loop trough some of the regressors that already 
+    created and to test if grid search works on them
+    or not.
+    Parameters
+    ----------
+    pause_iteration: boolean
+        To pause the running of the function after each iteration.
+    Return
+    ----------
+        None
+    
+    """
     for model in models_regressors:
         obj = BaseModel.bestmodel_factory.using_gridsearch(
             estimator=eval(model + "()"),
@@ -149,6 +221,19 @@ def run_gird_regressoros(pause_iteration=True):
 
 # check randomized search on selected classification models
 def run_random_classifiers(pause_iteration=True):
+    """
+    Loop trough some of the classifiers that already 
+    created and to test if random search works on them
+    or not.
+    Parameters
+    ----------
+    pause_iteration: boolean
+        To pause the running of the function after each iteration.
+    Return
+    ----------
+        None
+    
+    """
     for model in models_classifiers:
         obj = BaseModel.bestmodel_factory.using_randomsearch(
             estimator=eval(model + "()"),
@@ -170,6 +255,19 @@ def run_random_classifiers(pause_iteration=True):
 
 # check randomized search on selected regression models
 def run_random_regressoros(pause_iteration=True):
+    """
+    Loop trough some of the regressors that already 
+    created and to test if random search works on them
+    or not.
+    Parameters
+    ----------
+    pause_iteration: boolean
+        To pause the running of the function after each iteration.
+    Return
+    ----------
+        None
+    
+    """
     for model in models_regressors:
         obj = BaseModel.bestmodel_factory.using_randomsearch(
             estimator=eval(model + "()"),
@@ -191,6 +289,19 @@ def run_random_regressoros(pause_iteration=True):
 
 # check optuna search on selected classification models
 def run_optuna_classifiers(pause_iteration=True):
+    """
+    Loop trough some of the classifiers that already 
+    created and to test if optuna works on them
+    or not.
+    Parameters
+    ----------
+    pause_iteration: boolean
+        To pause the running of the function after each iteration.
+    Return
+    ----------
+        None
+    
+    """
     for model in models_classifiers:
         obj = BaseModel.bestmodel_factory.using_optuna(
             estimator=eval(model + "()"),
@@ -230,6 +341,19 @@ def run_optuna_classifiers(pause_iteration=True):
 
 # check optuna search on selected regression models
 def run_optuna_regressors(pause_iteration=True):
+    """
+    Loop trough some of the regressors that already 
+    created and to test if optuna works on them
+    or not.
+    Parameters
+    ----------
+    pause_iteration: boolean
+        To pause the running of the function after each iteration.
+    Return
+    ----------
+        None
+    
+    """
     for model in models_regressors:
         obj = BaseModel.bestmodel_factory.using_optuna(
             estimator=eval(model + "()"),
@@ -266,11 +390,24 @@ def run_optuna_regressors(pause_iteration=True):
             if val == "N":
                 break
 
+def run_all(pause_iteration):
+    """Run all tests cases
+
+    Parameters
+    ----------
+    pause_iteration: boolean
+        To pause the running of the function after each iteration.
+    Return
+    ----------
+        None
+    """
+    run_gird_classifiers(pause_iteration) # OK
+    run_gird_regressoros(pause_iteration) # OK
+    run_random_classifiers(pause_iteration) # OK
+    run_random_regressoros(pause_iteration) # OK
+    run_optuna_classifiers(pause_iteration) # OK
+    run_optuna_regressors(pause_iteration)  # OK
 
 if __name__ == "__main__":
-    # run_gird_classifiers(pause_iteration=True) # OK
-    # run_gird_regressoros(pause_iteration=True) # OK
-    # run_random_classifiers(pause_iteration=True) # OK
-    # run_random_regressoros(pause_iteration=True) # OK
-    # run_optuna_classifiers(pause_iteration=True) # OK
-    run_optuna_regressors(pause_iteration=True)  # OK
+    """run all tests in once"""
+    run_all(False) # OK

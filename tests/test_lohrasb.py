@@ -1,3 +1,4 @@
 from lohrasb import __version__
 def test_version():
-    assert __version__ == '0.6.0'
+    """test version"""
+    assert __version__ == '1.1.0'

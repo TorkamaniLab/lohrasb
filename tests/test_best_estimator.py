@@ -1,13 +1,12 @@
 import pandas as pd
-import xgboost
 import optuna
-import catboost
 from lohrasb.project_conf import ROOT_PROJECT
 from optuna.pruners import HyperbandPruner
 from optuna.samplers._tpe.sampler import TPESampler
 from sklearn.model_selection import KFold, train_test_split
 from lohrasb.best_estimator import BaseModel
 import numpy as np
+from sklearn.metrics import f1_score, mean_absolute_error
 from sklearn.linear_model import *
 from sklearn.svm import *
 from xgboost import *
@@ -17,285 +16,224 @@ from lightgbm import *
 from sklearn.neural_network import *
 from imblearn.ensemble import *
 from sklearn.ensemble import *
+# prepare data for tests
+try:
+    print(ROOT_PROJECT / "lohrasb" / "data" / "data.csv")
+    data = pd.read_csv(ROOT_PROJECT / "lohrasb" / "data" / "data.csv")
+except Exception as e:
+    print(ROOT_PROJECT / "lohrasb" / "data" / "data.csv")
+    print(e)
+
+X = data.loc[:, data.columns != "default payment next month"]
+y = data.loc[:, data.columns == "default payment next month"]
+y = y.values.ravel()
+
+X = X.select_dtypes(include=np.number)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.33, random_state=0
+)
+
+# function for classifications
+def run_classifiers(obj, X_train, y_train, X_test, y_test):
+    obj.fit(X_train, y_train)
+    y_preds = obj.predict(X_test)
+    pred_labels = np.rint(y_preds)
+    return f1_score(y_test, pred_labels)
+    
+# function for regressions
+def run_regressors(obj, X_train, y_train, X_test, y_test):
+    obj.fit(X_train, y_train)
+    y_preds = obj.predict(X_test)
+    return mean_absolute_error(y_test, y_preds)
+
+
+models_classifiers = {
+    "XGBClassifier": {
+        "eval_metric": ["auc"],
+        "max_depth": [4, 5],
+    },
+    "LGBMClassifier": {
+    "max_depth": [1, 12]
+    },
+    "CatBoostClassifier": {
+        "depth": [5, 6],
+        "logging_level": ["Silent"],
+
+    },
+    "MLPClassifier": {
+        "activation": ["relu"],
+        "alpha": [0.0001],
+    },
+    "BalancedRandomForestClassifier": {
+        "n_estimators": [100, 200],
+        "min_impurity_decrease": [0.0, 0.1],
+    },
+}
+
+
+models_regressors = {
+    "XGBRegressor": {
+        "max_depth": [4, 5],
+        "min_child_weight": [0.1, 0.9],
+        "gamma": [1, 9],
+    },
+    "LinearRegression": {
+        "fit_intercept": [True, False],
+    },
+    "RandomForestRegressor": {
+        "max_depth": [4, 5],
+    },
+    "MLPRegressor": {
+        "activation": ["logistic"],
+        "solver": ["lbfgs", "sgd", "adam"],
+        "alpha": [0.0001],
+    },
+}
+
 
 def test_best_estimator():
     """Test feature scally selector add"""
-
-    # SFC_XGB_OPTUNA = BaseModel(
-    #     estimator=xgboost.XGBClassifier(),
-    #     estimator_params={
-    #         "max_depth": [4, 5],
-    #         "min_child_weight": [0.1, 0.9],
-    #         "gamma": [1, 9],
-    #         "booster": ["gbtree"],
-    #     },
-    #     hyper_parameter_optimization_method="optuna",
-    #     measure_of_accuracy="f1",
-    #     test_size=0.33,
-    #     cv=KFold(n_splits=3, random_state=42, shuffle=True),
-    #     with_stratified=True,
-    #     verbose=3,
-    #     random_state=42,
-    #     n_jobs=-1,
-    #     n_iter=100,
-    #     eval_metric="auc",
-    #     number_of_trials=10,
-    #     sampler=TPESampler(),
-    #     pruner=HyperbandPruner(),
-    # )
-
-    # SFC_XGBREG_OPTUNA = BaseModel(
-    #     estimator=xgboost.XGBRegressor(),
-    #     estimator_params={
-    #         "max_depth": [4, 5],
-    #         #"min_child_weight": [0.1, 0.9],
-    #         #"gamma": [1, 9],
-    #     },
-    #     hyper_parameter_optimization_method="optuna",
-    #     measure_of_accuracy="r2",
-    #     test_size=0.33,
-    #     cv=KFold(n_splits=3, random_state=42, shuffle=True),
-    #     with_stratified=False,
-    #     verbose=3,
-    #     random_state=42,
-    #     n_jobs=-1,
-    #     n_iter=100,
-    #     eval_metric="rmse",
-    #     number_of_trials=10,
-    #     sampler=TPESampler(),
-    #     pruner=HyperbandPruner(),
-    # )
-
-
-    # SFC_CAT_OPTUNA = BaseModel(
-    #     estimator=catboost.CatBoostClassifier(),
-    #     estimator_params={
-    #         #"objective": ["Logloss", "CrossEntropy"],
-    #         "depth": [1, 12],
-    #         "boosting_type": ["Ordered", "Plain"],
-    #         "bootstrap_type": ["Bayesian", "Bernoulli", "MVS"]
+    # functions for classifiers
+    def run_gird_classifiers(pause_iteration=False):
+        for model in models_classifiers:
+            obj = BaseModel.bestmodel_factory.using_gridsearch(
+                estimator=eval(model + "()"),
+                estimator_params=models_classifiers[model],
+                measure_of_accuracy="f1",
+                verbose=3,
+                n_jobs=-1,
+                random_state=42,
+                cv=KFold(2),
+            )
+            # run classifiers
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test)
+            assert f1>= 0.0
+    def run_random_classifiers(pause_iteration=False):
+        for model in models_classifiers:
+            obj = BaseModel.bestmodel_factory.using_randomsearch(
+                estimator=eval(model + "()"),
+                estimator_params=models_classifiers[model],
+                measure_of_accuracy="f1",
+                verbose=3,
+                n_jobs=-1,
+                random_state=42,
+                cv=KFold(2),
+                n_iter=1,
+            )
+            # run classifiers
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test)
+            assert f1>= 0.0
+    def run_optuna_classifiers(pause_iteration=False):
+        for model in models_classifiers:
+            obj = BaseModel.bestmodel_factory.using_optuna(
+                estimator=eval(model + "()"),
+                estimator_params=models_classifiers[model],
+                measure_of_accuracy="f1",
+                verbose=3,
+                n_jobs=-1,
+                random_state=42,
+                # optuna params
+                # optuna study init params
+                study=optuna.create_study(
+                    storage=None,
+                    sampler=TPESampler(),
+                    pruner=HyperbandPruner(),
+                    study_name=None,
+                    direction="maximize",
+                    load_if_exists=False,
+                    directions=None,
+                ),
+                # optuna optimization params
+                study_optimize_objective=None,
+                study_optimize_objective_n_trials=10,
+                study_optimize_objective_timeout=600,
+                study_optimize_n_jobs=-1,
+                study_optimize_catch=(),
+                study_optimize_callbacks=None,
+                study_optimize_gc_after_trial=False,
+                study_optimize_show_progress_bar=False,
+            )
+            # run classifiers
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test)
+            assert f1>= 0.0
     
-    #     },
-    #     hyper_parameter_optimization_method="optuna",
-    #     measure_of_accuracy="f1",
-    #     test_size=0.33,
-    #     cv=KFold(n_splits=3, random_state=42, shuffle=True),
-    #     with_stratified=True,
-    #     verbose=3,
-    #     random_state=42,
-    #     n_jobs=-1,
-    #     n_iter=100,
-    #     eval_metric="AUC",
-    #     number_of_trials=10,
-    #     sampler=TPESampler(),
-    #     pruner=HyperbandPruner(),
-    # )
+    # functions for regressors
+    def run_gird_regressors(pause_iteration=False):
+        for model in models_regressors:
+            obj = BaseModel.bestmodel_factory.using_gridsearch(
+                estimator=eval(model + "()"),
+                estimator_params=models_regressors[model],
+                measure_of_accuracy="mean_absolute_error",
+                verbose=3,
+                n_jobs=-1,
+                random_state=42,
+                cv=KFold(2),
+            )
+            # run regressors
+            mean_absolute_error = run_regressors(obj, X_train, y_train, X_test, y_test)
+            assert mean_absolute_error >= 0.0
+    
+    def run_random_regressors(pause_iteration=False):
+        for model in models_regressors:
+            obj = BaseModel.bestmodel_factory.using_randomsearch(
+                estimator=eval(model + "()"),
+                estimator_params=models_regressors[model],
+                measure_of_accuracy="mean_absolute_error",
+                verbose=3,
+                n_jobs=-1,
+                random_state=42,
+                cv=KFold(2),
+                n_iter=1,
+            )
+            # run regressors
+            mean_absolute_error = run_regressors(obj, X_train, y_train, X_test, y_test)
+            assert mean_absolute_error >= 0.0
 
+    def run_optuna_regressors(pause_iteration=False):
+        for model in models_regressors:
+            obj = BaseModel.bestmodel_factory.using_optuna(
+            estimator=eval(model + "()"),
+            estimator_params=models_regressors[model],
+            measure_of_accuracy="mean_absolute_error",
+            verbose=3,
+            n_jobs=-1,
+            random_state=42,
+            # optuna params
+            # optuna study init params
+            study=optuna.create_study(
+                storage=None,
+                sampler=TPESampler(),
+                pruner=HyperbandPruner(),
+                study_name=None,
+                direction="minimize",
+                load_if_exists=False,
+                directions=None,
+            ),
+            # optuna optimization params
+            study_optimize_objective=None,
+            study_optimize_objective_n_trials=10,
+            study_optimize_objective_timeout=600,
+            study_optimize_n_jobs=-1,
+            study_optimize_catch=(),
+            study_optimize_callbacks=None,
+            study_optimize_gc_after_trial=False,
+            study_optimize_show_progress_bar=False,
+            )
+            # run regressors
+            mean_absolute_error = run_regressors(obj, X_train, y_train, X_test, y_test)
+            assert mean_absolute_error >= 0.0
 
-    # SFC_CATREG_OPTUNA = BaseModel(
-    #     estimator=catboost.CatBoostRegressor(),
-    #     estimator_params={
-    #         "depth": [1, 12]
-    #     },
-    #     hyper_parameter_optimization_method="optuna",
-    #     measure_of_accuracy="r2",
-    #     test_size=0.33,
-    #     cv=KFold(n_splits=3, random_state=42, shuffle=True),
-    #     with_stratified=False,
-    #     verbose=3,
-    #     random_state=42,
-    #     n_jobs=-1,
-    #     n_iter=100,
-    #     eval_metric="RMSE",
-    #     number_of_trials=10,
-    #     sampler=TPESampler(),
-    #     pruner=HyperbandPruner(),
-    # )
+    # run tests for classifiers
+    run_gird_classifiers()
+    run_random_classifiers()
+    run_optuna_classifiers()
 
+    # run tests for regressors
+    run_gird_regressors()
+    run_random_regressors()
+    run_optuna_regressors()
 
-    # SFC_GRID = BaseModel(
-    #     estimator=xgboost.XGBClassifier(),
-    #     estimator_params={
-    #         "eval_metric":['auc'],
-    #         "max_depth": [4, 5],
-    #         "min_child_weight": [0.1, 0.9],
-    #         "gamma": [1, 9],
-    #     },
-    #     measure_of_accuracy="f1",
-    #     hyper_parameter_optimization_method="grid",
-    #     test_size=0.33,
-    #     with_stratified=True,
-    #     verbose=3,
-    #     n_jobs=-1,
-    #     random_state=42,
-    #     n_iter=100,
-    #     cv=KFold(n_splits=3,random_state=42,shuffle=True),
-    #     # optuna params
-    #     # optuna study init params
-    #     study=optuna.create_study(
-    #         storage=None,
-    #         sampler=TPESampler(),
-    #         pruner=HyperbandPruner(),
-    #         study_name=None,
-    #         direction="maximize",
-    #         load_if_exists=False,
-    #         directions=None,
-    #     ),
-    #     # optuna optimization params
-    #     study_optimize_objective=None,
-    #     study_optimize_objective_n_trials=100,
-    #     study_optimize_objective_timeout=600,
-    #     study_optimize_n_jobs=-1,
-    #     study_optimize_catch=(),
-    #     study_optimize_callbacks=None,
-    #     study_optimize_gc_after_trial=False,
-    #     study_optimize_show_progress_bar=False,
-
-
-    # )
-
-    # SFC_RANDOM = BaseModel(
-    #     estimator=xgboost.XGBClassifier(),
-    #     estimator_params={
-    #         "max_depth": [4, 5],
-    #         "min_child_weight": [0.1, 0.9],
-    #         "gamma": [1, 9],
-    #         "booster": ["gbtree"],
-    #     },
-    #     measure_of_accuracy="f1",
-    #     hyper_parameter_optimization_method="random",
-    #     test_size=0.33,
-    #     with_stratified=True,
-    #     verbose=3,
-    #     n_jobs=-1,
-    #     random_state=42,
-    #     n_iter=100,
-    #     cv=KFold(n_splits=3,random_state=42,shuffle=True),
-
-    #     # optuna params
-    #     # optuna study init params
-    #     study=optuna.create_study(
-    #         storage=None,
-    #         sampler=TPESampler(),
-    #         pruner=HyperbandPruner(),
-    #         study_name="TEST XGBClassifier",
-    #         direction="maximize",
-    #         load_if_exists=False,
-    #         directions=None,
-    #     ),
-    #     # optuna optimization params
-    #     study_optimize_objective=None,
-    #     study_optimize_objective_n_trials=100,
-    #     study_optimize_objective_timeout=600,
-    #     study_optimize_n_jobs=-1,
-    #     study_optimize_catch=(),
-    #     study_optimize_callbacks=None,
-    #     study_optimize_gc_after_trial=False,
-    #     study_optimize_show_progress_bar=False,
-
-    # )
-
-    SFC_OPTUNA_XGB_CLASSIFIER = BaseModel(
-        estimator=xgboost.XGBClassifier(),
-        estimator_params={
-            "max_depth": [4, 5],
-        },
-         measure_of_accuracy="f1",
-        hyper_parameter_optimization_method="optuna",
-        test_size=0.33,
-        with_stratified=True,
-        verbose=3,
-        n_jobs=-1,
-        random_state=42,
-        n_iter=100,
-        cv=KFold(n_splits=3,random_state=42,shuffle=True),
-
-        # optuna params
-        # optuna study init params
-        study=optuna.create_study(
-            storage=None,
-            sampler=TPESampler(),
-            pruner=HyperbandPruner(),
-            study_name="TEST XGBClassifier",
-            direction="maximize",
-            load_if_exists=False,
-            directions=None,
-        ),
-        # optuna optimization params
-        study_optimize_objective=None,
-        study_optimize_objective_n_trials=100,
-        study_optimize_objective_timeout=600,
-        study_optimize_n_jobs=-1,
-        study_optimize_catch=(),
-        study_optimize_callbacks=None,
-        study_optimize_gc_after_trial=False,
-        study_optimize_show_progress_bar=False,
-    )
-
-
-    try:
-        data = pd.read_csv(ROOT_PROJECT / "lohrasb"  / "data" / "data.csv")
-    except:
-        data = pd.read_csv("/home/circleci/project/data/data.csv")
-    print(data.columns.to_list())
-
-    X = data.loc[:, data.columns != "default payment next month"]
-    y = data.loc[:, data.columns == "default payment next month"]
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.33, random_state=0
-    )
-
-    # SFC_CAT_OPTUNA.fit(X_train, y_train)
-    # y_preds_catboost_classifier = SFC_CAT_OPTUNA.predict(X_test)
-    # y_preds_catboost_classifier = np.rint(y_preds_catboost_classifier)
-    # print(len(y_preds_catboost_classifier))
-
-
-    #SFC_CATREG_OPTUNA.fit(X_train, y_train)
-    #y_preds_catboost_regressor = SFC_CATREG_OPTUNA.predict(X_test)
-    #print(len(y_preds_catboost_regressor))
-
-
-    # SFC_XGB_OPTUNA.fit(X_train, y_train)
-    # y_preds_xgboost_classifier = SFC_XGB_OPTUNA.predict(X_test)
-    # y_preds_xgboost_classifier = np.rint(y_preds_xgboost_classifier)
-    # print(len(y_preds_xgboost_classifier))
-
-
-    # SFC_XGBREG_OPTUNA.fit(X_train, y_train)
-    # y_preds_xgboost_regressor = SFC_XGBREG_OPTUNA.predict(X_test)
-    # print(len(y_preds_xgboost_regressor))
-
-
-    # SFC_GRID.fit(X_train, y_train)
-    # y_preds_xgboost_classifier_grid = SFC_GRID.predict(X_test)
-    # y_preds_xgboost_classifier_grid = np.rint(y_preds_xgboost_classifier_grid)
-    # print(len(y_preds_xgboost_classifier_grid))
-
-    # SFC_RANDOM.fit(X_train, y_train)
-    # y_preds_xgboost_classifier_random = SFC_RANDOM.predict(X_test)
-    # y_preds_xgboost_classifier_random = np.rint(y_preds_xgboost_classifier_random)
-    # print(len(y_preds_xgboost_classifier_random))
-
-
-    SFC_OPTUNA_XGB_CLASSIFIER.fit(X_train, y_train)
-    y_preds_xgboost_classifier_optuna= SFC_OPTUNA_XGB_CLASSIFIER.predict(X_test)
-    y_preds_xgboost_classifier_optuna = np.rint(y_preds_xgboost_classifier_optuna)
-    print(len(y_preds_xgboost_classifier_optuna))
-
-
-    #assert len(y_preds_catboost_regressor)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    #assert len(y_preds_xgboost_regressor)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    #assert len(y_preds_xgboost_regressor)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    assert len(y_preds_xgboost_classifier_optuna)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    # assert len(y_preds_xgboost_classifier_grid)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    # assert len(y_preds_xgboost_classifier_random)==9900#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-
-
-    #assert len(pred_labels)==4#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    #assert len(pred_labels)==4#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    #assert len(pred_labels)==4#['PAY_0', 'LIMIT_BAL', 'PAY_AMT2', 'BILL_AMT1']
-    #assert len(pred_labels) == 4
+# run all tests in once
+test_best_estimator()
 
 

@@ -1,14 +1,12 @@
-# https://www.geeksforgeeks.org/inspect-module-in-python/
 
 from abc import ABCMeta
+import logging
 from pickletools import optimize
 import optuna
 from optuna.pruners import HyperbandPruner
 from optuna.samplers import TPESampler
 from sklearn.base import BaseEstimator
 import numpy as np
-from lohrasb.model_conf import SUPPORTED_MODELS
-from xgboost import XGBClassifier, XGBRegressor
 
 from lohrasb.utils.helper_funcs import install_and_import
 from lohrasb.base_classes.optimizer_bases import (
@@ -20,93 +18,121 @@ from lohrasb.base_classes.optimizer_bases import (
 
 class BaseModel(BaseEstimator, metaclass=ABCMeta):
     """
-        Feature Selector class using shap values. It is extended from scikit-learn
-        BaseEstimator and TransformerMixin.
+        AutoML with Hyperparameter optimization capabilities.
     ...
 
-    Attributes
+    Parameters
     ----------
+    logging_basicConfig : object
+        Setting Logging process. Visit https://docs.python.org/3/library/logging.html
     estimator: object
-        An unfitted estimator. For now, only tree-based estimators. Supported
-        methods are, "XGBRegressor",
-        ``XGBClassifier``, ``RandomForestClassifier``,``RandomForestRegressor``,
-        ``CatBoostClassifier``,``CatBoostRegressor``,
-        ``BalancedRandomForestClassifier``,
-        ``LGBMClassifier``, and ``LGBMRegressor``.
+        An unfitted estimator that has fit and predicts methods. 
     estimator_params: dict
-        Parameters passed to find the best estimator using optimization
+        Parameters were passed to find the best estimator using the optimization
         method.
     hyper_parameter_optimization_method : str
         Type of method for hyperparameter optimization of the estimator.
-        Supported methods are: Grid Search, Random Search, and Optuna.
-        use ``grid`` to set for Grid Search, ``random`` to set for Random Search,
-        and ``optuna`` for Optuna method. (default ``optuna``)
+        Supported methods are Grid Search, Random Search, and Optional.
+        Use ``grid`` to set for Grid Search, ``random for Random Search,
+        and ``optional`` for Optuna. (default ``optuna``)
     measure_of_accuracy : str
         Measurement of performance for classification and
         regression estimator during hyperparameter optimization while
-        estimating best estimator. Classification-supported measurments are
+        estimating best estimator. Classification-supported measurements are
         f1, f1_score, acc, accuracy_score, pr, precision_score,
         recall, recall_score, roc, roc_auc_score, roc_auc,
-        tp, true positive, tn, true negative. Regression supported
+        tp, true positive, TN, true negative. Regression supported
         measurements are r2, r2_score, explained_variance_score,
         max_error, mean_absolute_error, mean_squared_error,
         median_absolute_error, and mean_absolute_percentage_error.
     test_size : float or int
         If float, it should be between 0.0 and 1.0 and represent the proportion
         of the dataset to include in the train split during estimating the best estimator
-        by optimization method. If int represents the
+        by optimization method. If it means the
         absolute number of train samples. If None, the value is automatically
         set to the complement of the test size.
-    cv : int
+    cv: int
         cross-validation generator or an iterable.
         Determines the cross-validation splitting strategy. Possible inputs
         for cv are: None, to use the default 5-fold cross-validation,
         int, to specify the number of folds in a (Stratified)KFold,
         CV splitter, An iterable yielding (train, test) splits
         as arrays of indices. For int/None inputs, if the estimator
-        are a classifier, and y is either binary or multiclass,
+        is a classifier, and y is either binary or multiclass,
         StratifiedKFold is used. In all other cases, Fold is used.
         These splitters are instantiated with shuffle=False, so the splits
-         will be the same across calls.
+        will be the same across calls. It is only used when hyper_parameter_optimization_method
+        is grid or random.
+
     with_stratified: bool
         Set True if you want data split in a stratified fashion. (default ``True``)
-    verbose : int
+    verbose: int
         Controls the verbosity across all objects: the higher, the more messages.
-    random_state : int
+    random_state: int
         Random number seed.
-    n_jobs : int
-        Number of jobs to run in parallel for Grid Search, Random Search, and Optuna.
+    n_jobs: int
+        The number of jobs to run in parallel for Grid Search, Random Search, and Optional.
         ``-1`` means using all processors. (default -1)
     n_iter : int
-        Only it means full in Random Search. it is several parameter
-        settings that are sampled. n_iter trades off runtime vs quality of the solution.
-    eval_metric : str
-        An evaluation metric name for pruning. For xgboost.XGBClassifier it is
-        ``auc``, for catboost.CatBoostClassifier it is ``AUC`` for catboost.CatBoostRegressor
-        it is ``RMSE``.
-    number_of_trials : int
-        The number of trials. If this argument is set to None,
-        there is no limitation on the number of trials. (default 20)
-    sampler : object
-        optuna.samplers. For more information, see:
-        ``https://optuna.readthedocs.io/en/stable/reference/samplers.html#module-optuna.samplers``.
-        (default TPESampler())
-    pruner : object
-        optuna.pruners. For more information, see:
-        ``https://optuna.readthedocs.io/en/stable/reference/pruners.html``.
-        (default HyperbandPruner())
+        Only it means full in Random Search. It is several parameter
+        settings that are sampled. n_iter trades off runtime vs. quality of the solution.
+    study: object
+        Create an optuna study. For setting its parameters, visit
+        https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.create_study.html#optuna.study.create_study
+    study_optimize_objective : object
+        A callable that implements an objective function.
+    study_optimize_objective_n_trials: int
+        The number of trials. If this argument is set to obj:`None`, there is no
+        limitation on the number of trials. If:obj:`timeout` is also set to:obj:`None,`
+        the study continues to create trials until it receives a termination signal such
+        as Ctrl+C or SIGTERM.
+    study_optimize_objective_timeout : int
+        Stop studying after the given number of seconds (s). If this argument is set to
+        :obj:`None`, the study is executed without time limitation. If:obj:`n_trials` is
+        also set to obj:`None,` the study continues to create trials until it receives a
+        termination signal such as Ctrl+C or SIGTERM.
+    study_optimize_n_jobs : int ,
+        The number of parallel jobs. If this argument is set to obj:`-1`, the number is
+        set to CPU count.
+    study_optimize_catch: object
+        A study continues to run even when a trial raises one of the exceptions specified
+        in this argument. Default is an empty tuple, i.e., the study will stop for any
+        exception except for class:`~optuna.exceptions.TrialPruned`.
+    study_optimize_callbacks: [callback functions]
+        List of callback functions that are invoked at the end of each trial. Each function
+        must accept two parameters with the following types in this order:
+    study_optimize_gc_after_trial: bool
+        Flag to determine whether to run garbage collection after each trial automatically.
+        Set to:obj:`True` to run the garbage collection: obj:`False` otherwise.
+        When it runs, it runs a full collection by internally calling:func:`gc.collect`.
+        If you see an increase in memory consumption over several trials, try setting this
+        flag to obj:`True`.
+    study_optimize_show_progress_bar: bool
+        Flag to show progress bars or not. To disable the progress bar.
 
     Methods
     -------
     fit(X, y)
-        Fit the feature selection estimator by best parameters extracted
+        Fit the feature selection estimator by the best parameters extracted
         from optimization methods.
     predict(X)
         Predict using the best estimator model.
+    get_best_estimator()
+        Return best estimator, if aleardy fitted.
+    Notes
+    -----
+    It is recommended to use available factories 
+    to create a new instance of this class.
+
     """
 
     def __init__(
         self,
+        logging_basicConfig=logging.basicConfig(
+            level=logging.ERROR,
+            filemode="w",
+            format="%(name)s - %(levelname)s - %(message)s",
+        ),
         # general argument setting
         hyper_parameter_optimization_method=None,
         verbose=0,
@@ -142,96 +168,8 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         study_optimize_gc_after_trial=False,
         study_optimize_show_progress_bar=False,
     ):
-        """
-        Parameters
-        ----------
-        n_features : int
-            The number of features seen during term:`fit`. Only defined if the
-            underlying estimator exposes such an attribute when fitted.
-        estimator: object
-            An unfitted estimator. For now, only tree-based estimators. Supported
-            methods are, "XGBRegressor",
-            ``XGBClassifier``, ``RandomForestClassifier``,``RandomForestRegressor``,
-            ``CatBoostClassifier``,``CatBoostRegressor``,
-            ``BalancedRandomForestClassifier``,
-            ``LGBMClassifier``, and ``LGBMRegressor``.
-        estimator_params: dict
-            Parameters passed to find the best estimator using optimization
-            method.
-        hyper_parameter_optimization_method : str
-            Type of method for hyperparameter optimization of the estimator.
-            Supported methods are: Grid Search, Random Search, and Optuna.
-            use ``grid`` to set for Grid Search, ``random`` to set for Random Search,
-            and ``optuna`` for Optuna method. (default ``optuna``)
-        shap_version : str
-            FastTreeSHAP algorithms. Supported version ``v0``,
-            ``v1``, and ``v2``. Check this paper
-            `` https://arxiv.org/abs/2109.09847 ``
-        measure_of_accuracy : str
-            Measurement of performance for classification and
-            regression estimator during hyperparameter optimization while
-            estimating best estimator. Classification-supported measurments are
-            f1, f1_score, acc, accuracy_score, pr, precision_score,
-            recall, recall_score, roc, roc_auc_score, roc_auc,
-            tp, true positive, tn, true negative. Regression supported
-            measurements are r2, r2_score, explained_variance_score,
-            max_error, mean_absolute_error, mean_squared_error,
-            median_absolute_error, and mean_absolute_percentage_error.
-        list_of_obligatory_features : [str]
-            A list of strings (columns names of feature set pandas data frame)
-            that should be among selected features. No matter if they have high or
-            low shap values will be selected at the end of feature selection
-            step.
-        test_size : float or int
-            If float, it should be between 0.0 and 1.0 and represent the proportion
-            of the dataset to include in the train split during estimating the best estimator
-            by optimization method. If int represents the
-            absolute number of train samples. If None, the value is automatically
-            set to the complement of the test size.
-        cv : int
-            cross-validation generator or an iterable.
-            Determines the cross-validation splitting strategy. Possible inputs
-            for cv are: None, to use the default 5-fold cross-validation,
-            int, to specify the number of folds in a (Stratified)KFold,
-            CV splitter, An iterable yielding (train, test) splits
-            as arrays of indices. For int/None inputs, if the estimator
-            is a classifier and y is either binary or multiclass,
-            StratifiedKFold is used. In all other cases, Fold is used.
-            These splitters are instantiated with shuffle=False, so the splits
-            will be the same across calls.
-        with_shap_summary_plot : bool
-            Set True if you want to see a shap summary plot of
-            selected features. (default ``False``)
-        with_stratified : bool
-            Set True if you want data split in a stratified fashion. (default ``True``)
-        verbose : int
-            Controls the verbosity across all objects: the higher, the more messages.
-        random_state : int
-            Random number seed.
-        n_jobs : int
-            The number of jobs to run in parallel for Grid Search, Random Search, and Optuna.
-            ``-1`` means using all processors. (default -1)
-        n_iter : int
-            Only it means full in Random Search. it is a number of parameter
-            settings that are sampled. n_iter trades off runtime vs quality of the solution.
-        eval_metric : str
-            An evaluation metric name for pruning. For xgboost.XGBClassifier it is
-            ``auc``, for catboost.CatBoostClassifier it is ``AUC`` for catboost.CatBoostRegressor
-            it is ``RMSE``.
-        number_of_trials : int
-            The number of trials. If this argument is set to None,
-            there is no limitation on the number of trials. (default 20)
-        sampler : object
-            optuna.samplers. For more information, see:
-            ``https://optuna.readthedocs.io/en/stable/reference/samplers.html#module-optuna.samplers``.
-            (default TPESampler())
-        pruner : object
-            optuna.pruners. For more information, see:
-            ``https://optuna.readthedocs.io/en/stable/reference/pruners.html``.
-            (default HyperbandPruner())
-        """
-
-         # general argument setting
+        self.logging_basicConfig=logging_basicConfig
+        # general argument setting
         self.hyper_parameter_optimization_method=hyper_parameter_optimization_method
         self.verbose=verbose
         self.random_state=random_state
@@ -258,35 +196,43 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         self.study_optimize_gc_after_trial=study_optimize_gc_after_trial
         self.study_optimize_show_progress_bar=study_optimize_show_progress_bar
 
+    @property
+    def logging_basicConfig(self):
+        logging.info("Getting value for logging_basicConfig")
+        return self._logging_basicConfig
 
+    @logging_basicConfig.setter
+    def logging_basicConfig(self, value):
+        logging.info("Setting value for logging_basicConfig")
+        self._logging_basicConfig = value
     @property
     def estimator(self):
-        print("Getting value for estimator")
+        logging.info("Getting value for estimator")
         return self._estimator
 
     @estimator.setter
     def estimator(self, value):
-        print("Setting value for estimator")
+        logging.info("Setting value for estimator")
         self._estimator = value
 
     @property
     def estimator_params(self):
-        print("Getting value for estimator_params")
+        logging.info("Getting value for estimator_params")
         return self._estimator_params
 
     @estimator_params.setter
     def estimator_params(self, value):
-        print("Setting value for  estimator params")
+        logging.info("Setting value for  estimator params")
         self._estimator_params = value
 
     @property
     def hyper_parameter_optimization_method(self):
-        print("Getting value for hyper_parameter_optimization_method")
+        logging.info("Getting value for hyper_parameter_optimization_method")
         return self._hyper_parameter_optimization_method
 
     @hyper_parameter_optimization_method.setter
     def hyper_parameter_optimization_method(self, value):
-        print("Setting value for hyper_parameter_optimization_method")
+        logging.info("Setting value for hyper_parameter_optimization_method")
         if (
             value.lower() == "optuna"
             or value.lower() == "grid"
@@ -296,137 +242,128 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         else:
             raise ValueError(
                 f"error occures during selecting optimization_method, {value} is \
-                     not supported."
+                     not supported. The omptimizing engine should be \
+                     optuna, grid or random."
             )
 
     @property
     def measure_of_accuracy(self):
-        print("Getting value for measure_of_accuracy")
+        logging.info("Getting value for measure_of_accuracy")
         return self._measure_of_accuracy
 
     @measure_of_accuracy.setter
     def measure_of_accuracy(self, value):
-        print("Setting value for measure_of_accuracy")
+        logging.info("Setting value for measure_of_accuracy")
         self._measure_of_accuracy = value
 
     @property
     def test_size(self):
-        print("Getting value for test_size")
+        logging.info("Getting value for test_size")
         return self._test_size
 
     @test_size.setter
     def test_size(self, value):
-        print("Setting value for test_size")
+        logging.info("Setting value for test_size")
         self._test_size = value
 
     @property
     def cv(self):
-        print("Getting value for Cross Validation object")
+        logging.info("Getting value for Cross Validation object")
         return self._cv
 
     @cv.setter
     def cv(self, value):
-        print("Setting value for Cross Validation object")
+        logging.info("Setting value for Cross Validation object")
         self._cv = value
 
     @property
     def with_stratified(self):
-        print("Getting value for with_stratified")
+        logging.info("Getting value for with_stratified")
         return self._with_stratified
 
     @with_stratified.setter
     def with_stratified(self, value):
-        print("Setting value for with_stratified")
+        logging.info("Setting value for with_stratified")
         self._with_stratified = value
 
     @property
     def verbose(self):
-        print("Getting value for verbose")
+        logging.info("Getting value for verbose")
         return self._verbose
 
     @verbose.setter
     def verbose(self, value):
-        print("Setting value for verbose")
+        logging.info("Setting value for verbose")
         self._verbose = value
 
     @property
     def random_state(self):
-        print("Getting value for random_state")
+        logging.info("Getting value for random_state")
         return self._random_state
 
     @random_state.setter
     def random_state(self, value):
-        print("Setting value for random_state")
+        logging.info("Setting value for random_state")
         self._random_state = value
 
     @property
     def n_jobs(self):
-        print("Getting value for n_jobs")
+        logging.info("Getting value for n_jobs")
         return self._n_jobs
 
     @n_jobs.setter
     def n_jobs(self, value):
-        print("Setting value for n_jobs")
+        logging.info("Setting value for n_jobs")
         self._n_jobs = value
 
     @property
     def n_iter(self):
-        print("Getting value for n_iter")
+        logging.info("Getting value for n_iter")
         return self._n_iter
 
     @n_iter.setter
     def n_iter(self, value):
-        print("Setting value for n_iter")
+        logging.info("Setting value for n_iter")
         self._n_iter = value
 
     @property
-    def eval_metric(self):
-        print("Getting value for eval_metric")
-        return self._eval_metric
-
-    @eval_metric.setter
-    def eval_metric(self, value):
-        print("Setting value for eval_metric")
-        self._eval_metric = value
-
-    @property
     def number_of_trials(self):
-        print("Getting value for number_of_trials")
+        logging.info("Getting value for number_of_trials")
         return self._number_of_trials
 
     @number_of_trials.setter
     def number_of_trials(self, value):
-        print("Setting value for number_of_trials")
+        logging.info("Setting value for number_of_trials")
         self._number_of_trials = value
 
     @property
     def sampler(self):
-        print("Getting value for sampler")
+        logging.info("Getting value for sampler")
         return self._sampler
 
     @sampler.setter
     def sampler(self, value):
-        print("Setting value for sampler")
+        logging.info("Setting value for sampler")
         self._sampler = value
 
     @property
     def pruner(self):
-        print("Getting value for pruner")
+        logging.info("Getting value for pruner")
         return self._pruner
 
     @pruner.setter
     def pruner(self, value):
-        print("Setting value for pruner")
+        logging.info("Setting value for pruner")
         self._pruner = value
 
     @property
     def best_estimator(self):
-        print("Getting value for best_estimator")
+        logging.info("Getting value for best_estimator")
         return self._best_estimator
 
     @best_estimator.setter
     def best_estimator(self, value):
-        print("Setting value for best_estimator")
+        logging.info("Setting value for best_estimator")
         self._best_estimator = value
 
     def fit(self, X, y):
@@ -479,10 +416,23 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             step of the pipeline.
         """
         return self.best_estimator.predict(X)
+    
+    def get_best_estimator(self):
+        """Return best estimator if model already fitted.
+        """
+        return self.best_estimator
 
     class BestModelFactory:
+        """Class Factories for initializing BestModel optimizing engines, e.g., 
+        Optuna, GridSearchCV, and RandomizedCV
+        """
         def using_optuna(
                 self,
+                logging_basicConfig = logging.basicConfig(
+                    level=logging.ERROR,
+                    filemode="w",
+                    format="%(name)s - %(levelname)s - %(message)s",
+                ),
                 hyper_parameter_optimization_method='optuna',
                 verbose=0,
                 random_state=0,
@@ -515,6 +465,83 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 study_optimize_gc_after_trial=False,
                 study_optimize_show_progress_bar=False,
             ):
+
+            """
+
+            Retrun best model based on optuna search.
+
+            Parameters
+            ----------
+            logging_basicConfig : object
+                Setting Logging process. Visit https://docs.python.org/3/library/logging.html
+            estimator: object
+                An unfitted estimator that has fit and predicts methods. 
+            estimator_params: dict
+                Parameters were passed to find the best estimator using the optimization
+                method.
+            measure_of_accuracy : str
+                Measurement of performance for classification and
+                regression estimator during hyperparameter optimization while
+                estimating best estimator. Classification-supported measurements are
+                f1, f1_score, acc, accuracy_score, pr, precision_score,
+                recall, recall_score, roc, roc_auc_score, roc_auc,
+                tp, true positive, TN, true negative. Regression supported
+                measurements are r2, r2_score, explained_variance_score,
+                max_error, mean_absolute_error, mean_squared_error,
+                median_absolute_error, and mean_absolute_percentage_error.
+            test_size : float or int
+                If float, it should be between 0.0 and 1.0 and represent the proportion
+                of the dataset to include in the train split during estimating the best estimator
+                by optimization method. If it means the
+                absolute number of train samples. If None, the value is automatically
+                set to the complement of the test size.
+            verbose: int
+                Controls the verbosity across all objects: the higher, the more messages.
+            random_state: int
+                Random number seed.
+            n_jobs: int
+                The number of jobs to run in parallel for Grid Search, Random Search, and Optional.
+                ``-1`` means using all processors. (default -1)
+            study: object
+                Create an optuna study. For setting its parameters, visit
+                https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.create_study.html#optuna.study.create_study
+            study_optimize_objective : object
+                A callable that implements an objective function.
+            study_optimize_objective_n_trials: int
+                The number of trials. If this argument is set to obj:`None`, there is no
+                limitation on the number of trials. If:obj:`timeout` is also set to:obj:`None,`
+                the study continues to create trials until it receives a termination signal such
+                as Ctrl+C or SIGTERM.
+            study_optimize_objective_timeout : int
+                Stop studying after the given number of seconds (s). If this argument is set to
+                :obj:`None`, the study is executed without time limitation. If:obj:`n_trials` is
+                also set to obj:`None,` the study continues to create trials until it receives a
+                termination signal such as Ctrl+C or SIGTERM.
+            study_optimize_n_jobs : int ,
+                The number of parallel jobs. If this argument is set to obj:`-1`, the number is
+                set to CPU count.
+            study_optimize_catch: object
+                A study continues to run even when a trial raises one of the exceptions specified
+                in this argument. Default is an empty tuple, i.e., the study will stop for any
+                exception except for class:`~optuna.exceptions.TrialPruned`.
+            study_optimize_callbacks: [callback functions]
+                List of callback functions that are invoked at the end of each trial. Each function
+                must accept two parameters with the following types in this order:
+            study_optimize_gc_after_trial: bool
+                Flag to determine whether to run garbage collection after each trial automatically.
+                Set to:obj:`True` to run the garbage collection: obj:`False` otherwise.
+                When it runs, it runs a full collection by internally calling:func:`gc.collect`.
+                If you see an increase in memory consumption over several trials, try setting this
+                flag to obj:`True`.
+            study_optimize_show_progress_bar: bool
+                Flag to show progress bars or not. To disable the progress bar.
+            
+            Returns
+            -------
+            The best estimator instance by best parameters obtained with optuna search.
+                            
+            """
+
             best_model = BaseModel(hyper_parameter_optimization_method='optuna')
             best_model.verbose=verbose
             best_model.random_state=random_state
@@ -553,6 +580,57 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
 
                 
             ):
+
+
+            """
+
+            Retrun best model based on grid search.
+
+            Parameters
+            ----------
+
+            logging_basicConfig : object
+                Setting Logging process. Visit https://docs.python.org/3/library/logging.html
+            estimator: object
+                An unfitted estimator that has fit and predicts methods. 
+            estimator_params: dict
+                Parameters were passed to find the best estimator using the optimization
+                method.
+            measure_of_accuracy : str
+                Measurement of performance for classification and
+                regression estimator during hyperparameter optimization while
+                estimating best estimator. Classification-supported measurements are
+                f1, f1_score, acc, accuracy_score, pr, precision_score,
+                recall, recall_score, roc, roc_auc_score, roc_auc,
+                tp, true positive, TN, true negative. Regression supported
+                measurements are r2, r2_score, explained_variance_score,
+                max_error, mean_absolute_error, mean_squared_error,
+                median_absolute_error, and mean_absolute_percentage_error.
+            cv: int
+                cross-validation generator or an iterable.
+                Determines the cross-validation splitting strategy. Possible inputs
+                for cv are: None, to use the default 5-fold cross-validation,
+                int, to specify the number of folds in a (Stratified)KFold,
+                CV splitter, An iterable yielding (train, test) splits
+                as arrays of indices. For int/None inputs, if the estimator
+                is a classifier, and y is either binary or multiclass,
+                StratifiedKFold is used. In all other cases, Fold is used.
+                These splitters are instantiated with shuffle=False, so the splits
+                will be the same across calls. It is only used when hyper_parameter_optimization_method
+                is grid or random.
+            verbose: int
+                Controls the verbosity across all objects: the higher, the more messages.
+            random_state: int
+                Random number seed.
+            n_jobs: int
+                The number of jobs to run in parallel for Grid Search, Random Search, and Optional.
+                ``-1`` means using all processors. (default -1)
+            Returns
+            -------
+            The best estimator instance by best parameters obtained with grid search.
+                            
+            """
+
             best_model = BaseModel(hyper_parameter_optimization_method='grid')
             best_model.hyper_parameter_optimization_method='grid'
             best_model.verbose=verbose
@@ -579,6 +657,57 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
 
                 
             ):
+            """
+            Retrun best model based on random search.
+
+            Parameters
+            ----------
+
+            logging_basicConfig : object
+                Setting Logging process. Visit https://docs.python.org/3/library/logging.html
+            estimator: object
+                An unfitted estimator that has fit and predicts methods. 
+            estimator_params: dict
+                Parameters were passed to find the best estimator using the optimization
+                method.
+            measure_of_accuracy : str
+                Measurement of performance for classification and
+                regression estimator during hyperparameter optimization while
+                estimating best estimator. Classification-supported measurements are
+                f1, f1_score, acc, accuracy_score, pr, precision_score,
+                recall, recall_score, roc, roc_auc_score, roc_auc,
+                tp, true positive, TN, true negative. Regression supported
+                measurements are r2, r2_score, explained_variance_score,
+                max_error, mean_absolute_error, mean_squared_error,
+                median_absolute_error, and mean_absolute_percentage_error.
+            cv: int
+                cross-validation generator or an iterable.
+                Determines the cross-validation splitting strategy. Possible inputs
+                for cv are: None, to use the default 5-fold cross-validation,
+                int, to specify the number of folds in a (Stratified)KFold,
+                CV splitter, An iterable yielding (train, test) splits
+                as arrays of indices. For int/None inputs, if the estimator
+                is a classifier, and y is either binary or multiclass,
+                StratifiedKFold is used. In all other cases, Fold is used.
+                These splitters are instantiated with shuffle=False, so the splits
+                will be the same across calls. It is only used when hyper_parameter_optimization_method
+                is grid or random.
+            verbose: int
+                Controls the verbosity across all objects: the higher, the more messages.
+            random_state: int
+                Random number seed.
+            n_jobs: int
+                The number of jobs to run in parallel for Grid Search, Random Search, and Optional.
+                ``-1`` means using all processors. (default -1)
+            n_iter : int
+                Only it means full in Random Search. It is several parameter
+                settings that are sampled. n_iter trades off runtime vs. quality of the solution.
+            Returns
+            -------
+            The best estimator instance by best parameters obtained with random search.
+                            
+            """
+
             best_model = BaseModel(hyper_parameter_optimization_method='random')
             best_model.hyper_parameter_optimization_method='random'
             best_model.verbose=verbose
@@ -594,7 +723,102 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     bestmodel_factory = BestModelFactory()
 
 
-class BestEstimatorFactory:
+class BestEstimatorFactory():
+    """Class Factories for initializing BestModel optimizing engines, e.g., 
+    Optuna, GridSearchCV, and RandomizedCV
+
+    Parameters
+        ----------
+        logging_basicConfig : object
+            Setting Logging process. Visit https://docs.python.org/3/library/logging.html
+        estimator: object
+            An unfitted estimator that has fit and predicts methods. 
+        estimator_params: dict
+            Parameters were passed to find the best estimator using the optimization
+            method.
+        hyper_parameter_optimization_method : str
+            Type of method for hyperparameter optimization of the estimator.
+            Supported methods are Grid Search, Random Search, and Optional.
+            Use ``grid`` to set for Grid Search, ``random for Random Search,
+            and ``optional`` for Optuna. (default ``optuna``)
+        measure_of_accuracy : str
+            Measurement of performance for classification and
+            regression estimator during hyperparameter optimization while
+            estimating best estimator. Classification-supported measurements are
+            f1, f1_score, acc, accuracy_score, pr, precision_score,
+            recall, recall_score, roc, roc_auc_score, roc_auc,
+            tp, true positive, TN, true negative. Regression supported
+            measurements are r2, r2_score, explained_variance_score,
+            max_error, mean_absolute_error, mean_squared_error,
+            median_absolute_error, and mean_absolute_percentage_error.
+        test_size : float or int
+            If float, it should be between 0.0 and 1.0 and represent the proportion
+            of the dataset to include in the train split during estimating the best estimator
+            by optimization method. If it means the
+            absolute number of train samples. If None, the value is automatically
+            set to the complement of the test size.
+        cv: int
+            cross-validation generator or an iterable.
+            Determines the cross-validation splitting strategy. Possible inputs
+            for cv are: None, to use the default 5-fold cross-validation,
+            int, to specify the number of folds in a (Stratified)KFold,
+            CV splitter, An iterable yielding (train, test) splits
+            as arrays of indices. For int/None inputs, if the estimator
+            is a classifier, and y is either binary or multiclass,
+            StratifiedKFold is used. In all other cases, Fold is used.
+            These splitters are instantiated with shuffle=False, so the splits
+            will be the same across calls. It is only used when hyper_parameter_optimization_method
+            is grid or random.
+
+        with_stratified: bool
+            Set True if you want data split in a stratified fashion. (default ``True``)
+        verbose: int
+            Controls the verbosity across all objects: the higher, the more messages.
+        random_state: int
+            Random number seed.
+        n_jobs: int
+            The number of jobs to run in parallel for Grid Search, Random Search, and Optional.
+            ``-1`` means using all processors. (default -1)
+        n_iter : int
+            Only it means full in Random Search. It is several parameter
+            settings that are sampled. n_iter trades off runtime vs. quality of the solution.
+        study: object
+            Create an optuna study. For setting its parameters, visit
+            https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.create_study.html#optuna.study.create_study
+        study_optimize_objective : object
+            A callable that implements an objective function.
+        study_optimize_objective_n_trials: int
+            The number of trials. If this argument is set to obj:`None`, there is no
+            limitation on the number of trials. If:obj:`timeout` is also set to:obj:`None,`
+            the study continues to create trials until it receives a termination signal such
+            as Ctrl+C or SIGTERM.
+        study_optimize_objective_timeout : int
+            Stop studying after the given number of seconds (s). If this argument is set to
+            :obj:`None`, the study is executed without time limitation. If:obj:`n_trials` is
+            also set to obj:`None,` the study continues to create trials until it receives a
+            termination signal such as Ctrl+C or SIGTERM.
+        study_optimize_n_jobs : int ,
+            The number of parallel jobs. If this argument is set to obj:`-1`, the number is
+            set to CPU count.
+        study_optimize_catch: object
+            A study continues to run even when a trial raises one of the exceptions specified
+            in this argument. Default is an empty tuple, i.e., the study will stop for any
+            exception except for class:`~optuna.exceptions.TrialPruned`.
+        study_optimize_callbacks: [callback functions]
+            List of callback functions that are invoked at the end of each trial. Each function
+            must accept two parameters with the following types in this order:
+        study_optimize_gc_after_trial: bool
+            Flag to determine whether to run garbage collection after each trial automatically.
+            Set to:obj:`True` to run the garbage collection: obj:`False` otherwise.
+            When it runs, it runs a full collection by internally calling:func:`gc.collect`.
+            If you see an increase in memory consumption over several trials, try setting this
+            flag to obj:`True`.
+        study_optimize_show_progress_bar: bool
+            Flag to show progress bars or not. To disable the progress bar.
+
+
+    """
+
     def __init__(
         self,
         type_engine,
@@ -625,6 +849,8 @@ class BestEstimatorFactory:
         study_optimize_show_progress_bar,
         
         ):
+
+
             self.type_engine=type_engine
             self.X = X
             self.y= y
@@ -652,8 +878,56 @@ class BestEstimatorFactory:
             self.study_optimize_gc_after_trial=study_optimize_gc_after_trial
             self.study_optimize_show_progress_bar=study_optimize_show_progress_bar
 
+
+
     def using_randomsearch(self):
-        return RandomSearchFactory().optimizer_builder(
+        """
+        Parameters
+        ----------
+        
+        estimator: object
+            An unfitted estimator that has fit and predicts methods. 
+        estimator_params: dict
+            Parameters were passed to find the best estimator using the optimization
+            method.
+        measure_of_accuracy : str
+            Measurement of performance for classification and
+            regression estimator during hyperparameter optimization while
+            estimating best estimator. Classification-supported measurements are
+            f1, f1_score, acc, accuracy_score, pr, precision_score,
+            recall, recall_score, roc, roc_auc_score, roc_auc,
+            tp, true positive, TN, true negative. Regression supported
+            measurements are r2, r2_score, explained_variance_score,
+            max_error, mean_absolute_error, mean_squared_error,
+            median_absolute_error, and mean_absolute_percentage_error.
+        cv: int
+            cross-validation generator or an iterable.
+            Determines the cross-validation splitting strategy. Possible inputs
+            for cv are: None, to use the default 5-fold cross-validation,
+            int, to specify the number of folds in a (Stratified)KFold,
+            CV splitter, An iterable yielding (train, test) splits
+            as arrays of indices. For int/None inputs, if the estimator
+            is a classifier, and y is either binary or multiclass,
+            StratifiedKFold is used. In all other cases, Fold is used.
+            These splitters are instantiated with shuffle=False, so the splits
+            will be the same across calls. It is only used when hyper_parameter_optimization_method
+            is grid or random.
+        verbose: int
+            Controls the verbosity across all objects: the higher, the more messages.
+        n_jobs: int
+            The number of jobs to run in parallel for Grid Search, Random Search, and Optional.
+            ``-1`` means using all processors. (default -1)
+        n_iter : int
+            Only it means full in Random Search. It is several parameter
+            settings that are sampled. n_iter trades off runtime vs. quality of the solution.
+
+        Return
+        ----------
+
+        The best estimator of estimator optimized by RandomizedSearchCV.
+
+        """
+        return RandomSearchFactory(
                 self.X,
                 self.y,
                 self.estimator,
@@ -663,20 +937,149 @@ class BestEstimatorFactory:
                 self.n_jobs,
                 self.n_iter,
                 self.cv,
-            ).optimize().get_best_estimator()
+        ).optimizer_builder().optimize().get_best_estimator()
     def using_gridsearch(self):
-        return GridSearchFactory().optimizer_builder(
-                self.X,
+        """
+        Parameters
+        ----------
+        
+        estimator: object
+            An unfitted estimator that has fit and predicts methods. 
+        estimator_params: dict
+            Parameters were passed to find the best estimator using the optimization
+            method.
+        measure_of_accuracy : str
+            Measurement of performance for classification and
+            regression estimator during hyperparameter optimization while
+            estimating best estimator. Classification-supported measurements are
+            f1, f1_score, acc, accuracy_score, pr, precision_score,
+            recall, recall_score, roc, roc_auc_score, roc_auc,
+            tp, true positive, TN, true negative. Regression supported
+            measurements are r2, r2_score, explained_variance_score,
+            max_error, mean_absolute_error, mean_squared_error,
+            median_absolute_error, and mean_absolute_percentage_error.
+        cv: int
+            cross-validation generator or an iterable.
+            Determines the cross-validation splitting strategy. Possible inputs
+            for cv are: None, to use the default 5-fold cross-validation,
+            int, to specify the number of folds in a (Stratified)KFold,
+            CV splitter, An iterable yielding (train, test) splits
+            as arrays of indices. For int/None inputs, if the estimator
+            is a classifier, and y is either binary or multiclass,
+            StratifiedKFold is used. In all other cases, Fold is used.
+            These splitters are instantiated with shuffle=False, so the splits
+            will be the same across calls. It is only used when hyper_parameter_optimization_method
+            is grid or random.
+        verbose: int
+            Controls the verbosity across all objects: the higher, the more messages.
+        n_jobs: int
+            The number of jobs to run in parallel for Grid Search, Random Search, and Optional.
+            ``-1`` means using all processors. (default -1)
+        Return
+        ----------
+
+        The best estimator of estimator optimized by GridSearchCV.
+
+        """
+        return GridSearchFactory(self.X,
                 self.y,
                 self.estimator,
                 self.estimator_params,
                 self.measure_of_accuracy,
                 self.verbose,
                 self.n_jobs,
-                self.cv,
-            ).optimize().get_best_estimator()
+                self.cv,).optimizer_builder().optimize().get_best_estimator()
     def using_optunasearch(self):
-        return OptunaFactory().optimizer_builder(
+        """
+        Parameters
+            ----------
+            logging_basicConfig : object
+                Setting Logging process. Visit https://docs.python.org/3/library/logging.html
+            estimator: object
+                An unfitted estimator that has fit and predicts methods. 
+            estimator_params: dict
+                Parameters were passed to find the best estimator using the optimization
+                method.
+            measure_of_accuracy : str
+                Measurement of performance for classification and
+                regression estimator during hyperparameter optimization while
+                estimating best estimator. Classification-supported measurements are
+                f1, f1_score, acc, accuracy_score, pr, precision_score,
+                recall, recall_score, roc, roc_auc_score, roc_auc,
+                tp, true positive, TN, true negative. Regression supported
+                measurements are r2, r2_score, explained_variance_score,
+                max_error, mean_absolute_error, mean_squared_error,
+                median_absolute_error, and mean_absolute_percentage_error.
+            test_size : float or int
+                If float, it should be between 0.0 and 1.0 and represent the proportion
+                of the dataset to include in the train split during estimating the best estimator
+                by optimization method. If it means the
+                absolute number of train samples. If None, the value is automatically
+                set to the complement of the test size.
+            cv: int
+                cross-validation generator or an iterable.
+                Determines the cross-validation splitting strategy. Possible inputs
+                for cv are: None, to use the default 5-fold cross-validation,
+                int, to specify the number of folds in a (Stratified)KFold,
+                CV splitter, An iterable yielding (train, test) splits
+                as arrays of indices. For int/None inputs, if the estimator
+                is a classifier, and y is either binary or multiclass,
+                StratifiedKFold is used. In all other cases, Fold is used.
+                These splitters are instantiated with shuffle=False, so the splits
+                will be the same across calls. It is only used when hyper_parameter_optimization_method
+                is grid or random.
+
+            with_stratified: bool
+                Set True if you want data split in a stratified fashion. (default ``True``)
+            verbose: int
+                Controls the verbosity across all objects: the higher, the more messages.
+            random_state: int
+                Random number seed.
+            n_jobs: int
+                The number of jobs to run in parallel for Grid Search, Random Search, and Optional.
+                ``-1`` means using all processors. (default -1)
+            study: object
+                Create an optuna study. For setting its parameters, visit
+                https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.create_study.html#optuna.study.create_study
+            study_optimize_objective : object
+                A callable that implements an objective function.
+            study_optimize_objective_n_trials: int
+                The number of trials. If this argument is set to obj:`None`, there is no
+                limitation on the number of trials. If:obj:`timeout` is also set to:obj:`None,`
+                the study continues to create trials until it receives a termination signal such
+                as Ctrl+C or SIGTERM.
+            study_optimize_objective_timeout : int
+                Stop studying after the given number of seconds (s). If this argument is set to
+                :obj:`None`, the study is executed without time limitation. If:obj:`n_trials` is
+                also set to obj:`None,` the study continues to create trials until it receives a
+                termination signal such as Ctrl+C or SIGTERM.
+            study_optimize_n_jobs : int ,
+                The number of parallel jobs. If this argument is set to obj:`-1`, the number is
+                set to CPU count.
+            study_optimize_catch: object
+                A study continues to run even when a trial raises one of the exceptions specified
+                in this argument. Default is an empty tuple, i.e., the study will stop for any
+                exception except for class:`~optuna.exceptions.TrialPruned`.
+            study_optimize_callbacks: [callback functions]
+                List of callback functions that are invoked at the end of each trial. Each function
+                must accept two parameters with the following types in this order:
+            study_optimize_gc_after_trial: bool
+                Flag to determine whether to run garbage collection after each trial automatically.
+                Set to:obj:`True` to run the garbage collection: obj:`False` otherwise.
+                When it runs, it runs a full collection by internally calling:func:`gc.collect`.
+                If you see an increase in memory consumption over several trials, try setting this
+                flag to obj:`True`.
+            study_optimize_show_progress_bar: bool
+                Flag to show progress bars or not. To disable the progress bar.
+        Return
+        ----------
+
+        The best estimator of estimator optimized by Optuna.
+
+
+        """
+
+        return OptunaFactory(
                 self.X,
                 self.y,
                 self.verbose,
@@ -701,7 +1104,8 @@ class BestEstimatorFactory:
                 self.study_optimize_callbacks,
                 self.study_optimize_gc_after_trial,
                 self.study_optimize_show_progress_bar,
-            ).prepare_data().optimize().get_best_estimator()
+        ).optimizer_builder().prepare_data().optimize().get_best_estimator()
+    
     def return_engine(self):
         if self.type_engine == 'grid':
             return self.using_gridsearch()
