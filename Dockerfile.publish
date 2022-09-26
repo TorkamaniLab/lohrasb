@@ -40,17 +40,16 @@ ENV password = $password
 ENV gitusername = $gitusername
 ENV gitpassword = $gitpassword
 ENV POETRY_VERSION=1.1.13
+COPY --chown=admin:admin . /lohrasb
 
 # Install and setup poetry
+WORKDIR /lohrasb
 RUN pip install "poetry==$POETRY_VERSION"
 RUN poetry config virtualenvs.create false 
 RUN poetry install  --no-interaction --no-ansi
-ENV PATH="${PATH}:/root/.poetry/bin"
+# ENV PATH="${PATH}:/root/.poetry/bin"
 
 USER admin
-
-WORKDIR /usr/src/lohrasb
-COPY . .
 #RUN poetry config virtualenvs.create false 
 #RUN poetry install --no-interaction --no-ansi
 RUN poetry build 
