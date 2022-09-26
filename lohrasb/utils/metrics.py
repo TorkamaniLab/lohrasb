@@ -53,6 +53,7 @@ def specificity(y_true, y_pred):
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
     return tn / (tn + fp)
 
+
 def tn_score(y_true, y_pred):
     """Return Specificity
 
@@ -65,7 +66,9 @@ def tn_score(y_true, y_pred):
     """
 
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
-    return tn 
+    return tn
+
+
 def tn(y_true, y_pred):
     """Return Specificity
 
@@ -78,7 +81,9 @@ def tn(y_true, y_pred):
     """
 
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
-    return tn 
+    return tn
+
+
 def tp_score(y_true, y_pred):
     """Return Specificity
 
@@ -92,6 +97,8 @@ def tp_score(y_true, y_pred):
 
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
     return tp
+
+
 def tp(y_true, y_pred):
     """Return Specificity
 
@@ -105,6 +112,7 @@ def tp(y_true, y_pred):
 
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
     return tp
+
 
 def roc_plus_f1(y_true, y_pred):
     """Return ROC + f1_score
@@ -237,10 +245,10 @@ class CalcMetrics:
             "top_k_accuracy_score": top_k_accuracy_score,  # normal
             "zero_one_loss": zero_one_loss,  # normal minimize
             # customs
-            "tn" : tn,     # custom
-            "tp" : tp,     # custom
-            "tn_score" : tn_score,     # custom
-            "tp_score" : tp_score,     # custom
+            "tn": tn,  # custom
+            "tp": tp,  # custom
+            "tn_score": tn_score,  # custom
+            "tp_score": tp_score,  # custom
             "f1_plus_tp": f1_plus_tp,  # custom
             "f1_plus_tn": f1_plus_tn,  # custom
             "specificity": specificity,  # custom

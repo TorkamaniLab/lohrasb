@@ -238,9 +238,9 @@ class OptunaSearch(OptimizerABC):
                 "zero_one_loss",
                 # customs
                 "tn",
-                "tp" ,
-                "tn_score" ,
-                "tp_score" ,
+                "tp",
+                "tn_score",
+                "tp_score",
                 "f1_plus_tp",
                 "f1_plus_tn",
                 "specificity",
