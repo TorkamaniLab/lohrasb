@@ -79,6 +79,7 @@ class OptunaSearch(OptimizerABC):
                 "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+                "tn", "tp", "tn_score" ,"tp_score".
 
             test_size : float or int
                 If float, it should be between 0.0 and 1.0 and represent the proportion
@@ -236,6 +237,10 @@ class OptunaSearch(OptimizerABC):
                 "top_k_accuracy_score",
                 "zero_one_loss",
                 # customs
+                "tn",
+                "tp",
+                "tn_score",
+                "tp_score",
                 "f1_plus_tp",
                 "f1_plus_tn",
                 "specificity",
@@ -354,13 +359,14 @@ class GridSearch(OptimizerABC):
                 "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
                 "zero_one_loss"
                 # custom
-                "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve_ret"
+                "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
                 "precision_recall_fscore_support".
                 Regression Classification-supported measurements are:
                 "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
                 "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+                "tn", "tp", "tn_score" ,"tp_score".
             verbose: int
                 Controls the verbosity across all objects: the higher, the more messages.
             n_jobs: int
@@ -477,23 +483,24 @@ class RandomSearch(OptimizerABC):
             Parameters were passed to find the best estimator using the optimization
             method.
         measure_of_accuracy : str
-           Measurement of performance for classification and
-                regression estimator during hyperparameter optimization while
-                estimating best estimator.
-                Classification-supported measurements are :
-                "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
-                "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
-                "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
-                "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
-                "zero_one_loss"
-                # custom
-                "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
-                "precision_recall_fscore_support".
-                Regression Classification-supported measurements are:
-                "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
-                "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
-                "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
-                "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+            Measurement of performance for classification and
+            regression estimator during hyperparameter optimization while
+            estimating best estimator.
+            Classification-supported measurements are :
+            "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
+            "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
+            "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
+            "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
+            "zero_one_loss"
+            # custom
+            "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
+            "precision_recall_fscore_support".
+            Regression Classification-supported measurements are:
+            "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
+            "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
+            "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
+            "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+            "tn", "tp", "tn_score" ,"tp_score".
 
         verbose: int
             Controls the verbosity across all objects: the higher, the more messages.
@@ -614,22 +621,23 @@ class GridSearchFactory(OptimizerFactory):
             method.
         measure_of_accuracy : str
             Measurement of performance for classification and
-                regression estimator during hyperparameter optimization while
-                estimating best estimator.
-                Classification-supported measurements are :
-                "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
-                "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
-                "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
-                "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
-                "zero_one_loss"
-                # custom
-                "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
-                "precision_recall_fscore_support".
-                Regression Classification-supported measurements are:
-                "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
-                "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
-                "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
-                "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+            regression estimator during hyperparameter optimization while
+            estimating best estimator.
+            Classification-supported measurements are :
+            "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
+            "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
+            "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
+            "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
+            "zero_one_loss"
+            # custom
+            "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
+            "precision_recall_fscore_support".
+            Regression Classification-supported measurements are:
+            "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
+            "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
+            "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
+            "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+            "tn", "tp", "tn_score" ,"tp_score".
 
         verbose: int
             Controls the verbosity across all objects: the higher, the more messages.
@@ -701,22 +709,23 @@ class OptunaFactory(OptimizerFactory):
                 method.
             measure_of_accuracy : str
                 Measurement of performance for classification and
-                    regression estimator during hyperparameter optimization while
-                    estimating best estimator.
-                    Classification-supported measurements are :
-                    "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
-                    "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
-                    "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
-                    "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
-                    "zero_one_loss"
-                    # custom
-                    "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
-                    "precision_recall_fscore_support".
-                    Regression Classification-supported measurements are:
-                    "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
-                    "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
-                    "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
-                    "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+                regression estimator during hyperparameter optimization while
+                estimating best estimator.
+                Classification-supported measurements are :
+                "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
+                "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
+                "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
+                "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
+                "zero_one_loss"
+                # custom
+                "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
+                "precision_recall_fscore_support".
+                Regression Classification-supported measurements are:
+                "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
+                "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
+                "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
+                "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+                "tn", "tp", "tn_score" ,"tp_score".
 
             test_size : float or int
                 If float, it should be between 0.0 and 1.0 and represent the proportion
@@ -855,22 +864,23 @@ class RandomSearchFactory(OptimizerFactory):
             method.
         measure_of_accuracy : str
             Measurement of performance for classification and
-                regression estimator during hyperparameter optimization while
-                estimating best estimator.
-                Classification-supported measurements are :
-                "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
-                "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
-                "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
-                "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
-                "zero_one_loss"
-                # custom
-                "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
-                "precision_recall_fscore_support".
-                Regression Classification-supported measurements are:
-                "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
-                "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
-                "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
-                "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+            regression estimator during hyperparameter optimization while
+            estimating best estimator.
+            Classification-supported measurements are :
+            "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
+            "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
+            "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
+            "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
+            "zero_one_loss"
+            # custom
+            "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
+            "precision_recall_fscore_support".
+            Regression Classification-supported measurements are:
+            "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
+            "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
+            "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
+            "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+            "tn", "tp", "tn_score" ,"tp_score".
 
         verbose: int
             Controls the verbosity across all objects: the higher, the more messages.
