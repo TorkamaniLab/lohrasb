@@ -1,3 +1,34 @@
+# FROM python
+
+# # Keeps Python from generating .pyc files in the container
+# ENV PYTHONDONTWRITEBYTECODE 1
+# # Turns off buffering for easier container logging
+# ENV PYTHONUNBUFFERED 1
+# ENV username = $username
+# ENV password = $password
+# ENV gitusername = $gitusername
+# ENV gitpassword = $gitpassword
+# ENV POETRY_VERSION=1.1.13
+
+# # Install and setup poetry
+# RUN pip install -U pip \
+#     && apt-get update \
+#     && apt install -y curl netcat \
+#     && curl -sSL https://install.python-poetry.org | python3 - --version $POETRY_VERSION
+# ENV PATH="${PATH}:/root/.poetry/bin"
+
+# WORKDIR /usr/src/lohrasb
+# COPY . .
+# RUN poetry config virtualenvs.create false 
+# RUN poetry install --no-interaction --no-ansi
+# RUN poetry build 
+# RUN chmod +x /usr/src/lohrasb/entrypoint.sh
+
+
+# # run entrypoint.sh
+# ENTRYPOINT ["/usr/src/lohrasb/entrypoint.sh"]
+
+
 FROM python
 
 # Keeps Python from generating .pyc files in the container
@@ -11,16 +42,15 @@ ENV gitpassword = $gitpassword
 ENV POETRY_VERSION=1.1.13
 
 # Install and setup poetry
-RUN pip install -U pip \
-    && apt-get update \
-    && apt install -y curl netcat \
-    && curl -sSL https://install.python-poetry.org | python3 - --version $POETRY_VERSION
+RUN pip install "poetry==$POETRY_VERSION"
+RUN poetry config virtualenvs.create false \
+  && poetry install  --no-interaction --no-ansi
 ENV PATH="${PATH}:/root/.poetry/bin"
 
 WORKDIR /usr/src/lohrasb
 COPY . .
-RUN poetry config virtualenvs.create false 
-RUN poetry install --no-interaction --no-ansi
+#RUN poetry config virtualenvs.create false 
+#RUN poetry install --no-interaction --no-ansi
 RUN poetry build 
 RUN chmod +x /usr/src/lohrasb/entrypoint.sh
 
