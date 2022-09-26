@@ -8,12 +8,13 @@ ENV username = $username
 ENV password = $password
 ENV gitusername = $gitusername
 ENV gitpassword = $gitpassword
+ENV POETRY_VERSION=1.2.0
 
 # Install and setup poetry
 RUN pip install -U pip \
     && apt-get update \
     && apt install -y curl netcat \
-    && curl -sSL https://install.python-poetry.org | python3 - --version 1.2.0
+    && curl -sSL https://install.python-poetry.org | python3 - --version $POETRY_VERSION
 ENV PATH="${PATH}:/root/.poetry/bin"
 
 WORKDIR /usr/src/lohrasb
