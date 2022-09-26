@@ -1,11 +1,11 @@
 # lohrasb
 
-lohrasb is a package built to ease machine learning development. It uses [Optuna](https://optuna.readthedocs.io/en/stable/index.html) to tune most of the tree-based estimators of sickit-learn. It is compatible with [scikit-learn](https://scikit-learn.org) pipeline.
+lohrasb is a package built to ease machine learning development. It uses [Optuna](https://optuna.readthedocs.io/en/stable/index.html), [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html), and [RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html) to tune most of the tree-based estimators of sickit-learn. It is compatible with [scikit-learn](https://scikit-learn.org) pipeline.
 
 
 ## Introduction
 
-BaseModel of lohrasb package can receive various parameters. From a tree-based estimator class to its tunning parameters and from Grid search, Random Search, or [Optuna](https://optuna.readthedocs.io/en/stable/index.html)  to their parameters. Samples will be split to train and validation set, and then optimization will estimate optimal related parameters.
+BaseModel of the Lohrasb package can receive various parameters. From an estimator class to its tunning parameters and GridsearchCV, RandomizedSearchCV, or Optuna to their parameters. Samples will be split to train and validation set, and then optimization will estimate optimal related parameters using these optimizing engines.
 
 ## Installation
 
@@ -17,30 +17,33 @@ pip install lohrasb
 
 
 ## Supported estimators for this package
-
-- XGBRegressor  [XGBoost](https://github.com/dmlc/xgboost)
-- XGBClassifier [XGBoost](https://github.com/dmlc/xgboost)
-- RandomForestClassifier 
-- RandomForestRegressor 
-- CatBoostClassifier 
-- CatBoostRegressor 
-- BalancedRandomForestClassifier 
-- LGBMClassifier [LightGBM](https://github.com/microsoft/LightGBM)
-- LGBMRegressor [LightGBM](https://github.com/microsoft/LightGBM)
-- LinearRegression [LinearRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html#sklearn.linear_model.LinearRegression)
-- LogisticRegression [LogisticRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html#sklearn.linear_model.LogisticRegression)
-- SVC [SVC](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html)
+Almost all machine learning estimators for classification and regression supported by Lohrasb.
 
 ## Usage
 
-- Tunning best parameters of a tree-based model using [Optuna](https://optuna.readthedocs.io/en/stable/index.html) , [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) or [RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html).
+- Tunning best parameters of a machine learning model using [Optuna](https://optuna.readthedocs.io/en/stable/index.html) , [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) or [RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html).
 
+## Factories
+For ease of use of BestModel, some factories are available to build associated instances corresponding to each optimization engine. For example, the following factory can be used for  GridSearchCV:
 
-## Examples 
+```
+obj = BaseModel.bestmodel_factory.using_gridsearch(
+            estimator=XGBClassifier(),
+            estimator_params = {
+                "eval_metric": ["auc"],
+                "max_depth": [4, 5],
+            },
+            measure_of_accuracy="f1_score",
+            verbose=3,
+            n_jobs=-1,
+            random_state=42,
+            cv=KFold(2),
+        )
+```
 
-There are some examples  available in the [examples](https://github.com/drhosseinjavedani/lohrasb/tree/main/lohrasb/examples). 
+## One example : Computer Hardware 
 
-### Import required libraries
+#### Import some required libraries
 ```
 from lohrasb.best_estimator import BaseModel
 import xgboost
@@ -48,6 +51,8 @@ from optuna.pruners import HyperbandPruner
 from optuna.samplers._tpe.sampler import TPESampler
 from sklearn.model_selection import KFold,train_test_split
 import pandas as pd
+import numpy as np
+import optuna
 from sklearn.pipeline import Pipeline
 from feature_engine.imputation import (
     CategoricalImputer,
@@ -59,86 +64,100 @@ from sklearn.metrics import (
     classification_report,
     confusion_matrix,
     f1_score)
-```
+from sklearn.metrics import f1_score, mean_absolute_error,r2_score
+from sklearn.linear_model import *
+from sklearn.svm import *
+from xgboost import *
+from sklearn.linear_model import *
+from catboost import *
+from lightgbm import *
+from sklearn.neural_network import *
+from imblearn.ensemble import *
+from sklearn.ensemble import *
 
-### Use Adult Data Set (a classification problem)
 ```
-urldata= "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
+#### Computer Hardware Data Set (a regression problem)
+  
+https://archive.ics.uci.edu/ml/datasets/Computer+Hardware
+
+```
+urldata= "https://archive.ics.uci.edu/ml/machine-learning-databases/cpu-performance/machine.data"
 # column names
 col_names=[
-"age", "workclass", "fnlwgt" , "education" ,"education-num",
-"marital-status","occupation","relationship","race","sex","capital-gain",
-"capital-loss","hours-per-week","native-country","label"
+    "vendor name",
+    "Model Name",
+    "MYCT",
+    "MMIN",
+    "MMAX",
+    "CACH",
+    "CHMIN",
+    "CHMAX",
+    "PRP"
 ]
-data.head()
 # read data
 data = pd.read_csv(urldata,header=None,names=col_names,sep=',')
+data
 ```
-### Define labels
-```
-data.loc[data['label']=='<=50K','label']=0
-data.loc[data['label']==' <=50K','label']=0
-
-data.loc[data['label']=='>50K','label']=1
-data.loc[data['label']==' >50K','label']=1
-
-data['label']=data['label'].astype(int)
+#### Train test split
 
 ```
+X = data.loc[:, data.columns != "PRP"]
+y = data.loc[:, data.columns == "PRP"]
+y = y.values.ravel()
 
-### Train test split
+
+X_train, X_test, y_train, y_test =train_test_split(X, y, test_size=0.33, random_state=42)
+
 ```
-X = data.loc[:, data.columns != "label"]
-y = data.loc[:, data.columns == "label"]
-X_train, X_test, y_train, y_test =train_test_split(X, y, 
-    test_size=0.33, stratify=y['label'], random_state=42)
-
-```
-
-### Find feature types for later use
+#### Find feature types for later use
 
 ```
 int_cols =  X_train.select_dtypes(include=['int']).columns.tolist()
 float_cols =  X_train.select_dtypes(include=['float']).columns.tolist()
 cat_cols =  X_train.select_dtypes(include=['object']).columns.tolist()
-
 ```
 
-### Define estimator and set its arguments 
+####  Define estimator and set its arguments  
 ```
-
-
-SFC_XGBCLS_GRID = BaseModel(
-        estimator=xgboost.XGBClassifier(),
-        estimator_params={
-            "max_depth": [4, 5],
-            "min_child_weight": [0.1, 0.9],
-            "gamma": [1, 9],
-            "booster": ["gbtree"],
-        },
-        hyper_parameter_optimization_method="grid",
-        measure_of_accuracy="f1",
-        test_size=0.33,
-        cv=KFold(n_splits=3,random_state=42,shuffle=True),
-        with_stratified=True,
-        verbose=3,
-        random_state=42,
-        n_jobs=-1,
-        n_iter=100,
-        eval_metric="auc",
-        number_of_trials=10,
-        sampler=TPESampler(),
-        pruner=HyperbandPruner(),
-
-    )
-
+estimator = LinearRegression()
+estimator_params= {
+        "fit_intercept": [True, False],
+    }
+```
+#### Use factory
 
 ```
-
-### Build sklearn Pipeline  
+obj = BaseModel.bestmodel_factory.using_optuna(
+            estimator=estimator,
+            estimator_params=estimator_params,
+            measure_of_accuracy="r2_score",
+            verbose=3,
+            n_jobs=-1,
+            random_state=42,
+            # optuna params
+            # optuna study init params
+            study=optuna.create_study(
+                storage=None,
+                sampler=TPESampler(),
+                pruner=HyperbandPruner(),
+                study_name=None,
+                direction="maximize",
+                load_if_exists=False,
+                directions=None,
+            ),
+            # optuna optimization params
+            study_optimize_objective=None,
+            study_optimize_objective_n_trials=10,
+            study_optimize_objective_timeout=600,
+            study_optimize_n_jobs=-1,
+            study_optimize_catch=(),
+            study_optimize_callbacks=None,
+            study_optimize_gc_after_trial=False,
+            study_optimize_show_progress_bar=False,
+        )
 ```
-
-
+####  Build sklearn pipeline
+```
 pipeline =Pipeline([
             # int missing values imputers
             ('intimputer', MeanMedianImputer(
@@ -147,19 +166,27 @@ pipeline =Pipeline([
             ('catimputer', CategoricalImputer(variables=cat_cols)),
             #
             ('catencoder', OrdinalEncoder()),
-            # classification model
-            ('xgboost', SFC_XGBCLS_GRID)
+            # regression model 
+            ('obj', obj),
 
 
  ])
 
 ```
-### Run Pipeline  
+#### Run Pipeline
 
 ```
 pipeline.fit(X_train,y_train)
 y_pred = pipeline.predict(X_test)
 ```
+#### Check performance of the pipeline
+
+```
+print('r2 score : ')
+print(r2_score(y_test,y_pred))
+```
+
+There are some examples  available in the [examples](https://github.com/drhosseinjavedani/lohrasb/tree/main/lohrasb/examples). 
 
 ## License
 Licensed under the [BSD 2-Clause](https://opensource.org/licenses/BSD-2-Clause) License.

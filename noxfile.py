@@ -3,18 +3,20 @@ import argparse
 
 @nox.session(python=False)
 def tests_lohrasb(session):
+    """Run test session using nox"""
     session.run('poetry', 'shell')
     session.run('poetry', 'install')
     session.run('pytest')
 
 @nox.session
 def lint_lohrasb(session):
+    """Run lint session using nox"""
     session.install("flake8","black","isort")
     session.run("isort","./lohrasb/")
     session.run("black","./lohrasb/")
     session.run(
         'flake8',
-        '--ignore=E501,I202,W503,E203',"./lohrasb/")
+        '--ignore=E501,I202,W503,E203,F401,F401,F405,F403',"./lohrasb/")
 
 @nox.session
 def release_lohrasb(session):

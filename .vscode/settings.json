@@ -1,5 +1,0 @@
-{
-    "python.pythonPath": "/Users/hjavedani/Documents/Lohrasb/.venv/bin/python",
-    "jupyter.notebookFileRoot": "${workspaceFolder}",
-    "python.formatting.provider": "black"
-}
