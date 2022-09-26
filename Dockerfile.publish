@@ -31,6 +31,9 @@
 
 FROM python
 
+RUN useradd -ms /bin/sh admin
+COPY --chown=admin:admin . /lohrasb
+ 
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE 1
 # Turns off buffering for easier container logging
@@ -40,7 +43,6 @@ ENV password = $password
 ENV gitusername = $gitusername
 ENV gitpassword = $gitpassword
 ENV POETRY_VERSION=1.1.13
-COPY --chown=admin:admin . /lohrasb
 
 # Install and setup poetry
 WORKDIR /lohrasb
