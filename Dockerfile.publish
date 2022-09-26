@@ -55,8 +55,8 @@ USER admin
 #RUN poetry config virtualenvs.create false 
 #RUN poetry install --no-interaction --no-ansi
 RUN poetry build 
-RUN chmod +x /usr/src/lohrasb/entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
 
 # run entrypoint.sh
-ENTRYPOINT ["/usr/src/lohrasb/entrypoint.sh"]
+CMD ["bash", "./entrypoint.sh"]
