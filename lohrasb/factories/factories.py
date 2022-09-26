@@ -1,16 +1,14 @@
-
 from abc import ABCMeta, abstractmethod
 
 
 class OptimizerFactory(metaclass=ABCMeta):
-    
     @abstractmethod
-    def optimizer_builder(*args,**kargs):
+    def optimizer_builder(*args, **kargs):
         """
         Return a optimizer CV instanse, ready to use
         ...
 
-        Attributes 
+        Attributes
         ----------
         *args: list
             A list of possible argumnets

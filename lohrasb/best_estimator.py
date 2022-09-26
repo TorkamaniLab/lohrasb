@@ -1,18 +1,17 @@
-
-from abc import ABCMeta
 import logging
+from abc import ABCMeta
 from pickletools import optimize
+
+import numpy as np
 import optuna
 from optuna.pruners import HyperbandPruner
 from optuna.samplers import TPESampler
 from sklearn.base import BaseEstimator
-import numpy as np
 
-from lohrasb.utils.helper_funcs import install_and_import
 from lohrasb.base_classes.optimizer_bases import (
     GridSearchFactory,
     OptunaFactory,
-    RandomSearchFactory
+    RandomSearchFactory,
 )
 
 
@@ -26,7 +25,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     logging_basicConfig : object
         Setting Logging process. Visit https://docs.python.org/3/library/logging.html
     estimator: object
-        An unfitted estimator that has fit and predicts methods. 
+        An unfitted estimator that has fit and predicts methods.
     estimator_params: dict
         Parameters were passed to find the best estimator using the optimization
         method.
@@ -38,13 +37,22 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     measure_of_accuracy : str
         Measurement of performance for classification and
         regression estimator during hyperparameter optimization while
-        estimating best estimator. Classification-supported measurements are
-        f1, f1_score, acc, accuracy_score, pr, precision_score,
-        recall, recall_score, roc, roc_auc_score, roc_auc,
-        tp, true positive, TN, true negative. Regression supported
-        measurements are r2, r2_score, explained_variance_score,
-        max_error, mean_absolute_error, mean_squared_error,
-        median_absolute_error, and mean_absolute_percentage_error.
+        estimating best estimator.
+        Classification-supported measurements are :
+        "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
+        "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
+        "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
+        "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
+        "zero_one_loss"
+        # custom
+        "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
+        "precision_recall_fscore_support".
+        Regression Classification-supported measurements are:
+        "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
+        "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
+        "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
+        "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
+
     test_size : float or int
         If float, it should be between 0.0 and 1.0 and represent the proportion
         of the dataset to include in the train split during estimating the best estimator
@@ -121,7 +129,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         Return best estimator, if aleardy fitted.
     Notes
     -----
-    It is recommended to use available factories 
+    It is recommended to use available factories
     to create a new instance of this class.
 
     """
@@ -168,33 +176,33 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         study_optimize_gc_after_trial=False,
         study_optimize_show_progress_bar=False,
     ):
-        self.logging_basicConfig=logging_basicConfig
+        self.logging_basicConfig = logging_basicConfig
         # general argument setting
-        self.hyper_parameter_optimization_method=hyper_parameter_optimization_method
-        self.verbose=verbose
-        self.random_state=random_state
-        self.estimator=estimator
-        self.estimator_params=estimator_params
+        self.hyper_parameter_optimization_method = hyper_parameter_optimization_method
+        self.verbose = verbose
+        self.random_state = random_state
+        self.estimator = estimator
+        self.estimator_params = estimator_params
         # grid search and random search
-        self.measure_of_accuracy=measure_of_accuracy
-        self.n_jobs=n_jobs
-        self.n_iter=n_iter
-        self.cv=cv
+        self.measure_of_accuracy = measure_of_accuracy
+        self.n_jobs = n_jobs
+        self.n_iter = n_iter
+        self.cv = cv
         # optuna params
-        self.test_size=test_size
-        self.with_stratified=with_stratified
+        self.test_size = test_size
+        self.with_stratified = with_stratified
         # number_of_trials=100,
         # optuna study init params
-        self.study=study
+        self.study = study
         # optuna optimization params
-        self.study_optimize_objective=study_optimize_objective
-        self.study_optimize_objective_n_trials=study_optimize_objective_n_trials
-        self.study_optimize_objective_timeout=study_optimize_objective_timeout
-        self.study_optimize_n_jobs=study_optimize_n_jobs
-        self.study_optimize_catch=study_optimize_catch
-        self.study_optimize_callbacks=study_optimize_callbacks
-        self.study_optimize_gc_after_trial=study_optimize_gc_after_trial
-        self.study_optimize_show_progress_bar=study_optimize_show_progress_bar
+        self.study_optimize_objective = study_optimize_objective
+        self.study_optimize_objective_n_trials = study_optimize_objective_n_trials
+        self.study_optimize_objective_timeout = study_optimize_objective_timeout
+        self.study_optimize_n_jobs = study_optimize_n_jobs
+        self.study_optimize_catch = study_optimize_catch
+        self.study_optimize_callbacks = study_optimize_callbacks
+        self.study_optimize_gc_after_trial = study_optimize_gc_after_trial
+        self.study_optimize_show_progress_bar = study_optimize_show_progress_bar
 
     @property
     def logging_basicConfig(self):
@@ -205,6 +213,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     def logging_basicConfig(self, value):
         logging.info("Setting value for logging_basicConfig")
         self._logging_basicConfig = value
+
     @property
     def estimator(self):
         logging.info("Getting value for estimator")
@@ -379,11 +388,11 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             step of the pipeline.
         """
         self.cols = X.columns
-        self.best_estimator  = BestEstimatorFactory(
+        self.best_estimator = BestEstimatorFactory(
             type_engine=self.hyper_parameter_optimization_method,
             X=X,
             y=y,
-            estimator = self.estimator,
+            estimator=self.estimator,
             estimator_params=self.estimator_params,
             measure_of_accuracy=self.measure_of_accuracy,
             verbose=self.verbose,
@@ -406,7 +415,8 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             study_optimize_callbacks=self.study_optimize_callbacks,
             study_optimize_gc_after_trial=self.study_optimize_gc_after_trial,
             study_optimize_show_progress_bar=self.study_optimize_show_progress_bar,
-            ).return_engine()
+        ).return_engine()
+
     def predict(self, X):
         """Predict using the best estimator model.
         Parameters
@@ -416,55 +426,55 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             step of the pipeline.
         """
         return self.best_estimator.predict(X)
-    
+
     def get_best_estimator(self):
-        """Return best estimator if model already fitted.
-        """
+        """Return best estimator if model already fitted."""
         return self.best_estimator
 
     class BestModelFactory:
-        """Class Factories for initializing BestModel optimizing engines, e.g., 
+        """Class Factories for initializing BestModel optimizing engines, e.g.,
         Optuna, GridSearchCV, and RandomizedCV
         """
+
         def using_optuna(
-                self,
-                logging_basicConfig = logging.basicConfig(
-                    level=logging.ERROR,
-                    filemode="w",
-                    format="%(name)s - %(levelname)s - %(message)s",
-                ),
-                hyper_parameter_optimization_method='optuna',
-                verbose=0,
-                random_state=0,
-                estimator=None,
-                estimator_params=None,
-                # grid search and random search
-                measure_of_accuracy=None,
-                n_jobs=None,
-                # optuna params
-                test_size=0.33,
-                with_stratified=False,
-                # number_of_trials=100,
-                # optuna study init params
-                study=optuna.create_study(
-                    storage=None,
-                    sampler=TPESampler(),
-                    pruner=HyperbandPruner(),
-                    study_name=None,
-                    direction="maximize",
-                    load_if_exists=False,
-                    directions=None,
-                ),
-                # optuna optimization params
-                study_optimize_objective=None,
-                study_optimize_objective_n_trials=100,
-                study_optimize_objective_timeout=600,
-                study_optimize_n_jobs=-1,
-                study_optimize_catch=(),
-                study_optimize_callbacks=None,
-                study_optimize_gc_after_trial=False,
-                study_optimize_show_progress_bar=False,
-            ):
+            self,
+            logging_basicConfig=logging.basicConfig(
+                level=logging.ERROR,
+                filemode="w",
+                format="%(name)s - %(levelname)s - %(message)s",
+            ),
+            hyper_parameter_optimization_method="optuna",
+            verbose=0,
+            random_state=0,
+            estimator=None,
+            estimator_params=None,
+            # grid search and random search
+            measure_of_accuracy=None,
+            n_jobs=None,
+            # optuna params
+            test_size=0.33,
+            with_stratified=False,
+            # number_of_trials=100,
+            # optuna study init params
+            study=optuna.create_study(
+                storage=None,
+                sampler=TPESampler(),
+                pruner=HyperbandPruner(),
+                study_name=None,
+                direction="maximize",
+                load_if_exists=False,
+                directions=None,
+            ),
+            # optuna optimization params
+            study_optimize_objective=None,
+            study_optimize_objective_n_trials=100,
+            study_optimize_objective_timeout=600,
+            study_optimize_n_jobs=-1,
+            study_optimize_catch=(),
+            study_optimize_callbacks=None,
+            study_optimize_gc_after_trial=False,
+            study_optimize_show_progress_bar=False,
+        ):
 
             """
 
@@ -475,7 +485,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             logging_basicConfig : object
                 Setting Logging process. Visit https://docs.python.org/3/library/logging.html
             estimator: object
-                An unfitted estimator that has fit and predicts methods. 
+                An unfitted estimator that has fit and predicts methods.
             estimator_params: dict
                 Parameters were passed to find the best estimator using the optimization
                 method.
@@ -535,52 +545,55 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 flag to obj:`True`.
             study_optimize_show_progress_bar: bool
                 Flag to show progress bars or not. To disable the progress bar.
-            
+
             Returns
             -------
             The best estimator instance by best parameters obtained with optuna search.
-                            
+
             """
 
-            best_model = BaseModel(hyper_parameter_optimization_method='optuna')
-            best_model.verbose=verbose
-            best_model.random_state=random_state
-            best_model.estimator=estimator
-            best_model.estimator_params=estimator_params
-            best_model.measure_of_accuracy=measure_of_accuracy
-            best_model.n_jobs=n_jobs
+            best_model = BaseModel(hyper_parameter_optimization_method="optuna")
+            best_model.verbose = verbose
+            best_model.random_state = random_state
+            best_model.estimator = estimator
+            best_model.estimator_params = estimator_params
+            best_model.measure_of_accuracy = measure_of_accuracy
+            best_model.n_jobs = n_jobs
             # optuna params
-            best_model.test_size=test_size
-            best_model.with_stratified=with_stratified
+            best_model.test_size = test_size
+            best_model.with_stratified = with_stratified
             # number_of_trials=100,
             # optuna study init params
-            best_model.study=study
+            best_model.study = study
             # optuna optimization params
-            best_model.study_optimize_objective=study_optimize_objective
-            best_model.study_optimize_objective_n_trials=study_optimize_objective_n_trials
-            best_model.study_optimize_objective_timeout=study_optimize_objective_timeout
-            best_model.study_optimize_n_jobs=study_optimize_n_jobs
-            best_model.study_optimize_catch=study_optimize_catch
-            best_model.study_optimize_callbacks=study_optimize_callbacks
-            best_model.study_optimize_gc_after_trial=study_optimize_gc_after_trial
-            best_model.study_optimize_show_progress_bar=study_optimize_show_progress_bar
+            best_model.study_optimize_objective = study_optimize_objective
+            best_model.study_optimize_objective_n_trials = (
+                study_optimize_objective_n_trials
+            )
+            best_model.study_optimize_objective_timeout = (
+                study_optimize_objective_timeout
+            )
+            best_model.study_optimize_n_jobs = study_optimize_n_jobs
+            best_model.study_optimize_catch = study_optimize_catch
+            best_model.study_optimize_callbacks = study_optimize_callbacks
+            best_model.study_optimize_gc_after_trial = study_optimize_gc_after_trial
+            best_model.study_optimize_show_progress_bar = (
+                study_optimize_show_progress_bar
+            )
             return best_model
 
         def using_gridsearch(
-                self,
-                hyper_parameter_optimization_method='grid',
-                verbose=0,
-                random_state=0,
-                estimator=None,
-                estimator_params=None,
-                # grid search and random search
-                measure_of_accuracy=None,
-                n_jobs=None,
-                cv=None,
-
-                
-            ):
-
+            self,
+            hyper_parameter_optimization_method="grid",
+            verbose=0,
+            random_state=0,
+            estimator=None,
+            estimator_params=None,
+            # grid search and random search
+            measure_of_accuracy=None,
+            n_jobs=None,
+            cv=None,
+        ):
 
             """
 
@@ -592,7 +605,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             logging_basicConfig : object
                 Setting Logging process. Visit https://docs.python.org/3/library/logging.html
             estimator: object
-                An unfitted estimator that has fit and predicts methods. 
+                An unfitted estimator that has fit and predicts methods.
             estimator_params: dict
                 Parameters were passed to find the best estimator using the optimization
                 method.
@@ -628,35 +641,33 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             Returns
             -------
             The best estimator instance by best parameters obtained with grid search.
-                            
+
             """
 
-            best_model = BaseModel(hyper_parameter_optimization_method='grid')
-            best_model.hyper_parameter_optimization_method='grid'
-            best_model.verbose=verbose
-            best_model.random_state=random_state
-            best_model.estimator=estimator
-            best_model.estimator_params=estimator_params
-            best_model.measure_of_accuracy=measure_of_accuracy
-            best_model.n_jobs=n_jobs
+            best_model = BaseModel(hyper_parameter_optimization_method="grid")
+            best_model.hyper_parameter_optimization_method = "grid"
+            best_model.verbose = verbose
+            best_model.random_state = random_state
+            best_model.estimator = estimator
+            best_model.estimator_params = estimator_params
+            best_model.measure_of_accuracy = measure_of_accuracy
+            best_model.n_jobs = n_jobs
             best_model.cv = cv
             return best_model
 
         def using_randomsearch(
-                self,
-                hyper_parameter_optimization_method='random',
-                verbose=0,
-                random_state=0,
-                estimator=None,
-                estimator_params=None,
-                # grid search and random search
-                measure_of_accuracy=None,
-                n_jobs=None,
-                cv=None,
-                n_iter = None,
-
-                
-            ):
+            self,
+            hyper_parameter_optimization_method="random",
+            verbose=0,
+            random_state=0,
+            estimator=None,
+            estimator_params=None,
+            # grid search and random search
+            measure_of_accuracy=None,
+            n_jobs=None,
+            cv=None,
+            n_iter=None,
+        ):
             """
             Retrun best model based on random search.
 
@@ -666,7 +677,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             logging_basicConfig : object
                 Setting Logging process. Visit https://docs.python.org/3/library/logging.html
             estimator: object
-                An unfitted estimator that has fit and predicts methods. 
+                An unfitted estimator that has fit and predicts methods.
             estimator_params: dict
                 Parameters were passed to find the best estimator using the optimization
                 method.
@@ -705,26 +716,26 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             Returns
             -------
             The best estimator instance by best parameters obtained with random search.
-                            
+
             """
 
-            best_model = BaseModel(hyper_parameter_optimization_method='random')
-            best_model.hyper_parameter_optimization_method='random'
-            best_model.verbose=verbose
-            best_model.random_state=random_state
-            best_model.estimator=estimator
-            best_model.estimator_params=estimator_params
-            best_model.measure_of_accuracy=measure_of_accuracy
-            best_model.n_jobs=n_jobs
+            best_model = BaseModel(hyper_parameter_optimization_method="random")
+            best_model.hyper_parameter_optimization_method = "random"
+            best_model.verbose = verbose
+            best_model.random_state = random_state
+            best_model.estimator = estimator
+            best_model.estimator_params = estimator_params
+            best_model.measure_of_accuracy = measure_of_accuracy
+            best_model.n_jobs = n_jobs
             best_model.cv = cv
             best_model.n_iter = n_iter
             return best_model
-        
+
     bestmodel_factory = BestModelFactory()
 
 
-class BestEstimatorFactory():
-    """Class Factories for initializing BestModel optimizing engines, e.g., 
+class BestEstimatorFactory:
+    """Class Factories for initializing BestModel optimizing engines, e.g.,
     Optuna, GridSearchCV, and RandomizedCV
 
     Parameters
@@ -732,7 +743,7 @@ class BestEstimatorFactory():
         logging_basicConfig : object
             Setting Logging process. Visit https://docs.python.org/3/library/logging.html
         estimator: object
-            An unfitted estimator that has fit and predicts methods. 
+            An unfitted estimator that has fit and predicts methods.
         estimator_params: dict
             Parameters were passed to find the best estimator using the optimization
             method.
@@ -847,46 +858,42 @@ class BestEstimatorFactory():
         study_optimize_callbacks,
         study_optimize_gc_after_trial,
         study_optimize_show_progress_bar,
-        
-        ):
+    ):
 
-
-            self.type_engine=type_engine
-            self.X = X
-            self.y= y
-            self.estimator=estimator
-            self.estimator_params = estimator_params
-            self.measure_of_accuracy=measure_of_accuracy
-            self.verbose=verbose
-            self.n_jobs=n_jobs
-            self.n_iter=n_iter
-            self.cv=cv
-            self.random_state=random_state
-            # optuna params
-            self.test_size=test_size
-            self.with_stratified=with_stratified
-            # number_of_trials=100,
-            # optuna study init params
-            self.study=study
-            # optuna optimization params
-            self.study_optimize_objective=study_optimize_objective
-            self.study_optimize_objective_n_trials=study_optimize_objective_n_trials
-            self.study_optimize_objective_timeout=study_optimize_objective_timeout
-            self.study_optimize_n_jobs=study_optimize_n_jobs
-            self.study_optimize_catch=study_optimize_catch
-            self.study_optimize_callbacks=study_optimize_callbacks
-            self.study_optimize_gc_after_trial=study_optimize_gc_after_trial
-            self.study_optimize_show_progress_bar=study_optimize_show_progress_bar
-
-
+        self.type_engine = type_engine
+        self.X = X
+        self.y = y
+        self.estimator = estimator
+        self.estimator_params = estimator_params
+        self.measure_of_accuracy = measure_of_accuracy
+        self.verbose = verbose
+        self.n_jobs = n_jobs
+        self.n_iter = n_iter
+        self.cv = cv
+        self.random_state = random_state
+        # optuna params
+        self.test_size = test_size
+        self.with_stratified = with_stratified
+        # number_of_trials=100,
+        # optuna study init params
+        self.study = study
+        # optuna optimization params
+        self.study_optimize_objective = study_optimize_objective
+        self.study_optimize_objective_n_trials = study_optimize_objective_n_trials
+        self.study_optimize_objective_timeout = study_optimize_objective_timeout
+        self.study_optimize_n_jobs = study_optimize_n_jobs
+        self.study_optimize_catch = study_optimize_catch
+        self.study_optimize_callbacks = study_optimize_callbacks
+        self.study_optimize_gc_after_trial = study_optimize_gc_after_trial
+        self.study_optimize_show_progress_bar = study_optimize_show_progress_bar
 
     def using_randomsearch(self):
         """
         Parameters
         ----------
-        
+
         estimator: object
-            An unfitted estimator that has fit and predicts methods. 
+            An unfitted estimator that has fit and predicts methods.
         estimator_params: dict
             Parameters were passed to find the best estimator using the optimization
             method.
@@ -927,7 +934,8 @@ class BestEstimatorFactory():
         The best estimator of estimator optimized by RandomizedSearchCV.
 
         """
-        return RandomSearchFactory(
+        return (
+            RandomSearchFactory(
                 self.X,
                 self.y,
                 self.estimator,
@@ -937,14 +945,19 @@ class BestEstimatorFactory():
                 self.n_jobs,
                 self.n_iter,
                 self.cv,
-        ).optimizer_builder().optimize().get_best_estimator()
+            )
+            .optimizer_builder()
+            .optimize()
+            .get_best_estimator()
+        )
+
     def using_gridsearch(self):
         """
         Parameters
         ----------
-        
+
         estimator: object
-            An unfitted estimator that has fit and predicts methods. 
+            An unfitted estimator that has fit and predicts methods.
         estimator_params: dict
             Parameters were passed to find the best estimator using the optimization
             method.
@@ -981,14 +994,22 @@ class BestEstimatorFactory():
         The best estimator of estimator optimized by GridSearchCV.
 
         """
-        return GridSearchFactory(self.X,
+        return (
+            GridSearchFactory(
+                self.X,
                 self.y,
                 self.estimator,
                 self.estimator_params,
                 self.measure_of_accuracy,
                 self.verbose,
                 self.n_jobs,
-                self.cv,).optimizer_builder().optimize().get_best_estimator()
+                self.cv,
+            )
+            .optimizer_builder()
+            .optimize()
+            .get_best_estimator()
+        )
+
     def using_optunasearch(self):
         """
         Parameters
@@ -996,7 +1017,7 @@ class BestEstimatorFactory():
             logging_basicConfig : object
                 Setting Logging process. Visit https://docs.python.org/3/library/logging.html
             estimator: object
-                An unfitted estimator that has fit and predicts methods. 
+                An unfitted estimator that has fit and predicts methods.
             estimator_params: dict
                 Parameters were passed to find the best estimator using the optimization
                 method.
@@ -1079,7 +1100,8 @@ class BestEstimatorFactory():
 
         """
 
-        return OptunaFactory(
+        return (
+            OptunaFactory(
                 self.X,
                 self.y,
                 self.verbose,
@@ -1104,30 +1126,20 @@ class BestEstimatorFactory():
                 self.study_optimize_callbacks,
                 self.study_optimize_gc_after_trial,
                 self.study_optimize_show_progress_bar,
-        ).optimizer_builder().prepare_data().optimize().get_best_estimator()
-    
+            )
+            .optimizer_builder()
+            .prepare_data()
+            .optimize()
+            .get_best_estimator()
+        )
+
     def return_engine(self):
-        if self.type_engine == 'grid':
+        if self.type_engine == "grid":
             return self.using_gridsearch()
-        if self.type_engine == 'random':
+        if self.type_engine == "random":
             return self.using_randomsearch()
-        if self.type_engine == 'optuna':
+        if self.type_engine == "optuna":
             print(self.using_optunasearch())
             return self.using_optunasearch()
         else:
             return None
-
-
-
-
-
-        
-
-
-
-            
-
-
-
-
-

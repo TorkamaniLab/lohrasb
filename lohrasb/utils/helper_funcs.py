@@ -1,9 +1,4 @@
-
-import pip
-import subprocess
-import sys
-
-from sklearn.metrics import (
+from sklearn.metrics import (  # some sklearn classification metrics
     accuracy_score,
     confusion_matrix,
     explained_variance_score,
@@ -73,29 +68,31 @@ def _trail_param_retrive(trial, dict, keyword):
     Keyword: str
         A keyword of estimator key params. e.g., "gamma"
     """
-    if isinstance(dict[keyword][0] , str)  or dict[keyword][0] is None:
+    if isinstance(dict[keyword][0], str) or dict[keyword][0] is None:
         return trial.suggest_categorical(keyword, dict[keyword])
-    if isinstance(dict[keyword][0] , int):
-        if len(dict[keyword]) >=2:
-            if isinstance(dict[keyword][1] , int):
-                return trial.suggest_int(keyword, min(dict[keyword]), max(dict[keyword]))
-        else :
+    if isinstance(dict[keyword][0], int):
+        if len(dict[keyword]) >= 2:
+            if isinstance(dict[keyword][1], int):
+                return trial.suggest_int(
+                    keyword, min(dict[keyword]), max(dict[keyword])
+                )
+        else:
             return trial.suggest_float(keyword, min(dict[keyword]), max(dict[keyword]))
-    if isinstance(dict[keyword][0] , float):
+    if isinstance(dict[keyword][0], float):
         return trial.suggest_float(keyword, min(dict[keyword]), max(dict[keyword]))
 
 
 def _trail_params_retrive(trial, dict):
     """An internal function. Return a trial suggests using dict params of estimator.
-    
+
     Example : _trail_param_retrive(trial, {
             "eval_metric": ["auc"],
             "max_depth": [2, 3],
             "min_child_weight": [0.1, 0.9],
             "gamma": [1, 9],
             "booster": ["gbtree", "gblinear", "dart"],
-             }, "gamma") --> will return params where 
-             
+             }, "gamma") --> will return params where
+
              parmas = {
                 "eval_metric": trial.suggest_categorical("eval_metric", ["auc"]),
                 "max_depth": trial.suggest_int("max_depth", 2,3),
@@ -121,17 +118,24 @@ def _trail_params_retrive(trial, dict):
     params = {}
     for keyword in dict.keys():
         if keyword not in params.keys():
-            if isinstance(dict[keyword][0] , str)  or dict[keyword][0] is None:
+            if isinstance(dict[keyword][0], str) or dict[keyword][0] is None:
                 params[keyword] = trial.suggest_categorical(keyword, dict[keyword])
-            if isinstance(dict[keyword][0] , int):
-                if len(dict[keyword]) >=2:
-                    if isinstance(dict[keyword][1] , int):
-                        params[keyword] = trial.suggest_int(keyword, min(dict[keyword]), max(dict[keyword]))
-                else :
-                    params[keyword] = trial.suggest_float(keyword, min(dict[keyword]), max(dict[keyword]))
-            if isinstance(dict[keyword][0] , float):
-                params[keyword] = trial.suggest_float(keyword, min(dict[keyword]), max(dict[keyword]))
+            if isinstance(dict[keyword][0], int):
+                if len(dict[keyword]) >= 2:
+                    if isinstance(dict[keyword][1], int):
+                        params[keyword] = trial.suggest_int(
+                            keyword, min(dict[keyword]), max(dict[keyword])
+                        )
+                else:
+                    params[keyword] = trial.suggest_float(
+                        keyword, min(dict[keyword]), max(dict[keyword])
+                    )
+            if isinstance(dict[keyword][0], float):
+                params[keyword] = trial.suggest_float(
+                    keyword, min(dict[keyword]), max(dict[keyword])
+                )
     return params
+
 
 def calc_metric_for_multi_outputs_classification(
     multi_label, valid_y, preds, SCORE_TYPE
@@ -224,8 +228,8 @@ def _calc_metric_for_single_output_classification(valid_y, pred_labels, SCORE_TY
     pr = precision_score(valid_y, pred_labels)
     recall = recall_score(valid_y, pred_labels)
     roc = roc_auc_score(valid_y, pred_labels)
-
     tn, _, _, tp = confusion_matrix(valid_y, pred_labels, labels=[0, 1]).ravel()
+
     if SCORE_TYPE == "f1" or SCORE_TYPE == "f1_score":
         sum_errors = sum_errors + f1
     if (
@@ -299,15 +303,3 @@ def _calc_metric_for_single_output_regression(valid_y, pred_labels, SCORE_TYPE):
         return median_absolute_error_err
     if SCORE_TYPE == "mean_absolute_percentage_error":
         return mean_absolute_percentage_error_err
-
-
-def install_and_import(package):
-    if hasattr(pip, 'main'):
-        pip.main(['install', package])
-    else:
-        pip._internal.main(['install', package])
-
-
-def import_from(module, name):
-    module = __import__(module, fromlist=[name])
-    return getattr(module, name)

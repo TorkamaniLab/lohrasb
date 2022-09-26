@@ -264,6 +264,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "dotenv"
+version = "0.0.5"
+description = "Handle .env files"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "entrypoints"
 version = "0.4"
 description = "Discover and load entry points from installed packages."
@@ -1336,7 +1344,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "defb75580f6cdd48d8a1e61a57fbb9349498465718bf017c7f14b48005750455"
+content-hash = "e5f8a4e5b9eb5a1b30bbf2ef80d8a0380cf71b666e1f612c9e250d5af93356d6"
 
 [metadata.files]
 alembic = []
@@ -1379,6 +1387,7 @@ cycler = [
 debugpy = []
 decorator = []
 distlib = []
+dotenv = []
 entrypoints = []
 executing = []
 feature-engine = [
