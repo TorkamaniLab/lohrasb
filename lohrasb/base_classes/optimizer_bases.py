@@ -15,12 +15,7 @@ from xgboost import *
 from lohrasb.abstracts.optimizers import OptimizerABC
 from lohrasb.decorators.decorators import trackcalls
 from lohrasb.factories.factories import OptimizerFactory
-from lohrasb.utils.helper_funcs import (
-    _calc_metric_for_single_output_classification,
-    _calc_metric_for_single_output_regression,
-    _trail_params_retrive,
-    maping_mesurements,
-)
+from lohrasb.utils.helper_funcs import _trail_params_retrive  # maping_mesurements,
 from lohrasb.utils.metrics import CalcMetrics
 
 
@@ -359,7 +354,7 @@ class GridSearch(OptimizerABC):
                 "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
                 "zero_one_loss"
                 # custom
-                "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
+                "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve_ret"
                 "precision_recall_fscore_support".
                 Regression Classification-supported measurements are:
                 "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
@@ -429,7 +424,7 @@ class GridSearch(OptimizerABC):
                 param_grid=self.estimator_params,
                 cv=self.cv,
                 n_jobs=self.n_jobs,
-                scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
+                scoring=self.calc_metric.calc_make_scorer(self.measure_of_accuracy),
                 verbose=self.verbose,
             )
 
@@ -568,7 +563,7 @@ class RandomSearch(OptimizerABC):
                 cv=self.cv,
                 n_iter=self.n_iter,
                 n_jobs=self.n_jobs,
-                scoring=make_scorer(maping_mesurements[self.measure_of_accuracy]),
+                scoring=self.calc_metric.calc_make_scorer(self.measure_of_accuracy),
                 verbose=self.verbose,
             )
             if self.optimize.has_been_called and self.best_estimator is not None:

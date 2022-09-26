@@ -16,7 +16,7 @@ def lint_lohrasb(session):
     session.run("black","./lohrasb/")
     session.run(
         'flake8',
-        '--ignore=E501,I202,W503,E203,F401,F401',"./lohrasb/")
+        '--ignore=E501,I202,W503,E203,F401,F401,F405,F403',"./lohrasb/")
 
 @nox.session
 def release_lohrasb(session):

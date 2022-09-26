@@ -180,12 +180,12 @@ models_classifiers = {
         "logging_level": ["Silent"],
     },
     "SVC": {
-        "C": [0.5, 1],
+        "C": [0.5],
         "kernel": ["poly"],
     },
     "MLPClassifier": {
         "activation": ["identity"],
-        "alpha": [0.0001, 0.001],
+        "alpha": [ 0.001],
     },
     "BalancedRandomForestClassifier": {
         "n_estimators": [100, 200],
@@ -198,7 +198,7 @@ models_classifiers = {
 models_regressors = {
     "XGBRegressor": {
         "max_depth": [4, 5],
-        "min_child_weight": [0.1, 0.9],
+        "min_child_weight": [0.1],
         "gamma": [1, 9],
     },
     "LinearRegression": {
@@ -209,7 +209,7 @@ models_regressors = {
     },
     "MLPRegressor": {
         "activation": ["logistic"],
-        "solver": ["lbfgs", "sgd", "adam"],
+        "solver": ["adam"],
         "alpha": [0.0001],
     },
 }
@@ -232,17 +232,18 @@ def test_best_estimator():
             None
         """
         for model in models_classifiers:
+            measure_of_accuracy="f1_score"
             obj = BaseModel.bestmodel_factory.using_gridsearch(
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
-                measure_of_accuracy="f1_score",
+                measure_of_accuracy=measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
                 cv=KFold(2),
             )
             # run classifiers
-            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test)
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,measure_of_accuracy)
             assert f1>= 0.0
     def run_random_classifiers(pause_iteration=False):
         """
@@ -259,10 +260,11 @@ def test_best_estimator():
         
         """
         for model in models_classifiers:
+            measure_of_accuracy="f1_score"
             obj = BaseModel.bestmodel_factory.using_randomsearch(
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
-                measure_of_accuracy="f1_score",
+                measure_of_accuracy=measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
@@ -270,7 +272,7 @@ def test_best_estimator():
                 n_iter=1,
             )
             # run classifiers
-            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test)
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,measure_of_accuracy)
             assert f1>= 0.0
     def run_optuna_classifiers(pause_iteration=False):
         """
@@ -335,10 +337,11 @@ def test_best_estimator():
         
         """
         for model in models_regressors:
+            measure_of_accuracy="mean_absolute_error"
             obj = BaseModel.bestmodel_factory.using_gridsearch(
                 estimator=eval(model + "()"),
                 estimator_params=models_regressors[model],
-                measure_of_accuracy="mean_absolute_error",
+                measure_of_accuracy=measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
@@ -363,10 +366,11 @@ def test_best_estimator():
         
         """
         for model in models_regressors:
+            measure_of_accuracy="mean_absolute_error"
             obj = BaseModel.bestmodel_factory.using_randomsearch(
                 estimator=eval(model + "()"),
                 estimator_params=models_regressors[model],
-                measure_of_accuracy="mean_absolute_error",
+                measure_of_accuracy=measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
@@ -374,7 +378,7 @@ def test_best_estimator():
                 n_iter=1,
             )
             # run regressors
-            mean_absolute_error = run_regressors(obj, X_train, y_train, X_test, y_test)
+            mean_absolute_error = run_regressors(obj, X_train, y_train, X_test, y_test,measure_of_accuracy)
             assert mean_absolute_error >= 0.0
 
     def run_optuna_regressors(pause_iteration=False):
@@ -421,7 +425,7 @@ def test_best_estimator():
             study_optimize_show_progress_bar=False,
             )
             # run regressors
-            mean_absolute_error = run_regressors(obj, X_train, y_train, X_test, y_test)
+            mean_absolute_error = run_regressors_optuna(obj, X_train, y_train, X_test, y_test)
             assert mean_absolute_error >= 0.0
 
     # run tests for classifiers

@@ -189,7 +189,7 @@ class CalcMetrics:
             "specificity": specificity,  # custom
             "roc_plus_f1": roc_plus_f1,  # custom
             "auc_plus_f1": auc_plus_f1,  # custom
-            "precision_recall_curve": precision_recall_curve_ret,  # custom
+            "precision_recall_curve_ret": precision_recall_curve_ret,  # custom
             "precision_recall_fscore_support": precision_recall_fscore_support_ret,  # custom
             # regression
             "explained_variance_score": explained_variance_score,
@@ -335,13 +335,13 @@ class CalcMetrics:
                             try:
                                 float_v = float(v)
                                 transformed_defualt_args[t] = float_v
-                            except:
-                                print(f"The type of {v} is not float !")
+                            except Exception as e:
+                                print(f"The type of {v} is not float ! {e}")
                             try:
                                 int_v = int(v)
                                 transformed_defualt_args[t] = int_v
-                            except:
-                                print(f"The type of {v} is not integer !")
+                            except Exception as e:
+                                print(f"The type of {v} is not integer ! {e}!")
 
         return transformed_defualt_args
 
@@ -368,6 +368,7 @@ class CalcMetrics:
         metric = self.resolve_name()
         func = str(metric.__name__)
         f_str = func + "(" + "self.y_true,self.y_pred, **asign_default" + ")"
+        print(f"default assigned arguments are :{asign_default}")
         print(f_str)
         print(eval(f_str))
         return eval(f_str)
