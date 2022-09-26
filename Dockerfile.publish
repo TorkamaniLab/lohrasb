@@ -43,9 +43,11 @@ ENV POETRY_VERSION=1.1.13
 
 # Install and setup poetry
 RUN pip install "poetry==$POETRY_VERSION"
-RUN poetry config virtualenvs.create false \
-  && poetry install  --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false 
+RUN poetry install  --no-interaction --no-ansi
 ENV PATH="${PATH}:/root/.poetry/bin"
+
+USER admin
 
 WORKDIR /usr/src/lohrasb
 COPY . .
