@@ -4,7 +4,7 @@ RUN useradd -ms /bin/sh admin
 COPY --chown=admin:admin . /lohrasb
 WORKDIR /lohrasb
 ENV PYTHON_VERSION=3.9.5
-ENV POETRY_VERSION=1.2.0
+ENV POETRY_VERSION=1.1.13
 ENV DEBUG_MODE=True
 
 
