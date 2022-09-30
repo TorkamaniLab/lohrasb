@@ -1,2 +1,10 @@
 # package version in pypi
-__version__ = "1.2.0"
+import pkg_resources
+lohrasb_version = pkg_resources.get_distribution('lohrasb').version
+
+__version__ = lohrasb_version
+
+
+
+if __name__=="__main__":
+    print(__version__)

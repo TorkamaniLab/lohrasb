@@ -19,8 +19,6 @@ from imblearn.ensemble import *
 from sklearn.ensemble import *
 from lohrasb.utils.metrics import CalcMetrics
 
-# for load Environment Variables 
-DEBUG_MODE = os.environ['DEBUG_MODE']
 # initialize CalcMetrics
 calc_metric = CalcMetrics(
     y_true=None,
@@ -28,6 +26,10 @@ calc_metric = CalcMetrics(
     metric=None,
 )
 
+
+# set add_extra_args_for_measure_of_accuracy=True if you want debug 
+# adding defaults parameters of a metric or measure_of_accuracy
+add_extra_args_for_measure_of_accuracy=False
 
 # prepare data for tests
 try:
@@ -237,6 +239,7 @@ def test_best_estimator():
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
                 measure_of_accuracy=measure_of_accuracy,
+                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
@@ -265,6 +268,7 @@ def test_best_estimator():
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
                 measure_of_accuracy=measure_of_accuracy,
+                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
@@ -293,9 +297,11 @@ def test_best_estimator():
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
                 measure_of_accuracy="f1_score",
+                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
+                test_size = 0.33,
                 # optuna params
                 # optuna study init params
                 study=optuna.create_study(
@@ -342,6 +348,7 @@ def test_best_estimator():
                 estimator=eval(model + "()"),
                 estimator_params=models_regressors[model],
                 measure_of_accuracy=measure_of_accuracy,
+                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
@@ -371,6 +378,7 @@ def test_best_estimator():
                 estimator=eval(model + "()"),
                 estimator_params=models_regressors[model],
                 measure_of_accuracy=measure_of_accuracy,
+                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
@@ -400,9 +408,11 @@ def test_best_estimator():
             estimator=eval(model + "()"),
             estimator_params=models_regressors[model],
             measure_of_accuracy="mean_absolute_error",
+            add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
             verbose=3,
             n_jobs=-1,
             random_state=42,
+            test_size = 0.33,
             # optuna params
             # optuna study init params
             study=optuna.create_study(

@@ -35,6 +35,7 @@ class OptunaSearch(OptimizerABC):
         estimator_params,
         # grid search and random search
         measure_of_accuracy,
+        add_extra_args_for_measure_of_accuracy,
         n_jobs,
         # optuna params
         test_size,
@@ -80,7 +81,9 @@ class OptunaSearch(OptimizerABC):
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
                 "tn", "tp", "tn_score" ,"tp_score".
-
+            add_extra_args_for_measure_of_accuracy : boolean
+                True if the user wants to add extra arguments for measure_of_accuracy
+                False otherwise.
             test_size : float or int
                 If float, it should be between 0.0 and 1.0 and represent the proportion
                 of the dataset to include in the train split during estimating the best estimator
@@ -144,6 +147,8 @@ class OptunaSearch(OptimizerABC):
         self.estimator_params = estimator_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy=\
+            add_extra_args_for_measure_of_accuracy
         self.n_jobs = n_jobs
         # optuna params
         self.test_size = test_size
@@ -194,6 +199,8 @@ class OptunaSearch(OptimizerABC):
 
         # prepare metrics arguments
         self.calc_metric.metric = self.measure_of_accuracy
+        self.calc_metric.change_default_args_of_metric= \
+            self.add_extra_args_for_measure_of_accuracy
         self.func_str = self.calc_metric.get_func_string_if_any()
         self.func_params = self.calc_metric.get_default_params_if_any()
 
@@ -335,6 +342,7 @@ class GridSearch(OptimizerABC):
         estimator,
         estimator_params,
         measure_of_accuracy,
+        add_extra_args_for_measure_of_accuracy,
         verbose,
         n_jobs,
         cv,
@@ -367,6 +375,11 @@ class GridSearch(OptimizerABC):
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
                 "tn", "tp", "tn_score" ,"tp_score".
+
+            add_extra_args_for_measure_of_accuracy : boolean
+                True if the user wants to add extra arguments for measure_of_accuracy
+                False otherwise.
+
             verbose: int
                 Controls the verbosity across all objects: the higher, the more messages.
             n_jobs: int
@@ -383,6 +396,8 @@ class GridSearch(OptimizerABC):
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy = \
+            add_extra_args_for_measure_of_accuracy
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.cv = cv
@@ -393,6 +408,9 @@ class GridSearch(OptimizerABC):
             y_pred=None,
             metric=self.measure_of_accuracy,
         )
+        self.calc_metric.change_default_args_of_metric= \
+            self.add_extra_args_for_measure_of_accuracy
+
 
     def prepare_data(self):
         """
@@ -467,6 +485,7 @@ class RandomSearch(OptimizerABC):
         estimator,
         estimator_params,
         measure_of_accuracy,
+        add_extra_args_for_measure_of_accuracy,
         verbose,
         n_jobs,
         n_iter,
@@ -502,6 +521,10 @@ class RandomSearch(OptimizerABC):
             "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
             "tn", "tp", "tn_score" ,"tp_score".
 
+        add_extra_args_for_measure_of_accuracy : boolean
+            True if the user wants to add extra arguments for measure_of_accuracy
+            False otherwise.
+
         verbose: int
             Controls the verbosity across all objects: the higher, the more messages.
         n_jobs: int
@@ -523,6 +546,8 @@ class RandomSearch(OptimizerABC):
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy = \
+            add_extra_args_for_measure_of_accuracy
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.n_iter = n_iter
@@ -534,6 +559,8 @@ class RandomSearch(OptimizerABC):
             y_pred=None,
             metric=self.measure_of_accuracy,
         )
+        self.calc_metric.change_default_args_of_metric= \
+            self.add_extra_args_for_measure_of_accuracy
 
     def prepare_data(self):
         pass
@@ -605,6 +632,7 @@ class GridSearchFactory(OptimizerFactory):
         estimator,
         estimator_params,
         measure_of_accuracy,
+        add_extra_args_for_measure_of_accuracy,
         verbose,
         n_jobs,
         cv,
@@ -639,6 +667,10 @@ class GridSearchFactory(OptimizerFactory):
             "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
             "tn", "tp", "tn_score" ,"tp_score".
 
+        add_extra_args_for_measure_of_accuracy : boolean
+            True if the user wants to add extra arguments for measure_of_accuracy
+            False otherwise.
+
         verbose: int
             Controls the verbosity across all objects: the higher, the more messages.
         n_jobs: int
@@ -650,6 +682,7 @@ class GridSearchFactory(OptimizerFactory):
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.cv = cv
@@ -662,6 +695,7 @@ class GridSearchFactory(OptimizerFactory):
             self.estimator,
             self.estimator_params,
             self.measure_of_accuracy,
+            self.add_extra_args_for_measure_of_accuracy,
             self.verbose,
             self.n_jobs,
             self.cv,
@@ -681,6 +715,7 @@ class OptunaFactory(OptimizerFactory):
         estimator_params,
         # grid search and random search
         measure_of_accuracy,
+        add_extra_args_for_measure_of_accuracy,
         n_jobs,
         # optuna params
         test_size,
@@ -726,6 +761,10 @@ class OptunaFactory(OptimizerFactory):
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
                 "tn", "tp", "tn_score" ,"tp_score".
+
+            add_extra_args_for_measure_of_accuracy : boolean
+                True if the user wants to add extra arguments for measure_of_accuracy
+                False otherwise.
 
             test_size : float or int
                 If float, it should be between 0.0 and 1.0 and represent the proportion
@@ -786,6 +825,7 @@ class OptunaFactory(OptimizerFactory):
         self.estimator_params = estimator_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
         self.n_jobs = n_jobs
         # optuna params
         self.test_size = test_size
@@ -818,6 +858,7 @@ class OptunaFactory(OptimizerFactory):
             self.estimator_params,
             # grid search and random search
             self.measure_of_accuracy,
+            self.add_extra_args_for_measure_of_accuracy,
             self.n_jobs,
             # optuna params
             self.test_size,
@@ -847,6 +888,7 @@ class RandomSearchFactory(OptimizerFactory):
         estimator,
         estimator_params,
         measure_of_accuracy,
+        add_extra_args_for_measure_of_accuracy,
         verbose,
         n_jobs,
         n_iter,
@@ -882,6 +924,10 @@ class RandomSearchFactory(OptimizerFactory):
             "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
             "tn", "tp", "tn_score" ,"tp_score".
 
+        add_extra_args_for_measure_of_accuracy : boolean
+            True if the user wants to add extra arguments for measure_of_accuracy
+            False otherwise.
+
         verbose: int
             Controls the verbosity across all objects: the higher, the more messages.
         n_jobs: int
@@ -897,6 +943,7 @@ class RandomSearchFactory(OptimizerFactory):
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.n_iter = n_iter
@@ -915,6 +962,7 @@ class RandomSearchFactory(OptimizerFactory):
             self.estimator,
             self.estimator_params,
             self.measure_of_accuracy,
+            self.add_extra_args_for_measure_of_accuracy,
             self.verbose,
             self.n_jobs,
             self.n_iter,
