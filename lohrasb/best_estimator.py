@@ -54,6 +54,10 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
         "tn", "tp", "tn_score" ,"tp_score".
 
+    add_extra_args_for_measure_of_accuracy : boolean
+        True if the user wants to add extra arguments for measure_of_accuracy
+        False otherwise.
+
     test_size : float or int
         If float, it should be between 0.0 and 1.0 and represent the proportion
         of the dataset to include in the train split during estimating the best estimator
@@ -150,6 +154,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         estimator_params=None,
         # grid search and random search
         measure_of_accuracy=None,
+        add_extra_args_for_measure_of_accuracy=False,
         n_jobs=None,
         n_iter=None,
         cv=None,
@@ -186,6 +191,8 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         self.estimator_params = estimator_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy= \
+            add_extra_args_for_measure_of_accuracy
         self.n_jobs = n_jobs
         self.n_iter = n_iter
         self.cv = cv
@@ -265,7 +272,15 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     def measure_of_accuracy(self, value):
         logging.info("Setting value for measure_of_accuracy")
         self._measure_of_accuracy = value
+    @property
+    def add_extra_args_for_measure_of_accuracy(self):
+        logging.info("Getting value for add_extra_args_for_measure_of_accuracy")
+        return self._add_extra_args_for_measure_of_accuracy
 
+    @add_extra_args_for_measure_of_accuracy.setter
+    def add_extra_args_for_measure_of_accuracy(self, value):
+        logging.info("Setting value for add_extra_args_for_measure_of_accuracy")
+        self._add_extra_args_for_measure_of_accuracy = value
     @property
     def test_size(self):
         logging.info("Getting value for test_size")
@@ -396,6 +411,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             estimator=self.estimator,
             estimator_params=self.estimator_params,
             measure_of_accuracy=self.measure_of_accuracy,
+            add_extra_args_for_measure_of_accuracy=self.add_extra_args_for_measure_of_accuracy,
             verbose=self.verbose,
             n_jobs=self.n_jobs,
             n_iter=self.n_iter,
@@ -451,6 +467,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             estimator_params=None,
             # grid search and random search
             measure_of_accuracy=None,
+            add_extra_args_for_measure_of_accuracy=None,
             n_jobs=None,
             # optuna params
             test_size=0.33,
@@ -509,6 +526,9 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
                 "tn", "tp", "tn_score" ,"tp_score".
+            add_extra_args_for_measure_of_accuracy : boolean
+                True if the user wants to add extra arguments for measure_of_accuracy
+                False otherwise.
 
             test_size : float or int
                 If float, it should be between 0.0 and 1.0 and represent the proportion
@@ -569,6 +589,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             best_model.estimator = estimator
             best_model.estimator_params = estimator_params
             best_model.measure_of_accuracy = measure_of_accuracy
+            best_model.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
             best_model.n_jobs = n_jobs
             # optuna params
             best_model.test_size = test_size
@@ -602,6 +623,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             estimator_params=None,
             # grid search and random search
             measure_of_accuracy=None,
+            add_extra_args_for_measure_of_accuracy=None,
             n_jobs=None,
             cv=None,
         ):
@@ -639,6 +661,10 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
                 "tn", "tp", "tn_score" ,"tp_score".
+            add_extra_args_for_measure_of_accuracy : boolean
+                True if the user wants to add extra arguments for measure_of_accuracy
+                False otherwise.
+
             cv: int
                 cross-validation generator or an iterable.
                 Determines the cross-validation splitting strategy. Possible inputs
@@ -671,6 +697,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             best_model.estimator = estimator
             best_model.estimator_params = estimator_params
             best_model.measure_of_accuracy = measure_of_accuracy
+            best_model.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
             best_model.n_jobs = n_jobs
             best_model.cv = cv
             return best_model
@@ -684,6 +711,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             estimator_params=None,
             # grid search and random search
             measure_of_accuracy=None,
+            add_extra_args_for_measure_of_accuracy=None,
             n_jobs=None,
             cv=None,
             n_iter=None,
@@ -720,6 +748,10 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
                 "tn", "tp", "tn_score" ,"tp_score".
+            add_extra_args_for_measure_of_accuracy : boolean
+                True if the user wants to add extra arguments for measure_of_accuracy
+                False otherwise.
+
             cv: int
                 cross-validation generator or an iterable.
                 Determines the cross-validation splitting strategy. Possible inputs
@@ -755,6 +787,8 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             best_model.estimator = estimator
             best_model.estimator_params = estimator_params
             best_model.measure_of_accuracy = measure_of_accuracy
+            best_model.add_extra_args_for_measure_of_accuracy= \
+                add_extra_args_for_measure_of_accuracy
             best_model.n_jobs = n_jobs
             best_model.cv = cv
             best_model.n_iter = n_iter
@@ -781,7 +815,7 @@ class BestEstimatorFactory:
             Supported methods are Grid Search, Random Search, and Optional.
             Use ``grid`` to set for Grid Search, ``random for Random Search,
             and ``optional`` for Optuna. (default ``optuna``)
-            measure_of_accuracy : str
+        measure_of_accuracy : str
             Measurement of performance for classification and
             regression estimator during hyperparameter optimization while
             estimating best estimator.
@@ -800,6 +834,10 @@ class BestEstimatorFactory:
             "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
             "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
             "tn", "tp", "tn_score" ,"tp_score".
+        add_extra_args_for_measure_of_accuracy : boolean
+            True if the user wants to add extra arguments for measure_of_accuracy
+            False otherwise.
+
         test_size : float or int
             If float, it should be between 0.0 and 1.0 and represent the proportion
             of the dataset to include in the train split during estimating the best estimator
@@ -876,6 +914,7 @@ class BestEstimatorFactory:
         estimator,
         estimator_params,
         measure_of_accuracy,
+        add_extra_args_for_measure_of_accuracy,
         verbose,
         n_jobs,
         n_iter,
@@ -904,6 +943,8 @@ class BestEstimatorFactory:
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy=\
+            add_extra_args_for_measure_of_accuracy
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.n_iter = n_iter
@@ -954,6 +995,9 @@ class BestEstimatorFactory:
             "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
             "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
             "tn", "tp", "tn_score" ,"tp_score".
+        add_extra_args_for_measure_of_accuracy : boolean
+            True if the user wants to add extra arguments for measure_of_accuracy
+            False otherwise.
         cv: int
             cross-validation generator or an iterable.
             Determines the cross-validation splitting strategy. Possible inputs
@@ -988,6 +1032,7 @@ class BestEstimatorFactory:
                 self.estimator,
                 self.estimator_params,
                 self.measure_of_accuracy,
+                self.add_extra_args_for_measure_of_accuracy,
                 self.verbose,
                 self.n_jobs,
                 self.n_iter,
@@ -1027,7 +1072,9 @@ class BestEstimatorFactory:
             "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
             "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
             "tn", "tp", "tn_score" ,"tp_score".
-
+        add_extra_args_for_measure_of_accuracy : boolean
+            True if the user wants to add extra arguments for measure_of_accuracy
+            False otherwise.
         cv: int
             cross-validation generator or an iterable.
             Determines the cross-validation splitting strategy. Possible inputs
@@ -1058,6 +1105,7 @@ class BestEstimatorFactory:
                 self.estimator,
                 self.estimator_params,
                 self.measure_of_accuracy,
+                self.add_extra_args_for_measure_of_accuracy,
                 self.verbose,
                 self.n_jobs,
                 self.cv,
@@ -1097,7 +1145,9 @@ class BestEstimatorFactory:
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
                 "tn", "tp", "tn_score" ,"tp_score".
-
+            add_extra_args_for_measure_of_accuracy : boolean
+                True if the user wants to add extra arguments for measure_of_accuracy
+                False otherwise.
             test_size : float or int
                 If float, it should be between 0.0 and 1.0 and represent the proportion
                 of the dataset to include in the train split during estimating the best estimator
@@ -1177,6 +1227,7 @@ class BestEstimatorFactory:
                 self.estimator_params,
                 # grid search and random search
                 self.measure_of_accuracy,
+                self.add_extra_args_for_measure_of_accuracy,
                 self.n_jobs,
                 # optuna params
                 self.test_size,

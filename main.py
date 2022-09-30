@@ -27,6 +27,9 @@ calc_metric = CalcMetrics(
     metric=None,
 )
 
+# set add_extra_args_for_measure_of_accuracy=True if you want debug 
+# adding defaults parameters of a metric or measure_of_accuracy
+add_extra_args_for_measure_of_accuracy=False
 
 # prepare data for tests
 try:
@@ -254,6 +257,7 @@ def run_gird_classifiers(pause_iteration=True):
             estimator=eval(model + "()"),
             estimator_params=models_classifiers[model],
             measure_of_accuracy=measure_of_accuracy,
+            #add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
             verbose=3,
             n_jobs=-1,
             random_state=42,
@@ -288,6 +292,7 @@ def run_gird_regressoros(pause_iteration=True):
             estimator=eval(model + "()"),
             estimator_params=models_regressors[model],
             measure_of_accuracy=measure_of_accuracy,
+            #add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
             verbose=3,
             n_jobs=-1,
             random_state=42,
@@ -322,6 +327,7 @@ def run_random_classifiers(pause_iteration=True):
             estimator=eval(model + "()"),
             estimator_params=models_classifiers[model],
             measure_of_accuracy=measure_of_accuracy,
+            add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
             verbose=3,
             n_jobs=-1,
             random_state=42,
@@ -357,6 +363,7 @@ def run_random_regressoros(pause_iteration=True):
             estimator=eval(model + "()"),
             estimator_params=models_regressors[model],
             measure_of_accuracy=measure_of_accuracy,
+            add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
             verbose=3,
             n_jobs=-1,
             random_state=42,
@@ -391,9 +398,11 @@ def run_optuna_classifiers(pause_iteration=True):
             estimator=eval(model + "()"),
             estimator_params=models_classifiers[model],
             measure_of_accuracy="tn",
+            add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
             verbose=3,
             n_jobs=-1,
             random_state=42,
+            test_size = 0.33,
             # optuna params
             # optuna study init params
             study=optuna.create_study(
@@ -443,9 +452,11 @@ def run_optuna_regressors(pause_iteration=True):
             estimator=eval(model + "()"),
             estimator_params=models_regressors[model],
             measure_of_accuracy="mean_absolute_error",
+            add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
             verbose=3,
             n_jobs=1,
             random_state=42,
+            test_size = 0.33,
             # optuna params
             # optuna study init params
             study=optuna.create_study(

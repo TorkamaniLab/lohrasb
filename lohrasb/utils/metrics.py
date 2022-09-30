@@ -5,8 +5,7 @@ import numpy as np
 from sklearn.metrics import *
 
 # for load Environment Variables
-DEBUG_MODE = os.environ["DEBUG_MODE"]
-
+# True there will not be default args for metric
 
 def f1_plus_tp(y_true, y_pred):
     """Return f1_score+True Possitive
@@ -274,7 +273,7 @@ class CalcMetrics:
             "d2_pinball_score": d2_pinball_score,
             "d2_absolute_error_score": d2_absolute_error_score,
         },
-        change_default_args=None,
+        change_default_args_of_metric=False,
         *args,
         **kwargs,
     ):
@@ -282,11 +281,8 @@ class CalcMetrics:
         self.y_pred = y_pred
         self.metric = metric
         self.d = d
-        self.change_default_args = change_default_args
-        if DEBUG_MODE == "True":
-            self.change_default_args = False
-        if DEBUG_MODE == "False":
-            self.change_default_args = True
+        # set change_default_args_of_metric based on debug mode
+        self.change_default_args_of_metric = change_default_args_of_metric
         self.args = args
         self.kwargs = kwargs
 
@@ -369,17 +365,16 @@ class CalcMetrics:
         """
         metric = self.resolve_name()
         transformed_defualt_args = self.get_transformed_default_args()
-        if self.change_default_args:
+        if self.change_default_args_of_metric:
             if len(transformed_defualt_args) > 0:
                 ans = input(
-                    f"Do you want to change defualt arguments for \
-                    {str(metric.__name__)} Y/N? : "
+                    f"Do you want to change defualt arguments for {str(metric.__name__)} Y/N? : "
                 )
                 if ans == "Y" or ans == "y" or ans == "yes":
-                    self.change_default_args = True
+                    self.change_default_args_of_metric = True
                 else:
-                    self.change_default_args = False
-                if self.change_default_args:
+                    self.change_default_args_of_metric = False
+                if self.change_default_args_of_metric:
                     for t, v in transformed_defualt_args.items():
                         value_input = input(
                             f"Set value for {t} of {str(metric.__name__)} : "
