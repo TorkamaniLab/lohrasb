@@ -18,6 +18,7 @@ ENV POETRY_VERSION=1.1.13
 
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends         gnumeric 
+RUN apt-get install -y --no-install-recommends python3-pip
 
 
 WORKDIR /lohrasb/lohrasb/data
