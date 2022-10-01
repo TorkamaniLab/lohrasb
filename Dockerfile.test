@@ -56,8 +56,9 @@ RUN  grep -v "X1" data1.csv > data.csv
 
 WORKDIR /lohrasb
 RUN pip install "poetry==$POETRY_VERSION"
-RUN poetry config virtualenvs.create false \
-  && poetry install  --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false 
+RUN poetry install  --no-interaction --no-ansi
+
 
 USER admin
 RUN chmod +x ./run.sh
