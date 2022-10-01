@@ -33,7 +33,7 @@ RUN apt-get install -y --no-install-recommends         liblzma-dev
 RUN apt-get install -y --no-install-recommends         mecab-ipadic-utf8 
 RUN apt-get install -y --no-install-recommends         git 
 RUN apt-get install -y --no-install-recommends         gnumeric 
-RUN apt-get install -y python3-pip
+RUN apt-get install -y --no-install-recommends         python3-pip
 
 # Set-up necessary Env vars for PyEnv
 ENV PYENV_ROOT /root/.pyenv
@@ -46,8 +46,6 @@ RUN set -ex \
     && pyenv install $PYTHON_VERSION \
     && pyenv global $PYTHON_VERSION \
     && pyenv rehash
-
-# RUN apt install python3-pytest
 RUN apt-get -y install nox
 WORKDIR /lohrasb/lohrasb/data
 RUN curl -O -k 'https://archive.ics.uci.edu/ml/machine-learning-databases/00350/default%20of%20credit%20card%20clients.xls' 
@@ -64,3 +62,4 @@ USER admin
 RUN chmod +x ./run.sh
 
 CMD ["bash", "./run.sh"]
+
