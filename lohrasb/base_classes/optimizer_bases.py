@@ -147,8 +147,9 @@ class OptunaSearch(OptimizerABC):
         self.estimator_params = estimator_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy=\
+        self.add_extra_args_for_measure_of_accuracy = (
             add_extra_args_for_measure_of_accuracy
+        )
         self.n_jobs = n_jobs
         # optuna params
         self.test_size = test_size
@@ -199,8 +200,9 @@ class OptunaSearch(OptimizerABC):
 
         # prepare metrics arguments
         self.calc_metric.metric = self.measure_of_accuracy
-        self.calc_metric.change_default_args_of_metric= \
+        self.calc_metric.change_default_args_of_metric = (
             self.add_extra_args_for_measure_of_accuracy
+        )
         self.func_str = self.calc_metric.get_func_string_if_any()
         self.func_params = self.calc_metric.get_default_params_if_any()
 
@@ -396,8 +398,9 @@ class GridSearch(OptimizerABC):
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = \
+        self.add_extra_args_for_measure_of_accuracy = (
             add_extra_args_for_measure_of_accuracy
+        )
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.cv = cv
@@ -408,9 +411,9 @@ class GridSearch(OptimizerABC):
             y_pred=None,
             metric=self.measure_of_accuracy,
         )
-        self.calc_metric.change_default_args_of_metric= \
+        self.calc_metric.change_default_args_of_metric = (
             self.add_extra_args_for_measure_of_accuracy
-
+        )
 
     def prepare_data(self):
         """
@@ -546,8 +549,9 @@ class RandomSearch(OptimizerABC):
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = \
+        self.add_extra_args_for_measure_of_accuracy = (
             add_extra_args_for_measure_of_accuracy
+        )
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.n_iter = n_iter
@@ -559,8 +563,9 @@ class RandomSearch(OptimizerABC):
             y_pred=None,
             metric=self.measure_of_accuracy,
         )
-        self.calc_metric.change_default_args_of_metric= \
+        self.calc_metric.change_default_args_of_metric = (
             self.add_extra_args_for_measure_of_accuracy
+        )
 
     def prepare_data(self):
         pass
@@ -682,7 +687,9 @@ class GridSearchFactory(OptimizerFactory):
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy = (
+            add_extra_args_for_measure_of_accuracy
+        )
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.cv = cv
@@ -825,7 +832,9 @@ class OptunaFactory(OptimizerFactory):
         self.estimator_params = estimator_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy = (
+            add_extra_args_for_measure_of_accuracy
+        )
         self.n_jobs = n_jobs
         # optuna params
         self.test_size = test_size
@@ -943,7 +952,9 @@ class RandomSearchFactory(OptimizerFactory):
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
+        self.add_extra_args_for_measure_of_accuracy = (
+            add_extra_args_for_measure_of_accuracy
+        )
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.n_iter = n_iter

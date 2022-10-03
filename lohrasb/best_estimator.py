@@ -191,8 +191,9 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         self.estimator_params = estimator_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy= \
+        self.add_extra_args_for_measure_of_accuracy = (
             add_extra_args_for_measure_of_accuracy
+        )
         self.n_jobs = n_jobs
         self.n_iter = n_iter
         self.cv = cv
@@ -272,6 +273,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     def measure_of_accuracy(self, value):
         logging.info("Setting value for measure_of_accuracy")
         self._measure_of_accuracy = value
+
     @property
     def add_extra_args_for_measure_of_accuracy(self):
         logging.info("Getting value for add_extra_args_for_measure_of_accuracy")
@@ -281,6 +283,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     def add_extra_args_for_measure_of_accuracy(self, value):
         logging.info("Setting value for add_extra_args_for_measure_of_accuracy")
         self._add_extra_args_for_measure_of_accuracy = value
+
     @property
     def test_size(self):
         logging.info("Getting value for test_size")
@@ -589,7 +592,9 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             best_model.estimator = estimator
             best_model.estimator_params = estimator_params
             best_model.measure_of_accuracy = measure_of_accuracy
-            best_model.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
+            best_model.add_extra_args_for_measure_of_accuracy = (
+                add_extra_args_for_measure_of_accuracy
+            )
             best_model.n_jobs = n_jobs
             # optuna params
             best_model.test_size = test_size
@@ -697,7 +702,9 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             best_model.estimator = estimator
             best_model.estimator_params = estimator_params
             best_model.measure_of_accuracy = measure_of_accuracy
-            best_model.add_extra_args_for_measure_of_accuracy=add_extra_args_for_measure_of_accuracy
+            best_model.add_extra_args_for_measure_of_accuracy = (
+                add_extra_args_for_measure_of_accuracy
+            )
             best_model.n_jobs = n_jobs
             best_model.cv = cv
             return best_model
@@ -787,8 +794,9 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             best_model.estimator = estimator
             best_model.estimator_params = estimator_params
             best_model.measure_of_accuracy = measure_of_accuracy
-            best_model.add_extra_args_for_measure_of_accuracy= \
+            best_model.add_extra_args_for_measure_of_accuracy = (
                 add_extra_args_for_measure_of_accuracy
+            )
             best_model.n_jobs = n_jobs
             best_model.cv = cv
             best_model.n_iter = n_iter
@@ -943,8 +951,9 @@ class BestEstimatorFactory:
         self.estimator = estimator
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy=\
+        self.add_extra_args_for_measure_of_accuracy = (
             add_extra_args_for_measure_of_accuracy
+        )
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.n_iter = n_iter

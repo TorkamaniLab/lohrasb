@@ -29,7 +29,6 @@ nox = "^2022.1.7"
 feature-engine = "^1.4.1"
 category-encoders = "^2.5.0"
 pandas = "^1.4"
-pip = "^22.2.2"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
