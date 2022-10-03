@@ -1,5 +1,5 @@
 import subprocess
-
+import pandas as pd
 import numpy as np
 from catboost import *
 from imblearn.ensemble import *
@@ -185,12 +185,20 @@ class OptunaSearch(OptimizerABC):
         Prepare data to be consumed by the optimizer.
         """
 
-        if self.with_stratified:
+        if self.with_stratified and isinstance(self.y, pd.DataFrame):
             self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
                 self.X,
                 self.y,
                 test_size=self.test_size,
                 stratify=self.y[self.y.columns.to_list()[0]],
+                random_state=self.random_state,
+            )
+        elif self.with_stratified and not isinstance(self.y, pd.DataFrame):
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+                self.X,
+                self.y,
+                test_size=self.test_size,
+                stratify=self.y,
                 random_state=self.random_state,
             )
         else:
