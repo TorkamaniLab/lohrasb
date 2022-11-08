@@ -29,6 +29,8 @@ RUN  grep -v "X1" data1.csv > data.csv
 # Install and setup poetry
 WORKDIR /lohrasb
 RUN pip install "poetry==$POETRY_VERSION"
+# I add this line
+RUN poetry self update
 RUN poetry config virtualenvs.create false 
 RUN poetry install  --no-interaction --no-ansi
 
