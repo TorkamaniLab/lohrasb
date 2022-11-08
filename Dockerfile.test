@@ -13,7 +13,7 @@ ENV username = $username
 ENV password = $password
 ENV gitusername = $gitusername
 ENV gitpassword = $gitpassword
-ENV POETRY_VERSION=1.5.0
+ENV POETRY_VERSION=1.2.2
 
 
 RUN apt-get update
