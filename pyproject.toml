@@ -1,7 +1,7 @@
 # project configuration, use poetry
 [tool.poetry]
 name = "lohrasb"
-version = "1.4.0"
+version = "1.5.0"
 description = "Using optuna search optimizer to estimate best tree based estimator compatible with scikit-learn"
 authors = ["drhosseinjavedani <h.javedani@gmail.com>"]
 homepage = "https://github.com/drhosseinjavedani/lohrasb"
@@ -38,6 +38,10 @@ bump2version = "^1.0.1"
 isort = "^5.10.1"
 pytest = "^7.1.2"
 ipykernel = "^6.15.2"
+
+[tool.poetry.group.dev.dependencies]
+IProgress = "^0.4"
+jupyter = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
