@@ -18,7 +18,6 @@ ENV POETRY_VERSION=1.1.13
 WORKDIR /lohrasb
 
 RUN pip install "poetry==$POETRY_VERSION"
-RUN poetry self update
 RUN poetry config virtualenvs.create false 
 RUN poetry install  --no-interaction --no-ansi
 
