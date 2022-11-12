@@ -12,7 +12,6 @@ from sklearn.linear_model import *
 from sklearn.svm import *
 from xgboost import *
 from sklearn.linear_model import *
-from catboost import *
 from lightgbm import *
 from sklearn.neural_network import *
 from imblearn.ensemble import *
@@ -175,12 +174,13 @@ models_classifiers = {
         "max_depth": [4, 5],
     },
     "LGBMClassifier": {"max_depth": [1, 12]},
-    "CatBoostClassifier": {
-        "depth": [5, 6],
-        "boosting_type": ["Ordered"],
-        "bootstrap_type": ["Bayesian"],
-        "logging_level": ["Silent"],
-    },
+    # TODO catboost can not be installed with potry
+    # "CatBoostClassifier": {
+    #     "depth": [5, 6],
+    #     "boosting_type": ["Ordered"],
+    #     "bootstrap_type": ["Bayesian"],
+    #     "logging_level": ["Silent"],
+    # },
     "SVC": {
         "C": [0.5],
         "kernel": ["poly"],
