@@ -12,7 +12,6 @@ from sklearn.linear_model import *
 from sklearn.svm import *
 from xgboost import *
 from sklearn.linear_model import *
-from catboost import *
 from lightgbm import *
 from sklearn.neural_network import *
 from imblearn.ensemble import *
@@ -175,12 +174,13 @@ models_classifiers = {
         "max_depth": [4, 5],
     },
     "LGBMClassifier": {"max_depth": [1, 12]},
-    "CatBoostClassifier": {
-        "depth": [5, 6],
-        "boosting_type": ["Ordered"],
-        "bootstrap_type": ["Bayesian"],
-        "logging_level": ["Silent"],
-    },
+    # TODO catboost can not be installed with potry
+    # "CatBoostClassifier": {
+    #     "depth": [5, 6],
+    #     "boosting_type": ["Ordered"],
+    #     "bootstrap_type": ["Bayesian"],
+    #     "logging_level": ["Silent"],
+    # },
     "SVC": {
         "C": [0.5],
         "kernel": ["poly"],
@@ -235,7 +235,7 @@ def test_best_estimator():
         """
         for model in models_classifiers:
             measure_of_accuracy="f1_score"
-            obj = BaseModel.bestmodel_factory.using_gridsearch(
+            obj = BaseModel().optimize_by_gridsearchcv(
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
                 measure_of_accuracy=measure_of_accuracy,
@@ -264,7 +264,7 @@ def test_best_estimator():
         """
         for model in models_classifiers:
             measure_of_accuracy="f1_score"
-            obj = BaseModel.bestmodel_factory.using_randomsearch(
+            obj = BaseModel().optimize_by_randomsearchcv(
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
                 measure_of_accuracy=measure_of_accuracy,
@@ -293,7 +293,7 @@ def test_best_estimator():
         
         """
         for model in models_classifiers:
-            obj = BaseModel.bestmodel_factory.using_optuna(
+            obj = BaseModel().optimize_by_optuna(
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
                 measure_of_accuracy="f1_score",
@@ -344,7 +344,7 @@ def test_best_estimator():
         """
         for model in models_regressors:
             measure_of_accuracy="mean_absolute_error"
-            obj = BaseModel.bestmodel_factory.using_gridsearch(
+            obj = BaseModel().optimize_by_gridsearchcv(
                 estimator=eval(model + "()"),
                 estimator_params=models_regressors[model],
                 measure_of_accuracy=measure_of_accuracy,
@@ -374,7 +374,7 @@ def test_best_estimator():
         """
         for model in models_regressors:
             measure_of_accuracy="mean_absolute_error"
-            obj = BaseModel.bestmodel_factory.using_randomsearch(
+            obj = BaseModel().optimize_by_randomsearchcv(
                 estimator=eval(model + "()"),
                 estimator_params=models_regressors[model],
                 measure_of_accuracy=measure_of_accuracy,
@@ -404,7 +404,7 @@ def test_best_estimator():
         
         """
         for model in models_regressors:
-            obj = BaseModel.bestmodel_factory.using_optuna(
+            obj = BaseModel().optimize_by_optuna(
             estimator=eval(model + "()"),
             estimator_params=models_regressors[model],
             measure_of_accuracy="mean_absolute_error",

@@ -27,12 +27,15 @@ Almost all machine learning estimators for classification and regression support
 For ease of use of BestModel, some factories are available to build associated instances corresponding to each optimization engine. For example, the following factory can be used for  GridSearchCV:
 
 ```
-obj = BaseModel.bestmodel_factory.using_gridsearch(
+obj = BaseModel().optimize_by_gridsearchcv(
             estimator=XGBClassifier(),
-            estimator_params = {
-                "eval_metric": ["auc"],
-                "max_depth": [4, 5],
-            },
+            estimator_params={
+                            "booster": ["gbtree","dart"],
+                            "eval_metric": ["auc"],
+                            "max_depth": [4, 5],
+                            "gamma": [0.1, 1.2],
+                            "subsample": [0.8],
+                        },
             measure_of_accuracy="f1_score",
             verbose=3,
             n_jobs=-1,
@@ -41,12 +44,11 @@ obj = BaseModel.bestmodel_factory.using_gridsearch(
         )
 ```
 
-## One example : Computer Hardware 
+## One example : Computer Hardware (Part 1: Use BestModel in sklearn pipeline)
 
 #### Import some required libraries
 ```
 from lohrasb.best_estimator import BaseModel
-import xgboost
 from optuna.pruners import HyperbandPruner
 from optuna.samplers._tpe.sampler import TPESampler
 from sklearn.model_selection import KFold,train_test_split
@@ -127,10 +129,13 @@ estimator_params= {
 #### Use factory
 
 ```
-obj = BaseModel.bestmodel_factory.using_optuna(
+obj = BaseModel().optimize_by_optuna(
             estimator=estimator,
             estimator_params=estimator_params,
             measure_of_accuracy="r2_score",
+            with_stratified=False,
+            test_size=.3,
+            add_extra_args_for_measure_of_accuracy = False,
             verbose=3,
             n_jobs=-1,
             random_state=42,
@@ -172,6 +177,7 @@ pipeline =Pipeline([
 
  ])
 
+
 ```
 #### Run Pipeline
 
@@ -185,6 +191,54 @@ y_pred = pipeline.predict(X_test)
 print('r2 score : ')
 print(r2_score(y_test,y_pred))
 ```
+
+## Part 2:  Use BestModel as a standalone estimator 
+```
+X_train, X_test, y_train, y_test =train_test_split(X, y, test_size=0.33, random_state=42)
+```
+
+#### Transform features to make them ready for model input
+```
+transform_pipeline =Pipeline([
+            # int missing values imputers
+            ('intimputer', MeanMedianImputer(
+                imputation_method='median', variables=int_cols)),
+            # category missing values imputers
+            ('catimputer', CategoricalImputer(variables=cat_cols)),
+            #
+            ('catencoder', OrdinalEncoder()),
+            # classification model
+
+ ])
+```
+#### Transform X_train and X_test
+
+```
+X_train=transform_pipeline.fit_transform(X_train,y_train)
+X_test=transform_pipeline.transform(X_test)
+```
+
+#### Train model and predict
+```
+obj.fit(X_train,y_train)
+y_pred = obj.predict(X_test)
+```
+
+#### Check performance of the model
+
+```
+print('r2 score : ')
+print(r2_score(y_test,y_pred))
+
+print(obj.get_best_estimator())
+
+print(obj.best_estimator)
+
+OptunaObj = obj.get_optimized_object()
+print(OptunaObj.trials)
+```
+
+
 
 There are some examples  available in the [examples](https://github.com/drhosseinjavedani/lohrasb/tree/main/lohrasb/examples). 
 

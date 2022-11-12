@@ -83,6 +83,11 @@ def _trail_params_retrive(trial, dict):
                         params[keyword] = trial.suggest_int(
                             keyword, min(dict[keyword]), max(dict[keyword])
                         )
+                elif len(dict[keyword]) == 1:
+                    if isinstance(dict[keyword][0], int):
+                        params[keyword] = trial.suggest_int(
+                            keyword, min(dict[keyword]), max(dict[keyword])
+                        )
                 else:
                     params[keyword] = trial.suggest_float(
                         keyword, min(dict[keyword]), max(dict[keyword])

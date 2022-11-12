@@ -13,7 +13,7 @@ ENV username = $username
 ENV password = $password
 ENV gitusername = $gitusername
 ENV gitpassword = $gitpassword
-ENV POETRY_VERSION=1.1.13
+ENV POETRY_VERSION=1.2.1
 
 
 RUN apt-get update
@@ -30,6 +30,7 @@ RUN  grep -v "X1" data1.csv > data.csv
 WORKDIR /lohrasb
 RUN pip install "poetry==$POETRY_VERSION"
 RUN poetry config virtualenvs.create false 
+RUN poetry cache clear --all pypi 
 RUN poetry install  --no-interaction --no-ansi
 
 USER admin

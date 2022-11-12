@@ -347,14 +347,14 @@ class CalcMetrics:
                     float_str = float(str_var)
                     d[k] = float_str
                 except ValueError:
-                    print(f"{v} Not a float")
+                    print(f"Warning! {k} is not used in {self.metric}")
                 try:
                     start = end = "="
                     str_var = str(v).split(start)[1].split(end)[0]
                     int_str = int(str_var)
                     d[k] = int_str
                 except ValueError:
-                    print(f"{v} Not a int")
+                    print(f"Warning! {k} is not used in {self.metric}")
 
         transformed_defualt_args = d
         return transformed_defualt_args
@@ -397,12 +397,12 @@ class CalcMetrics:
                                 float_v = float(v)
                                 transformed_defualt_args[t] = float_v
                             except Exception as e:
-                                print(f"The type of {v} is not float ! {e}")
+                                print(f"Warning! {t} is not used in {self.metric}")
                             try:
                                 int_v = int(v)
                                 transformed_defualt_args[t] = int_v
                             except Exception as e:
-                                print(f"The type of {v} is not integer ! {e}!")
+                                print(f"Warning! {t} is not used in {self.metric}")
 
         return transformed_defualt_args
 
