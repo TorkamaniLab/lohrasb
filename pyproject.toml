@@ -19,7 +19,6 @@ keywords = [
 python = ">=3.8,<3.11"
 numpy = "^1.20"
 scipy = "^1.5"
-sklearn = "^0.0"
 optuna = "^2.10.1"
 xgboost = "^1.6.1"
 imblearn = "^0.0"
@@ -31,6 +30,7 @@ pandas = "^1.4"
 xgbse = "^0.2.3"
 pycox = "^0.2.3"
 pyarrow = "^10.0.1"
+sklearn = "^0.0.post1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
