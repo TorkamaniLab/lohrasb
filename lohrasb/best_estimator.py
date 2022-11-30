@@ -1,11 +1,6 @@
-import logging
 from abc import ABCMeta
 from pickletools import optimize
 
-import numpy as np
-import optuna
-from optuna.pruners import HyperbandPruner
-from optuna.samplers import TPESampler
 from sklearn.base import BaseEstimator
 
 from lohrasb.abstracts.estimators import AbstractEstimator
@@ -46,11 +41,11 @@ class OptunaBestEstimator(AbstractEstimator):
         "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
         "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
         "tn", "tp", "tn_score" ,"tp_score".
-
-    add_extra_args_for_measure_of_accuracy : boolean
-        True if the user wants to add extra arguments for measure_of_accuracy
-        False otherwise.
-
+        Examples of use:
+        "f1_plus_tn(y_true, y_pred)"
+        "f1_score(y_true, y_pred, average='weighted')"
+        "mean_poisson_deviance(y_true, y_pred)"
+        and so on.
     test_size : float or int
         If float, it should be between 0.0 and 1.0 and represent the proportion
         of the dataset to include in the train split during estimating the best estimator
@@ -129,9 +124,9 @@ class OptunaBestEstimator(AbstractEstimator):
         random_state=None,
         estimator=None,
         estimator_params=None,
+        fit_params=None,
         # grid search and random search
         measure_of_accuracy=None,
-        add_extra_args_for_measure_of_accuracy=None,
         n_jobs=None,
         with_stratified=None,
         test_size=None,
@@ -153,10 +148,8 @@ class OptunaBestEstimator(AbstractEstimator):
         self.random_state = random_state
         self.estimator = estimator
         self.estimator_params = estimator_params
+        self.fit_params = fit_params
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         self.n_jobs = n_jobs
         # optuna params
         self.with_stratified = with_stratified
@@ -218,6 +211,14 @@ class OptunaBestEstimator(AbstractEstimator):
         self._estimator_params = value
 
     @property
+    def fit_params(self):
+        return self._fit_params
+
+    @fit_params.setter
+    def fit_params(self, value):
+        self._fit_params = value
+
+    @property
     def hyper_parameter_optimization_method(self):
         return self._hyper_parameter_optimization_method
 
@@ -239,14 +240,6 @@ class OptunaBestEstimator(AbstractEstimator):
     @measure_of_accuracy.setter
     def measure_of_accuracy(self, value):
         self._measure_of_accuracy = value
-
-    @property
-    def add_extra_args_for_measure_of_accuracy(self):
-        return self._add_extra_args_for_measure_of_accuracy
-
-    @add_extra_args_for_measure_of_accuracy.setter
-    def add_extra_args_for_measure_of_accuracy(self, value):
-        self._add_extra_args_for_measure_of_accuracy = value
 
     @property
     def n_jobs(self):
@@ -348,14 +341,13 @@ class OptunaBestEstimator(AbstractEstimator):
             random_state=self.random_state,
             estimator=self.estimator,
             estimator_params=self.estimator_params,
+            fit_params=self.fit_params,
             # grid search and random search
             measure_of_accuracy=self.measure_of_accuracy,
-            add_extra_args_for_measure_of_accuracy=self.add_extra_args_for_measure_of_accuracy,
             n_jobs=self.n_jobs,
             # optuna params
             test_size=self.test_size,
             with_stratified=self.with_stratified,
-            # number_of_trials=100,
             # optuna study init params
             study=self.study,
             # optuna optimization params
@@ -422,29 +414,9 @@ class GridBestEstimator(AbstractEstimator):
         method.
     hyper_parameter_optimization_method : str
         Use ``grid`` to set for Grid Search.
-    measure_of_accuracy : str
-        Measurement of performance for classification and
-        regression estimator during hyperparameter optimization while
-        estimating best estimator.
-        Classification-supported measurements are :
-        "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
-        "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
-        "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
-        "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
-        "zero_one_loss"
-        # custom
-        "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
-        "precision_recall_fscore_support".
-        Regression Classification-supported measurements are:
-        "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
-        "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
-        "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
-        "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
-        "tn", "tp", "tn_score" ,"tp_score".
-
-    add_extra_args_for_measure_of_accuracy : boolean
-        True if the user wants to add extra arguments for measure_of_accuracy
-        False otherwise.
+    measure_of_accuracy : object of type make_scorer
+        see documentation in
+        https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html
 
     cv: int
         cross-validation generator or an iterable.
@@ -492,10 +464,10 @@ class GridBestEstimator(AbstractEstimator):
         verbose=None,
         random_state=None,
         estimator=None,
+        fit_params=None,
         estimator_params=None,
         # grid search and random search
         measure_of_accuracy=None,
-        add_extra_args_for_measure_of_accuracy=None,
         n_jobs=None,
         cv=None,
     ):
@@ -504,17 +476,23 @@ class GridBestEstimator(AbstractEstimator):
         self.verbose = verbose
         self.random_state = random_state
         self.estimator = estimator
+        self.fit_params = fit_params
         self.estimator_params = estimator_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         self.n_jobs = n_jobs
         self.cv = cv
         self.best_estimator = None
         self.search_optimization = None
         self.optimized_object = None
+
+    @property
+    def fit_params(self):
+        return self._fit_params
+
+    @fit_params.setter
+    def fit_params(self, value):
+        self._fit_params = value
 
     @property
     def best_estimator(self):
@@ -588,14 +566,6 @@ class GridBestEstimator(AbstractEstimator):
         self._n_jobs = value
 
     @property
-    def add_extra_args_for_measure_of_accuracy(self):
-        return self._add_extra_args_for_measure_of_accuracy
-
-    @add_extra_args_for_measure_of_accuracy.setter
-    def add_extra_args_for_measure_of_accuracy(self, value):
-        self._add_extra_args_for_measure_of_accuracy = value
-
-    @property
     def test_size(self):
         return self._test_size
 
@@ -653,11 +623,11 @@ class GridBestEstimator(AbstractEstimator):
             y,
             verbose=self.verbose,
             random_state=self.random_state,
+            fit_params=self.fit_params,
             estimator=self.estimator,
             estimator_params=self.estimator_params,
             # grid search
             measure_of_accuracy=self.measure_of_accuracy,
-            add_extra_args_for_measure_of_accuracy=self.add_extra_args_for_measure_of_accuracy,
             n_jobs=self.n_jobs,
             cv=self.cv,
         )
@@ -718,29 +688,9 @@ class RandomBestEstimator(AbstractEstimator):
          method.
      hyper_parameter_optimization_method : str
         Use ``random for Random Search.
-     measure_of_accuracy : str
-         Measurement of performance for classification and
-         regression estimator during hyperparameter optimization while
-         estimating best estimator.
-         Classification-supported measurements are :
-         "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
-         "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
-         "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
-         "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
-         "zero_one_loss"
-         # custom
-         "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
-         "precision_recall_fscore_support".
-         Regression Classification-supported measurements are:
-         "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
-         "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
-         "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
-         "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
-         "tn", "tp", "tn_score" ,"tp_score".
-
-     add_extra_args_for_measure_of_accuracy : boolean
-         True if the user wants to add extra arguments for measure_of_accuracy
-         False otherwise.
+    measure_of_accuracy : object of type make_scorer
+        see documentation in
+        https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html
      cv: int
          cross-validation generator or an iterable.
          Determines the cross-validation splitting strategy. Possible inputs
@@ -792,9 +742,9 @@ class RandomBestEstimator(AbstractEstimator):
         random_state=None,
         estimator=None,
         estimator_params=None,
+        fit_params=None,
         # grid search and random search
         measure_of_accuracy=None,
-        add_extra_args_for_measure_of_accuracy=None,
         n_jobs=None,
         n_iter=None,
         cv=None,
@@ -805,11 +755,9 @@ class RandomBestEstimator(AbstractEstimator):
         self.random_state = random_state
         self.estimator = estimator
         self.estimator_params = estimator_params
+        self.fit_params = fit_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         self.n_jobs = n_jobs
         self.n_iter = n_iter
         self.cv = cv
@@ -858,6 +806,14 @@ class RandomBestEstimator(AbstractEstimator):
         self._estimator_params = value
 
     @property
+    def fit_params(self):
+        return self._fit_params
+
+    @fit_params.setter
+    def fit_params(self, value):
+        self._fit_params = value
+
+    @property
     def hyper_parameter_optimization_method(self):
         return self._hyper_parameter_optimization_method
 
@@ -887,14 +843,6 @@ class RandomBestEstimator(AbstractEstimator):
     @n_jobs.setter
     def n_jobs(self, value):
         self._n_jobs = value
-
-    @property
-    def add_extra_args_for_measure_of_accuracy(self):
-        return self._add_extra_args_for_measure_of_accuracy
-
-    @add_extra_args_for_measure_of_accuracy.setter
-    def add_extra_args_for_measure_of_accuracy(self, value):
-        self._add_extra_args_for_measure_of_accuracy = value
 
     @property
     def test_size(self):
@@ -964,9 +912,9 @@ class RandomBestEstimator(AbstractEstimator):
             random_state=self.random_state,
             estimator=self.estimator,
             estimator_params=self.estimator_params,
+            fit_params=self.fit_params,
             # random search
             measure_of_accuracy=self.measure_of_accuracy,
-            add_extra_args_for_measure_of_accuracy=self.add_extra_args_for_measure_of_accuracy,
             n_jobs=self.n_jobs,
             n_iter=self.n_iter,
             cv=self.cv,
@@ -1029,30 +977,9 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         Supported methods are Grid Search, Random Search, and Optional.
         Use ``grid`` to set for Grid Search, ``random for Random Search,
         and ``optuna`` for Optuna.
-    measure_of_accuracy : str
-        Measurement of performance for classification and
-        regression estimator during hyperparameter optimization while
-        estimating best estimator.
-        Classification-supported measurements are :
-        "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
-        "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
-        "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
-        "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
-        "zero_one_loss"
-        # custom
-        "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
-        "precision_recall_fscore_support".
-        Regression Classification-supported measurements are:
-        "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
-        "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
-        "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
-        "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
-        "tn", "tp", "tn_score" ,"tp_score".
-
-    add_extra_args_for_measure_of_accuracy : boolean
-        True if the user wants to add extra arguments for measure_of_accuracy
-        False otherwise.
-
+    measure_of_accuracy : str or object of type make_scorer
+        for optimizer of type Optuna it is str otherwise it is
+        make_scorer.
     test_size : float or int
         If float, it should be between 0.0 and 1.0 and represent the proportion
         of the dataset to include in the train split during estimating the best estimator
@@ -1144,7 +1071,6 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         estimator_params=None,
         # grid search and random search
         measure_of_accuracy=None,
-        add_extra_args_for_measure_of_accuracy=None,
         n_jobs=None,
         n_iter=None,
         cv=None,
@@ -1172,9 +1098,6 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         self.estimator_params = estimator_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         self.n_jobs = n_jobs
         self.n_iter = n_iter
         self.cv = cv
@@ -1193,6 +1116,14 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         self.study_optimize_callbacks = study_optimize_callbacks
         self.study_optimize_gc_after_trial = study_optimize_gc_after_trial
         self.study_optimize_show_progress_bar = study_optimize_show_progress_bar
+
+    @property
+    def fit_params(self):
+        return self._fit_params
+
+    @fit_params.setter
+    def fit_params(self, value):
+        self._fit_params = value
 
     @property
     def logging_basicConfig(self):
@@ -1233,14 +1164,6 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
     @measure_of_accuracy.setter
     def measure_of_accuracy(self, value):
         self._measure_of_accuracy = value
-
-    @property
-    def add_extra_args_for_measure_of_accuracy(self):
-        return self._add_extra_args_for_measure_of_accuracy
-
-    @add_extra_args_for_measure_of_accuracy.setter
-    def add_extra_args_for_measure_of_accuracy(self, value):
-        self._add_extra_args_for_measure_of_accuracy = value
 
     @property
     def test_size(self):
@@ -1338,10 +1261,10 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         verbose=None,
         random_state=None,
         estimator=None,
+        fit_params=None,
         estimator_params=None,
         # grid search and random search
         measure_of_accuracy=None,
-        add_extra_args_for_measure_of_accuracy=None,
         n_jobs=None,
         cv=None,
     ):
@@ -1350,13 +1273,11 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         self.verbose = verbose
         self.random_state = random_state
         self.estimator = estimator
+        self.fit_params = fit_params
         self.estimator_params = estimator_params
         self.n_jobs = n_jobs
         # grid search
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         self.cv = cv
 
         gse = GridBestEstimator(
@@ -1364,10 +1285,10 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             verbose=self.verbose,
             random_state=self.random_state,
             estimator=self.estimator,
+            fit_params=self.fit_params,
             estimator_params=self.estimator_params,
             # grid search
             measure_of_accuracy=self.measure_of_accuracy,
-            add_extra_args_for_measure_of_accuracy=self.add_extra_args_for_measure_of_accuracy,
             cv=self.cv,
         )
         return gse
@@ -1380,9 +1301,9 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         random_state=None,
         estimator=None,
         estimator_params=None,
+        fit_params=None,
         # random search
         measure_of_accuracy=None,
-        add_extra_args_for_measure_of_accuracy=None,
         n_jobs=None,
         n_iter=None,
         cv=None,
@@ -1393,13 +1314,11 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         self.random_state = random_state
         self.estimator = estimator
         self.estimator_params = estimator_params
+        self.fit_params = fit_params
         self.n_jobs = n_jobs
         self.n_iter = n_iter
         # random search
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         self.cv = cv
 
         rse = RandomBestEstimator(
@@ -1408,10 +1327,10 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             random_state=self.random_state,
             estimator=self.estimator,
             estimator_params=self.estimator_params,
+            fit_params=self.fit_params,
             # random search
             n_iter=self.n_iter,
             measure_of_accuracy=self.measure_of_accuracy,
-            add_extra_args_for_measure_of_accuracy=self.add_extra_args_for_measure_of_accuracy,
             cv=self.cv,
         )
 
@@ -1425,9 +1344,9 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         random_state=None,
         estimator=None,
         estimator_params=None,
+        fit_params=None,
         # grid search and random search
         measure_of_accuracy=None,
-        add_extra_args_for_measure_of_accuracy=None,
         n_jobs=None,
         with_stratified=None,
         test_size=None,
@@ -1451,10 +1370,8 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         self.random_state = random_state
         self.estimator = estimator
         self.estimator_params = estimator_params
+        self.fit_params = fit_params
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         # optuna params
         self.n_jobs = n_jobs
         self.with_stratified = with_stratified
@@ -1479,8 +1396,8 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             random_state=self.random_state,
             estimator=self.estimator,
             estimator_params=self.estimator_params,
+            fit_params=self.fit_params,
             measure_of_accuracy=self.measure_of_accuracy,
-            add_extra_args_for_measure_of_accuracy=self.add_extra_args_for_measure_of_accuracy,
             # optuna params
             n_jobs=self.n_jobs,
             with_stratified=self.with_stratified,
@@ -1522,7 +1439,6 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 self.estimator_params,
                 # grid search
                 self.measure_of_accuracy,
-                self.add_extra_args_for_measure_of_accuracy,
                 self.n_jobs,
                 self.cv,
             ).fit(X, y)
@@ -1537,7 +1453,6 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 self.estimator_params,
                 # random search
                 self.measure_of_accuracy,
-                self.add_extra_args_for_measure_of_accuracy,
                 self.n_jobs,
                 self.n_iter,
                 self.cv,
@@ -1551,7 +1466,6 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 self.estimator,
                 self.estimator_params,
                 self.measure_of_accuracy,
-                self.add_extra_args_for_measure_of_accuracy,
                 self.n_jobs,
                 self.with_stratified,
                 self.test_size,

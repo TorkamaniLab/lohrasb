@@ -6,17 +6,17 @@ from imblearn.ensemble import *
 from lightgbm import *
 from sklearn.ensemble import *
 from sklearn.linear_model import *
-from sklearn.metrics import make_scorer
+from sklearn.metrics import *
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
 from sklearn.neural_network import *
 from sklearn.svm import *
 from xgboost import *
+from xgbse import *
 
 from lohrasb.abstracts.optimizers import OptimizerABC
 from lohrasb.decorators.decorators import trackcalls
-from lohrasb.factories.factories import OptimizerFactory
 from lohrasb.utils.helper_funcs import _trail_params_retrive  # maping_mesurements,
-from lohrasb.utils.metrics import CalcMetrics
+from lohrasb.utils.metrics import *
 
 
 class OptunaSearch(OptimizerABC):
@@ -33,9 +33,9 @@ class OptunaSearch(OptimizerABC):
         random_state,
         estimator,
         estimator_params,
+        fit_params,
         # grid search and random search
         measure_of_accuracy,
-        add_extra_args_for_measure_of_accuracy,
         n_jobs,
         # optuna params
         test_size,
@@ -62,6 +62,8 @@ class OptunaSearch(OptimizerABC):
             estimator_params: dict
                 Parameters were passed to find the best estimator using the optimization
                 method.
+            fit_params: dict
+                Parameters passed to the fit method of the estimator.
             measure_of_accuracy : str
                 Measurement of performance for classification and
                 regression estimator during hyperparameter optimization while
@@ -81,9 +83,12 @@ class OptunaSearch(OptimizerABC):
                 "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
                 "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
                 "tn", "tp", "tn_score" ,"tp_score".
-            add_extra_args_for_measure_of_accuracy : boolean
-                True if the user wants to add extra arguments for measure_of_accuracy
-                False otherwise.
+                Examples of use:
+                "f1_plus_tn(y_true, y_pred)"
+                "f1_score(y_true, y_pred, average='weighted')"
+                "mean_poisson_deviance(y_true, y_pred)"
+                and so on.
+
             test_size : float or int
                 If float, it should be between 0.0 and 1.0 and represent the proportion
                 of the dataset to include in the train split during estimating the best estimator
@@ -161,11 +166,9 @@ class OptunaSearch(OptimizerABC):
         self.random_state = random_state
         self.estimator = estimator
         self.estimator_params = estimator_params
+        self.fit_params = fit_params
         # grid search and random search
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         self.n_jobs = n_jobs
         # optuna params
         self.test_size = test_size
@@ -187,13 +190,33 @@ class OptunaSearch(OptimizerABC):
         self.y_test = None
         self.objective = None
         self.trial = None
-        self.calc_metric = CalcMetrics(
-            y_true=None,
-            y_pred=None,
-            metric=None,
-        )
-        self.func_str = None
-        self.func_params = None
+        self.calc_metric = None
+        self.metric_calculator = None
+        self.est = None
+
+    @property
+    def est(self):
+        return self._est
+
+    @est.setter
+    def est(self, value):
+        self._est = value
+
+    @property
+    def metric_calculator(self):
+        return self._metric_calculator
+
+    @metric_calculator.setter
+    def metric_calculator(self, value):
+        self._metric_calculator = value
+
+    @property
+    def calc_metric(self):
+        return self._calc_metric
+
+    @calc_metric.setter
+    def calc_metric(self, value):
+        self._calc_metric = value
 
     @property
     def X(self):
@@ -244,20 +267,20 @@ class OptunaSearch(OptimizerABC):
         self._estimator_params = value
 
     @property
+    def fit_params(self):
+        return self._fit_params
+
+    @fit_params.setter
+    def fit_params(self, value):
+        self._fit_params = value
+
+    @property
     def measure_of_accuracy(self):
         return self._measure_of_accuracy
 
     @measure_of_accuracy.setter
     def measure_of_accuracy(self, value):
         self._measure_of_accuracy = value
-
-    @property
-    def add_extra_args_for_measure_of_accuracy(self):
-        return self._add_extra_args_for_measure_of_accuracy
-
-    @add_extra_args_for_measure_of_accuracy.setter
-    def add_extra_args_for_measure_of_accuracy(self, value):
-        self._add_extra_args_for_measure_of_accuracy = value
 
     @property
     def n_jobs(self):
@@ -395,30 +418,6 @@ class OptunaSearch(OptimizerABC):
     def trial(self, value):
         self._trial = value
 
-    @property
-    def calc_metric(self):
-        return self._calc_metric
-
-    @calc_metric.setter
-    def calc_metric(self, value):
-        self._calc_metric = value
-
-    @property
-    def func_str(self):
-        return self._func_str
-
-    @func_str.setter
-    def func_str(self, value):
-        self._func_str = value
-
-    @property
-    def func_params(self):
-        return self._func_params
-
-    @func_params.setter
-    def func_params(self, value):
-        self._func_params = value
-
     def prepare_data(self):
         """
         Prepare data to be consumed by the optimizer.
@@ -445,14 +444,6 @@ class OptunaSearch(OptimizerABC):
                 self.X, self.y, test_size=self.test_size, random_state=self.random_state
             )
 
-        # prepare metrics arguments
-        self.calc_metric.metric = self.measure_of_accuracy
-        self.calc_metric.change_default_args_of_metric = (
-            self.add_extra_args_for_measure_of_accuracy
-        )
-        self.func_str = self.calc_metric.get_func_string_if_any()
-        self.func_params = self.calc_metric.get_default_params_if_any()
-
         return self
 
     def optimize(self):
@@ -460,89 +451,43 @@ class OptunaSearch(OptimizerABC):
         Optimize estimator using Optuna engine.
         """
 
+        self.calc_metric = CalcMetrics(
+            y_true=self.y,
+            y_pred=None,
+            metric=self.measure_of_accuracy,
+        )
+        self.metric_calculator = self.calc_metric.calc_make_scorer(
+            self.measure_of_accuracy
+        )
+
         def objective(trial):
-
             params = _trail_params_retrive(trial, self.estimator_params)
-            print(params)
-            est = eval(
-                self.estimator.__class__.__name__
-                + "(**params)"
-                + ".fit(self.X_train, self.y_train)"
-            )
-            preds = est.predict(self.X_test)
-            pred_labels = np.rint(preds)
-
-            if self.measure_of_accuracy in [
-                "accuracy_score",
-                "auc",
-                "precision_recall_curve",
-                "balanced_accuracy_score",
-                "cohen_kappa_score",
-                "dcg_score",
-                "det_curve",
-                "f1_score",
-                "hamming_loss",
-                "fbeta_score",
-                "jaccard_score",
-                "matthews_corrcoef",
-                "ndcg_score",
-                "precision_score",
-                "recall_score",
-                "roc_auc_score",
-                "roc_curve",
-                "top_k_accuracy_score",
-                "zero_one_loss",
-                # customs
-                "tn",
-                "tp",
-                "tn_score",
-                "tp_score",
-                "f1_plus_tp",
-                "f1_plus_tn",
-                "specificity",
-                "roc_plus_f1",
-                "auc_plus_f1",
-                "precision_recall_curve",
-                "precision_recall_fscore_support",
-            ]:
-                self.calc_metric.y_pred = pred_labels
-                self.calc_metric.y_true = self.y_test
-                metric = self.calc_metric.metric
-                y_true = self.calc_metric.y_true
-                y_pred = self.calc_metric.y_pred
-                params = self.func_params
-                accr = self.calc_metric.get_simple_metric(
-                    metric, y_true, y_pred, params
+            if self.fit_params is not None:
+                self.est = eval(
+                    self.estimator.__class__.__name__
+                    + "(**params)"
+                    + ".fit(self.X_train, self.y_train, **self.fit_params)"
                 )
-            elif self.measure_of_accuracy in [
-                "explained_variance_score",
-                "max_error",
-                "mean_absolute_error",
-                "mean_squared_log_error",
-                "mean_absolute_percentage_error",
-                "mean_squared_log_error",
-                "median_absolute_error",
-                "mean_absolute_percentage_error",
-                "r2_score",
-                "mean_poisson_deviance",
-                "mean_gamma_deviance",
-                "mean_tweedie_deviance",
-                "d2_tweedie_score",
-                "mean_pinball_loss",
-                "d2_pinball_score",
-                "d2_absolute_error_score",
-            ]:
-                self.calc_metric.y_pred = preds
-                self.calc_metric.y_true = self.y_test
-                print(self.calc_metric.metric)
-                metric = self.calc_metric.metric
-                y_true = self.calc_metric.y_true
-                y_pred = self.calc_metric.y_pred
-                params = self.func_params
-                accr = self.calc_metric.get_simple_metric(
-                    metric, y_true, y_pred, params
+            else:
+                self.est = eval(
+                    self.estimator.__class__.__name__
+                    + "(**params)"
+                    + ".fit(self.X_train, self.y_train)"
                 )
 
+            y_pred = self.est.predict(self.X)
+            if (
+                self.metric_calculator.__class__.__name__ == "_BaseScorer"
+                or self.metric_calculator.__class__.__name__ == "_ProbaScorer"
+                or self.metric_calculator.__class__.__name__ == "_PredictScorer"
+                or self.metric_calculator.__class__.__name__ == "_ThresholdScorer"
+            ):
+                raise TypeError(
+                    "make_scorer is not supported for Optuna optimizer ! Read examples and documentations. "
+                )
+            func_str = self.metric_calculator
+            print(func_str)
+            accr = eval(func_str)
             return accr
 
         self.study.optimize(
@@ -589,9 +534,9 @@ class GridSearch(OptimizerABC):
         y,
         estimator,
         estimator_params,
+        fit_params,
         measure_of_accuracy,
         random_state,
-        add_extra_args_for_measure_of_accuracy,
         verbose,
         n_jobs,
         cv,
@@ -605,29 +550,10 @@ class GridSearch(OptimizerABC):
             estimator_params: dict
                 Parameters were passed to find the best estimator using the optimization
                 method.
-            measure_of_accuracy : str
-                Measurement of performance for classification and
-                regression estimator during hyperparameter optimization while
-                estimating best estimator.
-                Classification-supported measurements are :
-                "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
-                "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
-                "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
-                "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
-                "zero_one_loss"
-                # custom
-                "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
-                "precision_recall_fscore_support".
-                Regression Classification-supported measurements are:
-                "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
-                "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
-                "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
-                "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
-                "tn", "tp", "tn_score" ,"tp_score".
+            measure_of_accuracy : object of type make_scorer
+                see documentation in
+                https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html
 
-            add_extra_args_for_measure_of_accuracy : boolean
-                True if the user wants to add extra arguments for measure_of_accuracy
-                False otherwise.
             random_state: int
                 Random number seed.
             verbose: int
@@ -659,12 +585,10 @@ class GridSearch(OptimizerABC):
         self.X = X
         self.y = y
         self.estimator = estimator
+        self.fit_params = fit_params
         self.random_state = random_state
         self.estimator_params = estimator_params
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.cv = cv
@@ -675,9 +599,14 @@ class GridSearch(OptimizerABC):
             y_pred=None,
             metric=self.measure_of_accuracy,
         )
-        self.calc_metric.change_default_args_of_metric = (
-            self.add_extra_args_for_measure_of_accuracy
-        )
+
+    @property
+    def fit_params(self):
+        return self._fit_params
+
+    @fit_params.setter
+    def fit_params(self, value):
+        self._fit_params = value
 
     @property
     def X(self):
@@ -718,14 +647,6 @@ class GridSearch(OptimizerABC):
     @measure_of_accuracy.setter
     def measure_of_accuracy(self, value):
         self._measure_of_accuracy = value
-
-    @property
-    def add_extra_args_for_measure_of_accuracy(self):
-        return self._add_extra_args_for_measure_of_accuracy
-
-    @add_extra_args_for_measure_of_accuracy.setter
-    def add_extra_args_for_measure_of_accuracy(self, value):
-        self._add_extra_args_for_measure_of_accuracy = value
 
     @property
     def verbose(self):
@@ -796,7 +717,10 @@ class GridSearch(OptimizerABC):
             verbose=self.verbose,
         )
 
-        self.grid_search.fit(self.X, self.y)
+        if self.fit_params is not None:
+            self.grid_search.fit(self.X, self.y, **self.fit_params)
+        else:
+            self.grid_search.fit(self.X, self.y)
         self.best_estimator = self.grid_search.best_estimator_
         return self
 
@@ -851,8 +775,8 @@ class RandomSearch(OptimizerABC):
         y,
         estimator,
         estimator_params,
+        fit_params,
         measure_of_accuracy,
-        add_extra_args_for_measure_of_accuracy,
         verbose,
         random_state,
         n_jobs,
@@ -869,29 +793,9 @@ class RandomSearch(OptimizerABC):
         estimator_params: dict
             Parameters were passed to find the best estimator using the optimization
             method.
-        measure_of_accuracy : str
-            Measurement of performance for classification and
-            regression estimator during hyperparameter optimization while
-            estimating best estimator.
-            Classification-supported measurements are :
-            "accuracy_score", "auc", "precision_recall_curve","balanced_accuracy_score",
-            "cohen_kappa_score","dcg_score","det_curve", "f1_score", "fbeta_score",
-            "hamming_loss","fbeta_score", "jaccard_score", "matthews_corrcoef","ndcg_score",
-            "precision_score", "recall_score", "roc_auc_score", "roc_curve", "top_k_accuracy_score",
-            "zero_one_loss"
-            # custom
-            "f1_plus_tp", "f1_plus_tn", "specificity", "roc_plus_f1", "auc_plus_f1", "precision_recall_curve"
-            "precision_recall_fscore_support".
-            Regression Classification-supported measurements are:
-            "explained_variance_score", "max_error","mean_absolute_error","mean_squared_log_error",
-            "mean_absolute_percentage_error","mean_squared_log_error","median_absolute_error",
-            "mean_absolute_percentage_error","r2_score","mean_poisson_deviance","mean_gamma_deviance",
-            "mean_tweedie_deviance","d2_tweedie_score","mean_pinball_loss","d2_pinball_score", "d2_absolute_error_score",
-            "tn", "tp", "tn_score" ,"tp_score".
-
-        add_extra_args_for_measure_of_accuracy : boolean
-            True if the user wants to add extra arguments for measure_of_accuracy
-            False otherwise.
+        measure_of_accuracy : object of type make_scorer
+            see documentation in
+            https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html
         random_state: int
             Random number seed.
         verbose: int
@@ -929,10 +833,8 @@ class RandomSearch(OptimizerABC):
         self.y = y
         self.estimator = estimator
         self.estimator_params = estimator_params
+        self.fit_params = fit_params
         self.measure_of_accuracy = measure_of_accuracy
-        self.add_extra_args_for_measure_of_accuracy = (
-            add_extra_args_for_measure_of_accuracy
-        )
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.n_iter = n_iter
@@ -944,9 +846,6 @@ class RandomSearch(OptimizerABC):
             y_true=y,
             y_pred=None,
             metric=self.measure_of_accuracy,
-        )
-        self.calc_metric.change_default_args_of_metric = (
-            self.add_extra_args_for_measure_of_accuracy
         )
 
     @property
@@ -982,20 +881,20 @@ class RandomSearch(OptimizerABC):
         self._estimator_params = value
 
     @property
+    def fit_params(self):
+        return self._fit_params
+
+    @fit_params.setter
+    def fit_params(self, value):
+        self._fit_params = value
+
+    @property
     def measure_of_accuracy(self):
         return self._measure_of_accuracy
 
     @measure_of_accuracy.setter
     def measure_of_accuracy(self, value):
         self._measure_of_accuracy = value
-
-    @property
-    def add_extra_args_for_measure_of_accuracy(self):
-        return self._add_extra_args_for_measure_of_accuracy
-
-    @add_extra_args_for_measure_of_accuracy.setter
-    def add_extra_args_for_measure_of_accuracy(self, value):
-        self._add_extra_args_for_measure_of_accuracy = value
 
     @property
     def verbose(self):
@@ -1071,7 +970,10 @@ class RandomSearch(OptimizerABC):
             verbose=self.verbose,
         )
 
-        self.random_search.fit(self.X, self.y)
+        if self.fit_params is not None:
+            self.random_search.fit(self.X, self.y, **self.fit_params)
+        else:
+            self.random_search.fit(self.X, self.y)
         self.best_estimator = self.random_search.best_estimator_
         return self
 

@@ -1,5 +1,5 @@
 
-FROM python
+FROM python:3.10
 
 RUN useradd -ms /bin/sh admin
 COPY --chown=admin:admin . /lohrasb
@@ -16,7 +16,7 @@ ENV POETRY_VERSION=1.2.1
 
 # Install and setup poetry
 WORKDIR /lohrasb
-
+RUN pip3 install --upgrade pip
 RUN pip install "poetry==$POETRY_VERSION"
 RUN poetry config virtualenvs.create false
 RUN poetry cache clear --all pypi 

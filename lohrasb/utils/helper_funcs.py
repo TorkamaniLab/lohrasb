@@ -75,25 +75,31 @@ def _trail_params_retrive(trial, dict):
     params = {}
     for keyword in dict.keys():
         if keyword not in params.keys():
-            if isinstance(dict[keyword][0], str) or dict[keyword][0] is None:
-                params[keyword] = trial.suggest_categorical(keyword, dict[keyword])
-            if isinstance(dict[keyword][0], int):
-                if len(dict[keyword]) >= 2:
-                    if isinstance(dict[keyword][1], int):
-                        params[keyword] = trial.suggest_int(
+            # if not isinstance(dict[keyword],list):
+            #     params[keyword] = trial.set_user_attr(keyword, dict[keyword])
+            try:
+                if isinstance(dict[keyword][0], str) or dict[keyword][0] is None:
+                    params[keyword] = trial.suggest_categorical(keyword, dict[keyword])
+                if isinstance(dict[keyword][0], int):
+                    if len(dict[keyword]) >= 2:
+                        if isinstance(dict[keyword][1], int):
+                            params[keyword] = trial.suggest_int(
+                                keyword, min(dict[keyword]), max(dict[keyword])
+                            )
+                    elif len(dict[keyword]) == 1:
+                        if isinstance(dict[keyword][0], int):
+                            params[keyword] = trial.suggest_int(
+                                keyword, min(dict[keyword]), max(dict[keyword])
+                            )
+                    else:
+                        params[keyword] = trial.suggest_float(
                             keyword, min(dict[keyword]), max(dict[keyword])
                         )
-                elif len(dict[keyword]) == 1:
-                    if isinstance(dict[keyword][0], int):
-                        params[keyword] = trial.suggest_int(
-                            keyword, min(dict[keyword]), max(dict[keyword])
-                        )
-                else:
+                if isinstance(dict[keyword][0], float):
                     params[keyword] = trial.suggest_float(
                         keyword, min(dict[keyword]), max(dict[keyword])
                     )
-            if isinstance(dict[keyword][0], float):
-                params[keyword] = trial.suggest_float(
-                    keyword, min(dict[keyword]), max(dict[keyword])
-                )
+            except Exception as e:
+                print("the parameters is not a list! it will treated as a scaler")
+
     return params

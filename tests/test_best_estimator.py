@@ -7,7 +7,7 @@ from sklearn.model_selection import KFold, train_test_split
 from lohrasb.best_estimator import BaseModel
 import os
 import numpy as np
-from sklearn.metrics import f1_score, mean_absolute_error
+from sklearn.metrics import f1_score, mean_absolute_error,make_scorer
 from sklearn.linear_model import *
 from sklearn.svm import *
 from xgboost import *
@@ -26,9 +26,6 @@ calc_metric = CalcMetrics(
 )
 
 
-# set add_extra_args_for_measure_of_accuracy=True if you want debug 
-# adding defaults parameters of a metric or measure_of_accuracy
-add_extra_args_for_measure_of_accuracy=False
 
 # prepare data for tests
 try:
@@ -74,8 +71,7 @@ def run_classifiers(obj, X_train, y_train, X_test, y_test, measure_of_accuracy):
     """
     obj.fit(X_train, y_train)
     y_preds = obj.predict(X_test)
-    pred_labels = np.rint(y_preds)
-    return calc_metric.get_simple_metric(measure_of_accuracy, y_test, pred_labels)
+    return measure_of_accuracy(y_test,y_preds)
 
 
 # functions for regressions
@@ -105,65 +101,8 @@ def run_regressors(obj, X_train, y_train, X_test, y_test, measure_of_accuracy):
     """
     obj.fit(X_train, y_train)
     y_preds = obj.predict(X_test)
-    return calc_metric.get_simple_metric(measure_of_accuracy, y_test, y_preds)
+    return measure_of_accuracy(y_test,y_preds)
 
-
-def run_classifiers_optuna(obj, X_train, y_train, X_test, y_test):
-    """
-    A function to get best estimator fit it again, calculate predictions
-    and calculate f1 score.
-
-    Parameters
-    ----------
-    obj: Object
-        Best estimator for classification
-    X_train: pd.DataFrame
-        Training dataframe
-    y_train : pd.DataFrame
-        Training target
-    X_test: pd.DataFrame
-        Testing dataframe
-    y_test : pd.DataFrame
-        Testing target
-    Return
-    ----------
-        True
-
-    """
-    obj.fit(X_train, y_train)
-    y_preds = obj.predict(X_test)
-    pred_labels = np.rint(y_preds)
-    return f1_score(y_test, pred_labels)
-
-    return True
-
-
-# functions for regressions
-def run_regressors_optuna(obj, X_train, y_train, X_test, y_test):
-    """
-    A function to get best estimator fit it again, calculate predictions
-    and calculate mean_absolute_error.
-
-    Parameters
-    ----------
-    obj: Object
-        Best estimator for regression
-    X_train: pd.DataFrame
-        Training dataframe
-    y_train : pd.DataFrame
-        Training target
-    X_test: pd.DataFrame
-        Testing dataframe
-    y_test : pd.DataFrame
-        Testing target
-    Return
-    ----------
-        True
-
-    """
-    obj.fit(X_train, y_train)
-    y_preds = obj.predict(X_test)
-    return mean_absolute_error(y_test, y_preds)
 
 # A dictonary of many classification predictive models and
 # some of their parameters in some ranges.
@@ -181,10 +120,10 @@ models_classifiers = {
     #     "bootstrap_type": ["Bayesian"],
     #     "logging_level": ["Silent"],
     # },
-    "SVC": {
-        "C": [0.5],
-        "kernel": ["poly"],
-    },
+    # "SVC": {
+    #     "C": [0.5],
+    #     "kernel": ["poly"],
+    # },
     "MLPClassifier": {
         "activation": ["identity"],
         "alpha": [ 0.001],
@@ -234,19 +173,19 @@ def test_best_estimator():
             None
         """
         for model in models_classifiers:
-            measure_of_accuracy="f1_score"
+            measure_of_accuracy=make_scorer(f1_score, greater_is_better=True)
             obj = BaseModel().optimize_by_gridsearchcv(
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
+                fit_params=None,
                 measure_of_accuracy=measure_of_accuracy,
-                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
                 cv=KFold(2),
             )
             # run classifiers
-            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,measure_of_accuracy)
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,f1_score)
             assert f1>= 0.0
     def run_random_classifiers(pause_iteration=False):
         """
@@ -263,12 +202,12 @@ def test_best_estimator():
         
         """
         for model in models_classifiers:
-            measure_of_accuracy="f1_score"
+            measure_of_accuracy=make_scorer(f1_score, greater_is_better=True)
             obj = BaseModel().optimize_by_randomsearchcv(
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
+                fit_params=None,
                 measure_of_accuracy=measure_of_accuracy,
-                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
@@ -276,7 +215,7 @@ def test_best_estimator():
                 n_iter=1,
             )
             # run classifiers
-            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,measure_of_accuracy)
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,f1_score)
             assert f1>= 0.0
     def run_optuna_classifiers(pause_iteration=False):
         """
@@ -296,8 +235,8 @@ def test_best_estimator():
             obj = BaseModel().optimize_by_optuna(
                 estimator=eval(model + "()"),
                 estimator_params=models_classifiers[model],
-                measure_of_accuracy="f1_score",
-                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
+                fit_params=None,
+                measure_of_accuracy="f1_score(y_true, y_pred, average='micro')",
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
@@ -324,7 +263,7 @@ def test_best_estimator():
                 study_optimize_show_progress_bar=False,
             )
             # run classifiers
-            f1=run_classifiers_optuna(obj, X_train, y_train, X_test, y_test)
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,f1_score)
             assert f1>= 0.0
     
     # functions for regressors
@@ -343,20 +282,20 @@ def test_best_estimator():
         
         """
         for model in models_regressors:
-            measure_of_accuracy="mean_absolute_error"
+            measure_of_accuracy=make_scorer(mean_absolute_error, greater_is_better=False)
             obj = BaseModel().optimize_by_gridsearchcv(
                 estimator=eval(model + "()"),
+                fit_params=None,
                 estimator_params=models_regressors[model],
                 measure_of_accuracy=measure_of_accuracy,
-                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
                 cv=KFold(2),
             )
             # run regressors
-            mean_absolute_error = run_regressors_optuna(obj, X_train, y_train, X_test, y_test)
-            assert mean_absolute_error >= 0.0
+            mae = run_regressors(obj, X_train, y_train, X_test, y_test, mean_absolute_error)
+            assert mae >= 0.0
     
     def run_random_regressors(pause_iteration=False):
         """
@@ -373,21 +312,21 @@ def test_best_estimator():
         
         """
         for model in models_regressors:
-            measure_of_accuracy="mean_absolute_error"
+            measure_of_accuracy=make_scorer(mean_absolute_error, greater_is_better=False)
             obj = BaseModel().optimize_by_randomsearchcv(
                 estimator=eval(model + "()"),
                 estimator_params=models_regressors[model],
+                fit_params=None,
                 measure_of_accuracy=measure_of_accuracy,
-                add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
                 verbose=3,
                 n_jobs=-1,
                 random_state=42,
                 cv=KFold(2),
-                n_iter=1,
+                n_iter=2,
             )
             # run regressors
-            mean_absolute_error = run_regressors(obj, X_train, y_train, X_test, y_test,measure_of_accuracy)
-            assert mean_absolute_error >= 0.0
+            mae = run_regressors(obj, X_train, y_train, X_test, y_test, mean_absolute_error)
+            assert mae >= 0.0
 
     def run_optuna_regressors(pause_iteration=False):
         """
@@ -407,8 +346,8 @@ def test_best_estimator():
             obj = BaseModel().optimize_by_optuna(
             estimator=eval(model + "()"),
             estimator_params=models_regressors[model],
-            measure_of_accuracy="mean_absolute_error",
-            add_extra_args_for_measure_of_accuracy = add_extra_args_for_measure_of_accuracy,
+            fit_params=None,
+            measure_of_accuracy="mean_absolute_error(y_true, y_pred, multioutput='raw_values')",
             verbose=3,
             n_jobs=-1,
             random_state=42,
@@ -435,8 +374,8 @@ def test_best_estimator():
             study_optimize_show_progress_bar=False,
             )
             # run regressors
-            mean_absolute_error = run_regressors_optuna(obj, X_train, y_train, X_test, y_test)
-            assert mean_absolute_error >= 0.0
+            mae = run_regressors(obj, X_train, y_train, X_test, y_test, mean_absolute_error)
+            assert mae >= 0.0
 
     # run tests for classifiers
     run_gird_classifiers()
