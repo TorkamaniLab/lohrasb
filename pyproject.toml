@@ -30,6 +30,7 @@ category-encoders = "^2.5.0"
 pandas = "^1.4"
 xgbse = "^0.2.3"
 pycox = "^0.2.3"
+pyarrow = "^10.0.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
