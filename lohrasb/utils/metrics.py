@@ -480,8 +480,11 @@ class CalcMetrics:
         ]
         metrics_list_for_minimizing = [
             "det_curve",
-            "hamming_loss" "zero_one_loss" "explained_variance_score",
-            "mean_absolute_error" "mean_squared_log_error",
+            "hamming_loss",
+            "zero_one_loss",
+            "explained_variance_score",
+            "mean_absolute_error",
+            "mean_squared_log_error",
             "mean_absolute_percentage_error",
             "mean_squared_log_error",
             "median_absolute_error",
@@ -495,10 +498,25 @@ class CalcMetrics:
             "d2_absolute_error_score",
         ]
 
-        if metric in metrics_list_for_maximizing:
-            return make_scorer(self.d[metric], greater_is_better=True)
-        if metric in metrics_list_for_minimizing:
-            return make_scorer(self.d[metric], greater_is_better=True)
+        if (
+            metric.__class__.__name__ == "_BaseScorer"
+            or metric.__class__.__name__ == "_ProbaScorer"
+            or metric.__class__.__name__ == "_PredictScorer"
+            or metric.__class__.__name__ == "_ThresholdScorer"
+        ):
+            return metric
+        elif isinstance(metric, str):
+            if "(" in metric:
+                metric = metric.replace("y_true", "self.y")
+                return metric
+            else:
+                raise TypeError(
+                    f"selected {metric} is not proper. Read examples and documentations !"
+                )
+        else:
+            raise TypeError(
+                f"selected {metric} is not proper. Read examples and documentations !"
+            )
 
     def get_simple_metric(self, metric, y_true, y_pred, params=None):
         """

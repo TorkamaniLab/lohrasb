@@ -27,16 +27,18 @@ Almost all machine learning estimators for classification and regression support
 For ease of use of BestModel, some factories are available to build associated instances corresponding to each optimization engine. For example, the following factory can be used for  GridSearchCV:
 
 ```
+
 obj = BaseModel().optimize_by_gridsearchcv(
             estimator=XGBClassifier(),
             estimator_params={
-                            "booster": ["gbtree","dart"],
-                            "eval_metric": ["auc"],
-                            "max_depth": [4, 5],
-                            "gamma": [0.1, 1.2],
-                            "subsample": [0.8],
-                        },
-            measure_of_accuracy="f1_score",
+                                "booster": ["gbtree","dart"],
+                                "eval_metric": ["auc"],
+                                "max_depth": [4, 5],
+                                "gamma": [0.1, 1.2],
+                                "subsample": [0.8],
+                            },
+            fit_params = None,
+            measure_of_accuracy=make_scorer(f1_score, greater_is_better=True),
             verbose=3,
             n_jobs=-1,
             random_state=42,
@@ -44,11 +46,12 @@ obj = BaseModel().optimize_by_gridsearchcv(
         )
 ```
 
-## One example : Computer Hardware (Part 1: Use BestModel in sklearn pipeline)
+## Example 1: Computer Hardware (Part 1: Use BestModel in sklearn pipeline)
 
 #### Import some required libraries
 ```
 from lohrasb.best_estimator import BaseModel
+import xgboost
 from optuna.pruners import HyperbandPruner
 from optuna.samplers._tpe.sampler import TPESampler
 from sklearn.model_selection import KFold,train_test_split
@@ -61,21 +64,18 @@ from feature_engine.imputation import (
     MeanMedianImputer
     )
 from category_encoders import OrdinalEncoder
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
-    classification_report,
-    confusion_matrix,
-    f1_score)
-from sklearn.metrics import f1_score, mean_absolute_error,r2_score
+    make_scorer)
+from sklearn.metrics import r2_score
 from sklearn.linear_model import *
 from sklearn.svm import *
 from xgboost import *
 from sklearn.linear_model import *
-from catboost import *
 from lightgbm import *
 from sklearn.neural_network import *
 from imblearn.ensemble import *
 from sklearn.ensemble import *
+
 
 ```
 #### Computer Hardware Data Set (a regression problem)
@@ -132,10 +132,9 @@ estimator_params= {
 obj = BaseModel().optimize_by_optuna(
             estimator=estimator,
             estimator_params=estimator_params,
-            measure_of_accuracy="r2_score",
+            measure_of_accuracy="mean_absolute_error(y_true, y_pred, multioutput='uniform_average')",
             with_stratified=False,
             test_size=.3,
-            add_extra_args_for_measure_of_accuracy = False,
             verbose=3,
             n_jobs=-1,
             random_state=42,
@@ -146,7 +145,7 @@ obj = BaseModel().optimize_by_optuna(
                 sampler=TPESampler(),
                 pruner=HyperbandPruner(),
                 study_name=None,
-                direction="maximize",
+                direction="minimize",
                 load_if_exists=False,
                 directions=None,
             ),
@@ -176,6 +175,7 @@ pipeline =Pipeline([
 
 
  ])
+
 
 
 ```
@@ -229,6 +229,9 @@ y_pred = obj.predict(X_test)
 ```
 print('r2 score : ')
 print(r2_score(y_test,y_pred))
+print('mean_absolute_error : ')
+print(mean_absolute_error(y_test,y_pred))
+
 
 print(obj.get_best_estimator())
 
@@ -238,7 +241,122 @@ OptunaObj = obj.get_optimized_object()
 print(OptunaObj.trials)
 ```
 
+## Example 2: XGBoost Survival Embeddings (XGBSEKaplanNeighbors)
+For more information refer to this link : https://loft-br.github.io/xgboost-survival-embeddings/examples/confidence_interval.html
 
+
+#### Import some required libraries
+```
+! pip3 install torch==1.12.1
+import sys
+sys.path.append('/usr/local/lib/python3.10/site-packages')
+import torch
+import numpy as np
+from sklearn.model_selection import KFold, train_test_split
+from lohrasb.best_estimator import BaseModel
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import make_scorer
+from xgbse.converters import convert_to_structured
+from xgbse.metrics import (
+    concordance_index,
+    approx_brier_score
+)
+from xgbse import (
+    XGBSEKaplanNeighbors,
+    XGBSEKaplanTree,
+    XGBSEBootstrapEstimator
+)
+from pycox.datasets import metabric
+
+```
+
+
+#### Read data metabric
+
+```
+df = metabric.read_df()
+df.head()
+```
+
+#### Define labels and train-test split 
+
+```
+# splitting to X, T, E format
+X = df.drop(['duration', 'event'], axis=1)
+y = convert_to_structured(df['duration'], df['event'])
+
+
+# splitting between train, and validation 
+(X_train, X_test,
+ y_train, y_test) = \
+train_test_split(X, y, test_size=0.2, random_state=42)
+```
+
+
+#### Define estimator and set its arguments
+```
+estimator_params = {
+    'n_estimators' :[100,200]
+
+}
+
+PARAMS_TREE = {
+    'objective': 'survival:cox',
+    'eval_metric': 'cox-nloglik',
+    'tree_method': 'hist', 
+    'max_depth': 100, 
+    'booster':'dart', 
+    'subsample': 1.0,
+    'min_child_weight': 50, 
+    'colsample_bynode': 1.0
+}
+base_model = XGBSEKaplanTree(PARAMS_TREE)
+
+TIME_BINS = np.arange(15, 315, 15)
+```
+
+#### Define estimator and fit params
+
+```
+estimator=XGBSEBootstrapEstimator(base_model)
+fit_params = {"time_bins":TIME_BINS}
+```
+#### Define BaseModel estimator using random search CV
+
+```
+obj = BaseModel().optimize_by_randomsearchcv(
+            estimator=estimator,
+            fit_params = fit_params,
+            estimator_params=estimator_params,
+            measure_of_accuracy=make_scorer(approx_brier_score, greater_is_better=False),
+            verbose=3,
+            n_jobs=-1,
+            n_iter=2,
+            random_state=42,
+            cv=KFold(2),
+        )
+```
+
+#### Build sklearn pipeline
+
+```
+pipeline =Pipeline([
+            ('obj', obj)
+
+ ])
+```
+#### Run Pipeline
+```
+pipeline.fit(X_train,y_train)
+y_pred = pipeline.predict(X_test)
+```
+
+#### Check performance of the pipeline
+
+```
+print(f'C-index: {concordance_index(y_test, y_pred)}')
+print(f'Avg. Brier Score: {approx_brier_score(y_test, y_pred)}')
+```
 
 There are some examples  available in the [examples](https://github.com/drhosseinjavedani/lohrasb/tree/main/lohrasb/examples). 
 
