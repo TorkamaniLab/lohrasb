@@ -1,5 +1,5 @@
 
-FROM python
+FROM python:3.10
 
 RUN useradd -ms /bin/sh admin
 COPY --chown=admin:admin . /lohrasb
