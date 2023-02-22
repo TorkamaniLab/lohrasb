@@ -1,3 +1,6 @@
+from lohrasb import logger
+
+
 def _trail_param_retrive(trial, dict, keyword):
     """An internal function. Return a trial suggest using dict params of estimator and
     one keyword of it. Based on the keyword, it will return an
@@ -100,6 +103,8 @@ def _trail_params_retrive(trial, dict):
                         keyword, min(dict[keyword]), max(dict[keyword])
                     )
             except Exception as e:
-                print("the parameters is not a list! it will treated as a scaler")
+                logger.error(
+                    "the parameters is not a list! it will treated as a scaler"
+                )
 
     return params

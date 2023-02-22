@@ -4,6 +4,8 @@ import os
 import numpy as np
 from sklearn.metrics import *
 
+from lohrasb import logger
+
 # for load Environment Variables
 # True there will not be default args for metric
 
@@ -347,14 +349,14 @@ class CalcMetrics:
                     float_str = float(str_var)
                     d[k] = float_str
                 except ValueError:
-                    print(f"Warning! {k} is not used in {self.metric}")
+                    logger.warning(f"Warning! {k} is not used in {self.metric}")
                 try:
                     start = end = "="
                     str_var = str(v).split(start)[1].split(end)[0]
                     int_str = int(str_var)
                     d[k] = int_str
                 except ValueError:
-                    print(f"Warning! {k} is not used in {self.metric}")
+                    logger.warning(f"Warning! {k} is not used in {self.metric}")
 
         transformed_defualt_args = d
         return transformed_defualt_args
@@ -397,12 +399,16 @@ class CalcMetrics:
                                 float_v = float(v)
                                 transformed_defualt_args[t] = float_v
                             except Exception as e:
-                                print(f"Warning! {t} is not used in {self.metric}")
+                                logger.warning(
+                                    f"Warning! {t} is not used in {self.metric}"
+                                )
                             try:
                                 int_v = int(v)
                                 transformed_defualt_args[t] = int_v
                             except Exception as e:
-                                print(f"Warning! {t} is not used in {self.metric}")
+                                logger.warning(
+                                    f"Warning! {t} is not used in {self.metric}"
+                                )
 
         return transformed_defualt_args
 
@@ -429,9 +435,6 @@ class CalcMetrics:
         metric = self.resolve_name()
         func = str(metric.__name__)
         f_str = func + "(" + "self.y_true,self.y_pred, **asign_default" + ")"
-        print(f"default assigned arguments are :{asign_default}")
-        print(f_str)
-        print(eval(f_str))
         return eval(f_str)
 
     def calc_make_scorer(self, metric):
@@ -551,4 +554,3 @@ if __name__ == "__main__":
     )
     calcmetric.get_metric_func()
     func = calcmetric.calc_make_scorer("d2_absolute_error_score")
-    print(func)

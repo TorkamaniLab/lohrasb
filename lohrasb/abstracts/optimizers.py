@@ -6,7 +6,6 @@ class OptimizerABC(metaclass=ABCMeta):
     assigned parameters by Search CV, e.g., GridSearchCV, RandomizedSearchCV, etc."""
 
     def __init__(self, *args, **kwargs):
-
         """
         Class initalizer
         """
