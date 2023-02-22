@@ -6,6 +6,7 @@ from optuna.samplers._tpe.sampler import TPESampler
 from sklearn.model_selection import KFold, train_test_split
 from lohrasb.best_estimator import BaseModel
 import os
+from interpret.glassbox import ExplainableBoostingRegressor
 import numpy as np
 from sklearn.metrics import f1_score, mean_absolute_error,make_scorer
 from sklearn.linear_model import *
@@ -17,6 +18,7 @@ from sklearn.neural_network import *
 from imblearn.ensemble import *
 from sklearn.ensemble import *
 from lohrasb.utils.metrics import CalcMetrics
+from ray.tune import *
 
 # initialize CalcMetrics
 calc_metric = CalcMetrics(
@@ -24,7 +26,6 @@ calc_metric = CalcMetrics(
     y_pred=None,
     metric=None,
 )
-
 
 
 # prepare data for tests
@@ -153,6 +154,15 @@ models_regressors = {
         "solver": ["adam"],
         "alpha": [0.0001],
     },
+    "ExplainableBoostingRegressor": {
+                    "learning_rate":[0.01,0.1], 
+                    "validation_size":[0.15,0.20],
+                    "early_stopping_rounds":[50,200], 
+                    "early_stopping_tolerance":[0.00001,0.001], 
+                    "max_rounds":[5000,20000], 
+                    "min_samples_leaf":[2,5], 
+                    "max_leaves":[2,5]  
+                      },
 }
 
 
@@ -187,6 +197,92 @@ def test_best_estimator():
             # run classifiers
             f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,f1_score)
             assert f1>= 0.0
+    def run_tunegird_classifiers(pause_iteration=False):
+        """
+        Loop trough some of the classifiers that already 
+        created and to test if grid search works on them
+        or not.
+        Parameters
+        ----------
+        pause_iteration: boolean
+            To pause the running of the function after each iteration.
+        Return
+        ----------
+            None
+        """
+        for model in models_classifiers:
+            measure_of_accuracy=make_scorer(f1_score, greater_is_better=True)
+            obj = BaseModel().optimize_by_tunegridsearchcv(
+            estimator=eval(model + "()"),
+            estimator_params=models_classifiers[model],
+            fit_params = None,
+            measure_of_accuracy=measure_of_accuracy,
+            verbose=3,
+            n_jobs=None,
+            cv=KFold(3),
+            early_stopping=None, 
+            refit=True, 
+            error_score='raise', 
+            return_train_score=False, 
+            local_dir='~/ray_results', 
+            name=None, 
+            max_iters=1, 
+            use_gpu=False, 
+            loggers=None, 
+            pipeline_auto_early_stop=True, 
+            stopper=None, 
+            time_budget_s=None, 
+            mode=None,
+            )
+            # run classifiers
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,f1_score)
+            assert f1>= 0.0
+    def run_tunesearch_classifiers(pause_iteration=False):
+        """
+        Loop trough some of the classifiers that already 
+        created and to test if grid search works on them
+        or not.
+        Parameters
+        ----------
+        pause_iteration: boolean
+            To pause the running of the function after each iteration.
+        Return
+        ----------
+            None
+        """
+        for model in models_classifiers:
+            measure_of_accuracy=make_scorer(f1_score, greater_is_better=True)
+            obj = BaseModel().optimize_by_tunesearchcv(
+            estimator=eval(model + "()"),
+            estimator_params=models_classifiers[model],
+            fit_params = None,
+            measure_of_accuracy=measure_of_accuracy,
+            verbose=3,
+            random_state=44,
+            n_jobs=None,
+            cv=KFold(3),
+            early_stopping=None, 
+            n_trials=3,
+            scoring=None, 
+            refit=True, 
+            error_score='raise', 
+            return_train_score=False, 
+            local_dir='~/ray_results', 
+            name=None, 
+            max_iters=1, 
+            search_optimization='hyperopt',
+            use_gpu=False, 
+            loggers=None, 
+            pipeline_auto_early_stop=True, 
+            stopper=None, 
+            time_budget_s=None, 
+            mode=None,
+            search_kwargs=None, 
+            )
+            # run classifiers
+            f1 = run_classifiers(obj, X_train, y_train, X_test, y_test,f1_score)
+            assert f1>= 0.0
+
     def run_random_classifiers(pause_iteration=False):
         """
         Loop trough some of the classifiers that already 
@@ -296,7 +392,96 @@ def test_best_estimator():
             # run regressors
             mae = run_regressors(obj, X_train, y_train, X_test, y_test, mean_absolute_error)
             assert mae >= 0.0
-    
+           
+    def run_tunegird_regressors(pause_iteration=False):
+        """
+        Loop trough some of the regressors that already 
+        created and to test if grid search works on them
+        or not.
+        Parameters
+        ----------
+        pause_iteration: boolean
+            To pause the running of the function after each iteration.
+        Return
+        ----------
+            None
+        
+        """
+        for model in models_regressors:
+            measure_of_accuracy=make_scorer(mean_absolute_error, greater_is_better=False)
+            obj = BaseModel().optimize_by_tunegridsearchcv(
+            estimator=eval(model + "()"),
+            estimator_params=models_regressors[model],
+            fit_params = None,
+            measure_of_accuracy=measure_of_accuracy,
+            verbose=3,
+            n_jobs=None,
+            cv=KFold(3),
+            early_stopping=None, 
+            refit=True, 
+            error_score='raise', 
+            return_train_score=False, 
+            local_dir='~/ray_results', 
+            name=None, 
+            max_iters=1, 
+            use_gpu=False, 
+            loggers=None, 
+            pipeline_auto_early_stop=True, 
+            stopper=None, 
+            time_budget_s=None, 
+            mode=None,
+            )
+            # run regressors
+            mae = run_regressors(obj, X_train, y_train, X_test, y_test, mean_absolute_error)
+            assert mae >= 0.0
+           
+    def run_tunesearch_regressors(pause_iteration=False):
+        """
+        Loop trough some of the regressors that already 
+        created and to test if grid search works on them
+        or not.
+        Parameters
+        ----------
+        pause_iteration: boolean
+            To pause the running of the function after each iteration.
+        Return
+        ----------
+            None
+        
+        """
+        for model in models_regressors:
+            measure_of_accuracy=make_scorer(mean_absolute_error, greater_is_better=False)
+            obj = BaseModel().optimize_by_tunesearchcv(
+            estimator=eval(model + "()"),
+            estimator_params=models_regressors[model],
+            fit_params = None,
+            measure_of_accuracy=measure_of_accuracy,
+            verbose=3,
+            random_state=44,
+            n_jobs=None,
+            cv=KFold(3),
+            early_stopping=None, 
+            n_trials=3,
+            scoring=None, 
+            refit=True, 
+            error_score='raise', 
+            return_train_score=False, 
+            local_dir='~/ray_results', 
+            name=None, 
+            max_iters=1, 
+            search_optimization='bayesian',
+            use_gpu=False, 
+            loggers=None, 
+            pipeline_auto_early_stop=True, 
+            stopper=None, 
+            time_budget_s=None, 
+            mode=None,
+            search_kwargs=None, 
+            )
+            # run regressors
+            mae = run_regressors(obj, X_train, y_train, X_test, y_test, mean_absolute_error)
+            assert mae >= 0.0
+   
     def run_random_regressors(pause_iteration=False):
         """
         Loop trough some of the regressors that already 
@@ -381,11 +566,15 @@ def test_best_estimator():
     run_gird_classifiers()
     run_random_classifiers()
     run_optuna_classifiers()
+    run_tunegird_classifiers()
+    run_tunesearch_classifiers()
 
     # run tests for regressors
     run_gird_regressors()
     run_random_regressors()
     run_optuna_regressors()
+    run_tunegird_regressors()
+    run_tunesearch_regressors()
 
 # run all tests in once
 test_best_estimator()

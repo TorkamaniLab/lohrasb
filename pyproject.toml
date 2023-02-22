@@ -31,6 +31,14 @@ xgbse = "^0.2.3"
 pycox = "^0.2.3"
 pyarrow = "^10.0.1"
 scikit-learn = "^1.1.3"
+interpret = "^0.3.0"
+python-dotenv = "^0.21.1"
+ray = {extras = ["tune"], version = "^2.2.0"}
+tune-sklearn = "^0.4.5"
+protobuf = "3.20"
+hyperopt = "^0.2.7"
+scikit-optimize = "^0.9.0"
+importlib = "^1.0.4"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"
