@@ -9,6 +9,6 @@ authors:
   orcid: "https://orcid.org/0000-0003-0232-8053"
 title: "Lohrasb: A scalable estimator optimization tool compatible with scikit-learn APIs"
 version: 3
-doi: ''
+doi: 'DOI: 10.5281/zenodo.7865904'
 date-released: 2023-04-18
 url: "https://github.com/TorkamaniLab/lohrasb"
