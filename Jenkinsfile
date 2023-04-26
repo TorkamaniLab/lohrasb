@@ -64,7 +64,7 @@ pipeline {
                               usernameVariable: 'username',
                               passwordVariable: 'password',
                               ),
-                              usernamePassword(credentialsId: 'lohrasb-git-login-info',
+                              usernamePassword(credentialsId: 'loh-git-login-with-fine-grained-token',
                               usernameVariable: 'gitusername',
                               passwordVariable: 'gitpassword',
                               )
