@@ -12,6 +12,10 @@ data/
 *.csv
 *.pkl
 
+# logs
+
+*.log
+
 
 # Distribution / packaging
 .Python

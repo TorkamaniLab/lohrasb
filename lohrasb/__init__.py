@@ -1,10 +1,11 @@
-__version__ = "3.3.0"
+__version__ = "3.4.0"
 
 import logging
 import logging.config
 import os
 from pathlib import Path, PurePath
 
+import ray
 import yaml
 from dotenv import load_dotenv
 
@@ -41,3 +42,14 @@ else:
     print("default logger setting is applied !")
     logging.basicConfig(level=DEFAULT_LEVEL)
     logger = logging.getLogger()
+
+
+# Use Ray to accelerate computing
+try:
+    # Try to connect to Ray cluster.
+    ray.init(address="auto", ignore_reinit_error=True)
+    logger.info("Connected to Ray cluster!")
+except:
+    # If connection fails, start Ray locally.
+    ray.init()
+    logger.info("Started Ray locally.")

@@ -21,3 +21,43 @@
 2023-02-21 21:09:37,226 :: INFO     :: [40635]MainProcess :: MainThread[140704295073408] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 1061 :: The optimization will be based on f1 metric!
 2023-02-21 21:10:49,537 :: INFO     :: [40658]MainProcess :: MainThread[140704295073408] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 1534 :: The optimization will be based on make_scorer(f1_score) metric!
 2023-02-21 21:11:17,197 :: INFO     :: [40658]MainProcess :: MainThread[140704295073408] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 1534 :: The optimization will be based on make_scorer(f1_score) metric!
+2023-05-02 10:55:40,472 :: INFO     :: [3848]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 10:55:43,174 :: INFO     :: [3848]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 743 :: The optimization will be based on f1 metric!
+2023-05-02 10:56:00,057 :: INFO     :: [3848]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 771 :: The optimization will be based on f1 metric!
+2023-05-02 10:56:00,576 :: INFO     :: [3848]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 743 :: The optimization will be based on f1 metric!
+2023-05-02 10:56:17,439 :: INFO     :: [3848]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 771 :: The optimization will be based on f1 metric!
+2023-05-02 11:15:05,985 :: INFO     :: [4120]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 11:18:25,238 :: INFO     :: [4225]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 11:18:57,727 :: INFO     :: [4254]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 11:22:52,318 :: INFO     :: [4307]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 11:23:35,394 :: INFO     :: [4307]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 772 :: The optimization will be based on f1 metric!
+2023-05-02 11:25:38,847 :: INFO     :: [4357]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 11:26:21,437 :: INFO     :: [4357]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 772 :: The optimization will be based on f1 metric!
+2023-05-02 11:27:12,576 :: INFO     :: [4825]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 11:27:54,713 :: INFO     :: [4825]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 772 :: The optimization will be based on f1 metric!
+2023-05-02 11:32:23,932 :: INFO     :: [4897]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 11:33:45,450 :: INFO     :: [4927]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 11:34:28,026 :: INFO     :: [4927]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 773 :: The optimization will be based on f1 metric!
+2023-05-02 11:38:27,690 :: INFO     :: [4968]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 11:39:11,730 :: INFO     :: [4968]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 773 :: The optimization will be based on f1 metric!
+2023-05-02 11:39:53,929 :: INFO     :: [4968]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 773 :: The optimization will be based on f1 metric!
+2023-05-02 20:50:49,404 :: INFO     :: [8416]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 20:51:44,932 :: INFO     :: [8416]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 773 :: The optimization will be based on f1 metric!
+2023-05-02 20:52:25,787 :: INFO     :: [8416]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 773 :: The optimization will be based on f1 metric!
+2023-05-02 20:55:52,154 :: INFO     :: [8564]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 20:56:44,633 :: INFO     :: [8597]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 20:58:14,931 :: INFO     :: [8634]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 20:59:43,613 :: INFO     :: [8670]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:00:24,483 :: INFO     :: [8705]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:06:11,565 :: INFO     :: [8894]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:06:29,913 :: INFO     :: [8924]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:13:01,302 :: INFO     :: [9000]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:15:58,491 :: INFO     :: [9062]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:17:33,724 :: INFO     :: [9096]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:18:54,890 :: INFO     :: [9196]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:19:28,933 :: INFO     :: [9221]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:48:34,990 :: INFO     :: [9703]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 54 :: Connected to Ray cluster!
+2023-05-02 21:48:44,368 :: INFO     :: [9703]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 1051 :: The optimization will be based on f1 metric!
+2023-05-02 21:48:48,934 :: INFO     :: [9703]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 1051 :: The optimization will be based on f1 metric!
+2023-05-02 21:52:37,459 :: INFO     :: [9934]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/__init__.py :: 51 :: Connected to Ray cluster!
+2023-05-02 21:53:13,059 :: INFO     :: [9934]MainProcess :: MainThread[140704292885312] :: /Users/hjavedani/Documents/Lohrasb/lohrasb/base_classes/optimizer_bases.py :: 772 :: The optimization will be based on make_scorer(f1_score) metric!

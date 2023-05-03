@@ -2,6 +2,7 @@ import subprocess
 
 import numpy as np
 import pandas as pd
+import ray
 from imblearn.ensemble import *
 from interpret.blackbox import *
 from interpret.glassbox import *
@@ -523,6 +524,7 @@ class OptunaSearch(OptimizerABC):
         return self.best_estimator
 
 
+@ray.remote
 class GridSearch(OptimizerABC):
     """
     Class Factories for initializing BestModel optimizing engines, i.e.,
@@ -757,7 +759,7 @@ class GridSearch(OptimizerABC):
         self.best_estimator = self.grid_search.best_estimator_
         return self
 
-    @trackcalls
+    # @trackcalls
     def get_best_estimator(self, *args, **kwargs):
         """
         Get the best estimator after invoking fit on it.
@@ -768,32 +770,18 @@ class GridSearch(OptimizerABC):
             scoring = self.calc_metric.calc_make_scorer(self.measure_of_accuracy)
 
         logger.info(f"The optimization will be based on {scoring} metric!")
-
-        if self.optimize.has_been_called and self.best_estimator is not None:
+        # TODO seems has problem
+        # if self.optimize.has_been_called and self.best_estimator is not None:
+        if self.best_estimator is not None:
             return self.best_estimator
         else:
-            self.optimize(
-                self.estimator,
-                param_grid=self.estimator_params,
-                cv=self.cv,
-                n_jobs=self.n_jobs,
-                scoring=scoring,
-                verbose=self.verbose,
-            )
-
-            if self.optimize.has_been_called and self.best_estimator is not None:
-                return self.best_estimator
-            else:
-                raise NotImplementedError(
-                    "RandomSearch has not been implemented \
-                    or best_estomator is null"
-                )
+            logger.error("The best estimator is None !")
 
     def get_optimized_object(self, *args, **kwargs):
         """
         Get the grid search cv  after invoking fit.
         """
-        if self.optimize.has_been_called and self.grid_search is not None:
+        if self.grid_search is not None:
             return self.grid_search
         else:
             raise NotImplementedError(
@@ -802,6 +790,7 @@ class GridSearch(OptimizerABC):
             )
 
 
+@ray.remote
 class RandomSearch(OptimizerABC):
     """
     Class Factories for initializing BestModel optimizing engines, i.e.,
@@ -1020,7 +1009,7 @@ class RandomSearch(OptimizerABC):
     def prepare_data(self):
         pass
 
-    @trackcalls
+    # @trackcalls
     def optimize(self):
         """
         Optimize estimator using GridSearchCV engine.
@@ -1059,31 +1048,16 @@ class RandomSearch(OptimizerABC):
 
         logger.info(f"The optimization will be based on {scoring} metric!")
 
-        if self.optimize.has_been_called and self.best_estimator is not None:
+        if self.best_estimator is not None:
             return self.best_estimator
         else:
-            self.optimize(
-                self.estimator,
-                param_distributions=self.estimator_params,
-                cv=self.cv,
-                n_iter=self.n_iter,
-                n_jobs=self.n_jobs,
-                scoring=scoring,
-                verbose=self.verbose,
-            )
-            if self.optimize.has_been_called and self.best_estimator is not None:
-                return self.best_estimator
-            else:
-                raise NotImplementedError(
-                    "RandomSearch has not been implemented \
-                    or best_estomator is null"
-                )
+            logger.error("The best estimator is None !")
 
     def get_optimized_object(self, *args, **kwargs):
         """
         Get the best estimator after invoking fit on it.
         """
-        if self.optimize.has_been_called and self.random_search is not None:
+        if self.random_search is not None:
             return self.random_search
         else:
             raise NotImplementedError(

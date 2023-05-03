@@ -1,6 +1,7 @@
 from abc import ABCMeta
 from pickletools import optimize
 
+import ray
 from sklearn.base import BaseEstimator
 
 from lohrasb import logger
@@ -369,6 +370,7 @@ class OptunaBestEstimator(AbstractEstimator):
             study_optimize_callbacks=self.study_optimize_callbacks,
             study_optimize_gc_after_trial=self.study_optimize_gc_after_trial,
         )
+
         self.optimized_object = self.search_optimization.prepare_data().optimize()
         self.best_estimator = self.optimized_object.get_best_estimator()
 
@@ -652,7 +654,7 @@ class GridBestEstimator(AbstractEstimator):
             step of the pipeline.
         """
         self.cols = X.columns
-        self.search_optimization = GridSearch(
+        self.search_optimization = GridSearch.remote(
             X,
             y,
             verbose=self.verbose,
@@ -666,7 +668,8 @@ class GridBestEstimator(AbstractEstimator):
             n_jobs=self.n_jobs,
             cv=self.cv,
         )
-        self.optimized_object = self.search_optimization.optimize()
+
+        self.optimized_object = ray.get(self.search_optimization.optimize.remote())
         self.best_estimator = self.optimized_object.get_best_estimator()
 
     def get_optimized_object(self):
@@ -956,7 +959,7 @@ class RandomBestEstimator(AbstractEstimator):
             step of the pipeline.
         """
         self.cols = X.columns
-        self.search_optimization = RandomSearch(
+        self.search_optimization = RandomSearch.remote(
             X,
             y,
             verbose=self.verbose,
@@ -971,7 +974,7 @@ class RandomBestEstimator(AbstractEstimator):
             n_iter=self.n_iter,
             cv=self.cv,
         )
-        self.optimized_object = self.search_optimization.optimize()
+        self.optimized_object = ray.get(self.search_optimization.optimize.remote())
         self.best_estimator = self.optimized_object.get_best_estimator()
 
     def get_optimized_object(self):

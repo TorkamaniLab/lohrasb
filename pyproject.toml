@@ -1,7 +1,7 @@
 # project configuration, use poetry
 [tool.poetry]
 name = "lohrasb"
-version = "3.3.0"
+version = "3.4.0"
 description = "A scalable estimator optimization tool compatible with scikit-learn APIs"
 authors = ["drhosseinjavedani <h.javedani@gmail.com>"]
 homepage = "https://github.com/drhosseinjavedani/lohrasb"
