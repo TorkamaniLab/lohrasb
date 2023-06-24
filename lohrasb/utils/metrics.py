@@ -510,7 +510,7 @@ class CalcMetrics:
             return metric
         elif isinstance(metric, str):
             if "(" in metric:
-                metric = metric.replace("y_true", "self.y")
+                metric = metric.replace("y_true", "self.y_test")
                 return metric
             else:
                 raise TypeError(
