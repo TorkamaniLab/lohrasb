@@ -44,12 +44,12 @@ else:
     logger = logging.getLogger()
 
 
-# Use Ray to accelerate computing
-try:
-    # Try to connect to Ray cluster.
-    ray.init(address="auto", ignore_reinit_error=True)
-    logger.info("Connected to Ray cluster!")
-except Exception as e:
-    # If connection fails, start Ray locally.
-    ray.init()
-    logger.warning("This error happened {e}. So Ray Started locally.")
+# # Use Ray to accelerate computing
+# try:
+#     # Try to connect to Ray cluster.
+#     ray.init(address="auto", ignore_reinit_error=True)
+#     logger.info("Connected to Ray cluster!")
+# except Exception as e:
+#     # If connection fails, start Ray locally.
+#     ray.init()
+#     logger.warning("This error happened {e}. So Ray Started locally.")
