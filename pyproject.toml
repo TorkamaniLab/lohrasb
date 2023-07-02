@@ -39,6 +39,7 @@ protobuf = "3.20"
 hyperopt = "^0.2.7"
 scikit-optimize = "^0.9.0"
 bayesian-optimization = "^1.4.3"
+catboost = "^1.2"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"

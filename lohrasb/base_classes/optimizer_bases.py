@@ -18,6 +18,7 @@ from lohrasb.abstracts.optimizers import OptimizerABC
 from lohrasb.decorators.decorators import trackcalls
 from lohrasb.utils.helper_funcs import _trail_params_retrive  # maping_mesurements,
 from lohrasb.utils.metrics import *
+from lohrasb.utils.metrics import CalcMetrics
 import optuna
 from optuna.integration import OptunaSearchCV
 from ray import tune
@@ -26,6 +27,7 @@ from xgboost import XGBClassifier
 from sklearn.model_selection import cross_val_score
 from ray.air import session
 import ray
+
 
 class OptunaSearch(OptimizerABC):
     def __init__(
@@ -98,12 +100,11 @@ class OptunaSearch(OptimizerABC):
         ------
         It is recommended to use available factories to create a new instance of this class.
         """
-
-        self.study_search_kwargs = kwargs.get('study_search_kwargs', {})
-        self.main_optuna_kwargs = kwargs.get('main_optuna_kwargs', {})
-        self.optimize_kwargs = kwargs.get('optimize_kwargs', {})
-        self.train_test_split_kwargs = kwargs.get('train_test_split_kwargs', {})
-        self.fit_optuna_kwargs = kwargs.get('fit_optuna_kwargs', {})
+        self.study_search_kwargs = kwargs['kwargs'].get('study_search_kwargs', {})
+        self.main_optuna_kwargs = kwargs['kwargs'].get('main_optuna_kwargs', {})
+        self.optimize_kwargs = kwargs['kwargs'].get('optimize_kwargs', {})
+        self.train_test_split_kwargs = kwargs['kwargs'].get('train_test_split_kwargs', {})
+        self.fit_optuna_kwargs = kwargs['kwargs'].get('fit_optuna_kwargs', {})
         self.__optuna_search = None
         self.__best_estimator = None
         self.X = X
@@ -163,25 +164,25 @@ class OptunaSearch(OptimizerABC):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
             self.X, self.y, **self.train_test_split_kwargs
         )
+
+        
         return self
 
     def optimize(self):
         """
         Optimize estimator using Optuna engine.
         """
-
-        # Calculate the metric for evaluation using CalcMetrics
-        calc_metric = CalcMetrics(
-            y_true=self.y_test,
-            y_pred=None,
-            metric=self.main_optuna_kwargs['measure_of_accuracy'],
-        )
-        # Create a metric calculator using calc_make_scorer method
-        metric_calculator = calc_metric.calc_make_scorer(
-            self.main_optuna_kwargs['measure_of_accuracy'],
-        )
-
         def objective(trial):
+            # Calculate the metric for evaluation using CalcMetrics
+            calc_metric = CalcMetrics(
+                y_true=self.y_test,
+                y_pred=None,
+                metric=self.main_optuna_kwargs['measure_of_accuracy'],
+            )
+            # Create a metric calculator using calc_make_scorer method
+            metric_calculator = calc_metric.calc_make_scorer(
+                self.main_optuna_kwargs['measure_of_accuracy'],
+            )
             # Retrieve estimator parameters and fit parameters
             estimator_params = self.main_optuna_kwargs['estimator_params']
             fit_params = self.fit_optuna_kwargs
