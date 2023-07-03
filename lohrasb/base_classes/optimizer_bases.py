@@ -30,6 +30,71 @@ import ray
 
 
 class OptunaSearch(OptimizerABC):
+
+    """
+    OptunaSearch class for optimizing an estimator using Optuna.
+
+    Parameters:
+    -----------
+    X : pd.DataFrame or numpy 2D array
+        Input for training.
+
+    y : pd.DataFrame or numpy 1D array
+        Target or label.
+
+    args : tuple
+        Args of the class.
+
+    kwargs : dict
+        Kwargs of the class.
+
+        study_search_kwargs : dict
+            All arguments for creating a study using Optuna. Read more from `study.create` for Optuna at [Optuna Documentation](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.create_study.html).
+
+        main_optuna_kwargs : dict
+            Some required arguments for creating `BaseModel`:
+
+            - estimator : object
+                An unfitted estimator that has `fit` and `predict` methods.
+
+            - estimator_params : dict
+                Parameters that were passed to find the best estimator using the optimization method.
+
+            - measure_of_accuracy : str
+                Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+        optimize_kwargs : dict
+            All arguments for the `optimize` object of Optuna, except `objective`. Check at [Optuna Study.optimize](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.Study.html#optuna.study.Study.optimize).
+
+        train_test_split_kwargs : dict
+            All arguments for `train_test_split` function, such as `cv`, `random_state`, except the *array. Check at [scikit-learn train_test_split](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html).
+
+        fit_optuna_kwargs : dict
+            All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
+
+    Returns:
+    --------
+    None
+
+    Methods:
+    --------
+    prepare_data():
+        Prepare data to be consumed by TuneSearchCV. Pass for TuneSearchCV case.
+
+    optimize():
+        Optimize estimator using Optuna engine.
+
+    get_optimized_object():
+        Get the grid search cv after invoking fit.
+
+    get_best_estimator():
+        Return the best estimator if already fitted.
+
+    Notes:
+    ------
+    It is recommended to use available factories to create a new instance of this class.
+    """
+    
     def __init__(
         self,
         X,
@@ -37,69 +102,6 @@ class OptunaSearch(OptimizerABC):
         *args,
         **kwargs,
     ):
-        """
-        OptunaSearch class for optimizing an estimator using Optuna.
-
-        Parameters:
-        -----------
-        X : pd.DataFrame or numpy 2D array
-            Input for training.
-
-        y : pd.DataFrame or numpy 1D array
-            Target or label.
-
-        args : tuple
-            Args of the class.
-
-        kwargs : dict
-            Kwargs of the class.
-
-            study_search_kwargs : dict
-                All arguments for creating a study using Optuna. Read more from `study.create` for Optuna at [Optuna Documentation](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.create_study.html).
-
-            main_optuna_kwargs : dict
-                Some required arguments for creating `BaseModel`:
-
-                - estimator : object
-                    An unfitted estimator that has `fit` and `predict` methods.
-
-                - estimator_params : dict
-                    Parameters that were passed to find the best estimator using the optimization method.
-
-                - measure_of_accuracy : str
-                    Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
-
-            optimize_kwargs : dict
-                All arguments for the `optimize` object of Optuna, except `objective`. Check at [Optuna Study.optimize](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.Study.html#optuna.study.Study.optimize).
-
-            train_test_split_kwargs : dict
-                All arguments for `train_test_split` function, such as `cv`, `random_state`, except the *array. Check at [scikit-learn train_test_split](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html).
-
-            fit_optuna_kwargs : dict
-                All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
-
-        Returns:
-        --------
-        None
-
-        Methods:
-        --------
-        prepare_data():
-            Prepare data to be consumed by TuneSearchCV. Pass for TuneSearchCV case.
-
-        optimize():
-            Optimize estimator using Optuna engine.
-
-        get_optimized_object():
-            Get the grid search cv after invoking fit.
-
-        get_best_estimator():
-            Return the best estimator if already fitted.
-
-        Notes:
-        ------
-        It is recommended to use available factories to create a new instance of this class.
-        """
         self.study_search_kwargs = kwargs['kwargs'].get('study_search_kwargs', {})
         self.main_optuna_kwargs = kwargs['kwargs'].get('main_optuna_kwargs', {})
         self.optimize_kwargs = kwargs['kwargs'].get('optimize_kwargs', {})
@@ -333,10 +335,64 @@ class OptunaSearch(OptimizerABC):
 
         return self.__best_estimator
 
+
 class GridSearch(OptimizerABC):
     """
     Class Factories for initializing BestModel optimizing engines, i.e.,
     GridSearchCV.
+    
+    Parameters
+    ----------
+
+        X : pd.DataFrame
+            Input for training
+        y : pd.DataFrame
+            Target or label
+
+        args : tuple
+            Args of the class.
+
+        kwargs : dict
+            Kwargs of the class.
+
+            grid_search_kwargs : dict
+
+            All arguments for creating a study using GridSearch. Read at [GridSeachCV Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html).
+                For example:
+                - estimator : object
+                    An unfitted estimator that has `fit` and `predict` methods.
+
+                - param_grid : dict
+                    Parameters that were passed to find the best estimator using the optimization method.
+
+                - measure_of_accuracy : str
+                    Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+            main_grid_kwargs : dict
+                Some required arguments for creating `BaseModel`:
+
+            fit_grid_kwargs : dict
+                All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
+
+    Return
+    ----------
+
+    The best estimator of estimator optimized by GridSearchCV.
+
+    Methods
+    -------
+    prepare_data()
+        Prepare data to be consumed by GridSearchCV.Pass for GridSearchCV case.
+    optimize()
+        Optimize estimator using GridSearchCV engine.
+    get_optimized_object()
+        Get the grid search cv  after invoking fit.
+    get_best_estimator()
+        Return the best estimator if already fitted.
+    Notes
+    -----
+    It is recommended to use available factories
+    to create a new instance of this class.
 
     """
 
@@ -347,35 +403,7 @@ class GridSearch(OptimizerABC):
         *args,
         **kwargs,
     ):
-        """
-        Parameters
-        ----------
-
-            X : pd.DataFrame
-                Input for training
-            y : pd.DataFrame
-                Target or label
-        Return
-        ----------
-
-        The best estimator of estimator optimized by GridSearchCV.
-
-        Methods
-        -------
-        prepare_data()
-            Prepare data to be consumed by GridSearchCV.Pass for GridSearchCV case.
-        optimize()
-            Optimize estimator using GridSearchCV engine.
-        get_optimized_object()
-            Get the grid search cv  after invoking fit.
-        get_best_estimator()
-            Return the best estimator if already fitted.
-        Notes
-        -----
-        It is recommended to use available factories
-        to create a new instance of this class.
-
-        """
+        
         self.grid_search_kwargs = kwargs['kwargs'].get('grid_search_kwargs',{})
         self.main_grid_kwargs = kwargs['kwargs'].get('main_grid_kwargs',{})
         self.fit_grid_kwargs = kwargs['kwargs'].get('fit_grid_kwargs',{})
@@ -457,9 +485,9 @@ class GridSearch(OptimizerABC):
                 "GridSearch has not been implemented \
                 or best_estomator is null"
             )
-import pandas as pd
 
 class NewOptunaSearch(OptimizerABC):
+
     """
     Class for initializing BestModel optimizing engines, i.e., GridSearchCV.
 
@@ -505,20 +533,7 @@ class NewOptunaSearch(OptimizerABC):
     """
 
     def __init__(self, X: pd.DataFrame, y: pd.DataFrame, *args, **kwargs):
-        """
-        Initialize the NewOptunaSearch optimizer.
 
-        Parameters
-        ----------
-        X : pd.DataFrame
-            Input for training.
-        y : pd.DataFrame
-            Target or label.
-        *args : tuple
-            Additional positional arguments.
-        **kwargs : dict
-            Additional keyword arguments.
-        """
         self.newoptuna_search_kwargs = kwargs['kwargs'].get('newoptuna_search_kwargs', {})
         self.main_newoptuna_kwargs = kwargs['kwargs'].get('main_newoptuna_kwargs', {})
         self.fit_newoptuna_kwargs = kwargs['kwargs'].get('fit_newoptuna_kwargs', {})
@@ -618,21 +633,18 @@ class NewOptunaSearch(OptimizerABC):
 class TuneCV(OptimizerABC):
     """
     Class Factories for initializing BestModel optimizing engines, using Tune from Ray.
-    """
-    def __init__(self, X, y, *args, **kwargs):
-        """
         Initialize the BestModelFactories.
 
-        Parameters
-        ----------
-        X : pd.DataFrame or numpy.ndarray
-            Input for training.
-        y : pd.DataFrame or numpy.ndarray
-            Target or label.
-        args : tuple
-            Additional positional arguments.
-        kwargs : dict
-            Additional keyword arguments.
+    Parameters
+    ----------
+    X : pd.DataFrame or numpy.ndarray
+        Input for training.
+    y : pd.DataFrame or numpy.ndarray
+        Target or label.
+    args : tuple
+        Additional positional arguments.
+    kwargs : dict
+        Additional keyword arguments.
 
         tuner_kwargs : dict, optional
             Keyword arguments for the tuner from Ray. These arguments will be passed to the tuner during initialization.
@@ -652,31 +664,33 @@ class TuneCV(OptimizerABC):
         fit_tune_kwargs : dict, optional
             Additional keyword arguments to be passed to the `fit()` method of the estimator during training.
 
-        Returns
-        -------
-        None
+    Returns
+    -------
+    None
 
-        Methods
-        -------
-        prepare_data()
-            Prepare data to be consumed by TuneCV. Pass for TuneCV.
-        optimize()
-            Optimize estimator using OptunaSearchCV engine.
-        get_optimized_object()
-            Get the Optuna search cv after invoking fit.
-        get_best_estimator()
-            Return the best estimator if already fitted.
+    Methods
+    -------
+    prepare_data()
+        Prepare data to be consumed by TuneCV. Pass for TuneCV.
+    optimize()
+        Optimize estimator using OptunaSearchCV engine.
+    get_optimized_object()
+        Get the Optuna search cv after invoking fit.
+    get_best_estimator()
+        Return the best estimator if already fitted.
 
-        Notes
-        -----
-        It is recommended to use available factories to create a new instance of this class.
-        The `tuner_kwargs` parameter represents the keyword arguments for the tuner from Ray.
-        The `fit_tune_kwargs` parameter represents the additional keyword arguments to be passed to the `fit()` method of the estimator during training.
-        The `cv` parameter in `main_tune_kwargs` represents the cross-validation strategy.
-        The `scoring` parameter in `main_tune_kwargs` represents the performance evaluation strategy.
-        The `estimator` parameter in `main_tune_kwargs` represents the estimator object used for optimization.
+    Notes
+    -----
+    It is recommended to use available factories to create a new instance of this class.
+    The `tuner_kwargs` parameter represents the keyword arguments for the tuner from Ray.
+    The `fit_tune_kwargs` parameter represents the additional keyword arguments to be passed to the `fit()` method of the estimator during training.
+    The `cv` parameter in `main_tune_kwargs` represents the cross-validation strategy.
+    The `scoring` parameter in `main_tune_kwargs` represents the performance evaluation strategy.
+    The `estimator` parameter in `main_tune_kwargs` represents the estimator object used for optimization.
 
-        """
+    """
+
+    def __init__(self, X, y, *args, **kwargs):
         self.tuner_kwargs = kwargs['kwargs'].get('tuner_kwargs', {})
         self.main_tune_kwargs = kwargs['kwargs'].get('main_tune_kwargs', {})
         self.fit_tune_kwargs = kwargs['kwargs'].get('fit_tune_kwargs', {})
@@ -840,12 +854,63 @@ class TuneCV(OptimizerABC):
                 or best_results is null"
             )
 
+
 class RandomSearch(OptimizerABC):
-    """
-       Class Factory for initializing BestModel optimizing engines, i.e., RandomizedSearchCV.
- 
 
     """
+    Class Factory for initializing BestModel optimizing engines, i.e., RandomizedSearchCV.
+    Initialize the RandomSearch optimizer.
+
+    Parameters
+    ----------
+    X : pd.DataFrame or numpy array
+        Input for training.
+    y : pd.DataFrame or numpy array
+        Target or label.
+    args : tuple
+        Additional positional arguments.
+    kwargs : dict
+        Additional keyword arguments.
+            random_search_kwargs : dict
+                All arguments for creating a study using RandomSearch. Read at [RandomizedSeachCV Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html)
+                For example:
+
+                - estimator : object
+                    An unfitted estimator that has `fit` and `predict` methods.
+
+                - param_distributions : dict
+                    Parameters that were passed to find the best estimator using the optimization method.
+
+                - scoring : str, callable, list, tuple or dict, default=None
+                    Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+            main_random_kwargs : dict
+                Some required arguments for creating `BaseModel`:
+
+            fit_random_kwargs : dict
+                All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
+
+
+    Returns
+    -------
+    None
+
+    Methods
+    -------
+    prepare_data()
+        Prepare data to be consumed by RandomizedSearchCV.
+    optimize()
+        Optimize the estimator using RandomizedSearchCV engine.
+    get_optimized_object()
+        Get the RandomizedSearchCV object after invoking fit.
+    get_best_estimator()
+        Return the best estimator if already fitted.
+
+    Notes
+    -----
+    It is recommended to use available factories to create a new instance of this class.
+    """
+
 
     def __init__(
         self,
@@ -854,46 +919,6 @@ class RandomSearch(OptimizerABC):
         *args,
         **kwargs,
     ):
-        """
-        Initialize the RandomSearch optimizer.
-
-        Parameters
-        ----------
-        X : pd.DataFrame or numpy array
-            Input for training.
-        y : pd.DataFrame or numpy array
-            Target or label.
-        args : tuple
-            Additional positional arguments.
-        kwargs : dict
-            Additional keyword arguments.
-            random_search_kwargs: dict
-                arguments for RandomizedSearchCV, e.g., estimator, CV, scoring, etc. 
-                see https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html
-            fit_random_kwargs : dict
-                fit params 
-            main_random_kwargs : dict
-                other parameters  
-
-        Returns
-        -------
-        None
-
-        Methods
-        -------
-        prepare_data()
-            Prepare data to be consumed by RandomizedSearchCV.
-        optimize()
-            Optimize the estimator using RandomizedSearchCV engine.
-        get_optimized_object()
-            Get the RandomizedSearchCV object after invoking fit.
-        get_best_estimator()
-            Return the best estimator if already fitted.
-
-        Notes
-        -----
-        It is recommended to use available factories to create a new instance of this class.
-    """
         self.random_search_kwargs = kwargs['kwargs'].get('random_search_kwargs',{})
         self.main_random_kwargs = kwargs['kwargs'].get('main_random_kwargs',{})
         self.fit_random_kwargs = kwargs['kwargs'].get('fit_random_kwargs',{})
@@ -1034,48 +1059,62 @@ class RandomSearch(OptimizerABC):
                 "RandomizedSearchCV has not been implemented or the best estimator is null."
             )
 
+
 class TuneGridSearch(OptimizerABC):
+
     """
     Class Factories for initializing BestModel optimizing engines, i.e., TuneGridSearchCV.
+        Initialize the TuneGridSearch optimizer.
+
+    Parameters
+    ----------
+    X : pd.DataFrame
+        Input for training.
+    y : pd.DataFrame
+        Target or label.
+    args : tuple
+        Additional positional arguments.
+    kwargs : dict
+        
+        tunegrid_search_kwargs: dict
+            All arguments for creating a study using TuneGridSeachCV. Read at [TuneGridSeachCV Documentation](https://docs.ray.io/en/latest/tune/api/sklearn.html)
+            For example:
+            - estimator : object
+                An unfitted estimator that has `fit` and `predict` methods.
+
+            - param_grid : dict
+                Parameters that were passed to find the best estimator using the optimization method.
+
+            - scoring : str
+                Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+        main_tunegrid_kwargs : dict
+            Some required arguments for creating `BaseModel`:
+
+        fit_tunegrid_kwargs : dict
+            All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
+
+    Returns
+    -------
+    None
+
+    Methods
+    -------
+    prepare_data()
+        Prepare data to be consumed by TuneGridSearchCV. (Placeholder method)
+    optimize()
+        Optimize estimator using TuneGridSearchCV engine.
+    get_optimized_object()
+        Get the grid search cv after invoking fit.
+    get_best_estimator()
+        Return the best estimator if already fitted.
+
+    Notes
+    -----
+    It is recommended to use available factories to create a new instance of this class.
     """
 
     def __init__(self, X, y, *args, **kwargs):
-        """
-        Initialize the TuneGridSearch optimizer.
-
-        Parameters
-        ----------
-        X : pd.DataFrame
-            Input for training.
-        y : pd.DataFrame
-            Target or label.
-        args : tuple
-            Additional positional arguments.
-        kwargs : dict
-            Additional keyword arguments such as:
-                tunegrid_search_kwargs : TuneGridSearchCV kwargs, visit https://docs.ray.io/en/latest/tune/api/sklearn.html
-                main_tunegrid_kwargs : Some other kwargs for model
-                fit_tunegrid_kwargd : kwargs for fit method of estimator.
-
-        Returns
-        -------
-        None
-
-        Methods
-        -------
-        prepare_data()
-            Prepare data to be consumed by TuneGridSearchCV. (Placeholder method)
-        optimize()
-            Optimize estimator using TuneGridSearchCV engine.
-        get_optimized_object()
-            Get the grid search cv after invoking fit.
-        get_best_estimator()
-            Return the best estimator if already fitted.
-
-        Notes
-        -----
-        It is recommended to use available factories to create a new instance of this class.
-        """
         self._tunegrid_search_kwargs = kwargs.get('kwargs', {}).get('tunegrid_search_kwargs', {})
         self._main_tunegrid_kwargs = kwargs.get('kwargs', {}).get('main_tunegrid_kwargs', {})
         self._fit_tunegrid_kwargs = kwargs.get('kwargs', {}).get('fit_tunegrid_kwargs', {})
@@ -1289,7 +1328,9 @@ class TuneGridSearch(OptimizerABC):
                 "TuneGridSearchCV has not been implemented or the best estimator is null."
             )
 
+
 class TuneSearch(OptimizerABC):
+
     """
     Class for initializing BestModel optimizing engines, i.e., TuneSearchCV.
 
@@ -1305,10 +1346,25 @@ class TuneSearch(OptimizerABC):
     *args : tuple
         Additional positional arguments.
     **kwargs : dict
-        Additional keyword arguments such as:
-            tune_search_kwargs : TuneSearchCV kwargs, visit https://docs.ray.io/en/latest/tune/api/sklearn.html
-            main_tune_kwargs : Some other kwargs for model
-            fit_tune_kwargd : kwargs for fit method of estimator.
+            
+            tune_search_kwargs: dict
+                All arguments for creating a study using TuneSearchCV. Read at [TuneSearchCV Documentation](https://docs.ray.io/en/latest/tune/api/sklearn.html)
+                
+                For example:
+                - estimator : object
+                    An unfitted estimator that has `fit` and `predict` methods.
+
+                - param_distributions : dict
+                    Parameters that were passed to find the best estimator using the optimization method.
+
+                - scoring : str
+                    Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+            main_tune_kwargs : dict
+                Some required arguments for creating `BaseModel`:
+
+            fit_tune_kwargs : dict
+                All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
 
     Returns
     -------
@@ -1331,20 +1387,6 @@ class TuneSearch(OptimizerABC):
     """
 
     def __init__(self, X: pd.DataFrame, y: pd.DataFrame, *args, **kwargs):
-        """
-        Initialize the TuneSearch optimizer.
-
-        Parameters
-        ----------
-        X : pd.DataFrame
-            Input for training.
-        y : pd.DataFrame
-            Target or label.
-        *args : tuple
-            Additional positional arguments.
-        **kwargs : dict
-            Additional keyword arguments.
-        """
         self.tune_search_kwargs = kwargs['kwargs'].get('tune_search_kwargs', {})
         self.main_tune_kwargs = kwargs['kwargs'].get('main_tune_kwargs', {})
         self.fit_tune_kwargs = kwargs['kwargs'].get('fit_tune_kwargs', {})

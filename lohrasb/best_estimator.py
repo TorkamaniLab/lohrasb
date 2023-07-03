@@ -13,7 +13,9 @@ from lohrasb.base_classes.optimizer_bases import (
     TuneCV,
 )
 
+
 class OptunaBestEstimator(AbstractEstimator):
+
     """
     BestModel estimation using Optuna optimization.
 
@@ -26,6 +28,31 @@ class OptunaBestEstimator(AbstractEstimator):
         Additional positional arguments.
     **kwargs : dict
         Additional keyword arguments.
+
+            study_search_kwargs : dict
+                All arguments for creating a study using Optuna. Read more from `study.create` for Optuna at [Optuna Documentation](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.create_study.html).
+
+            main_optuna_kwargs : dict
+                Some required arguments for creating `BaseModel`:
+
+                - estimator : object
+                    An unfitted estimator that has `fit` and `predict` methods.
+
+                - estimator_params : dict
+                    Parameters that were passed to find the best estimator using the optimization method.
+
+                - measure_of_accuracy : str
+                    Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+            optimize_kwargs : dict
+                All arguments for the `optimize` object of Optuna, except `objective`. Check at [Optuna Study.optimize](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.Study.html#optuna.study.Study.optimize).
+
+            train_test_split_kwargs : dict
+                All arguments for `train_test_split` function, such as `cv`, `random_state`, except the *array. Check at [scikit-learn train_test_split](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html).
+
+            fit_optuna_kwargs : dict
+                All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
+
 
     Methods
     -------
@@ -149,7 +176,10 @@ class OptunaBestEstimator(AbstractEstimator):
             return self.best_estimator.predict_proba(X)
         except Exception as e:
             raise ValueError(f"The selected estimator does not have the predict_proba method: {e}")
+
+
 class GridBestEstimator(AbstractEstimator):
+
     """
     BestModel estimation using GridSearchCV optimization.
 
@@ -160,8 +190,28 @@ class GridBestEstimator(AbstractEstimator):
     ----------
     *args : tuple
         Additional positional arguments.
-    **kwargs : dict
-        Additional keyword arguments.
+
+    kwargs : dict
+        Kwargs of the class.
+
+        grid_search_kwargs : dict
+
+        All arguments for creating a study using GridSearch. Read at [GridSeachCV Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html).
+            For example:
+            - estimator : object
+                An unfitted estimator that has `fit` and `predict` methods.
+
+            - param_grid : dict
+                Parameters that were passed to find the best estimator using the optimization method.
+
+            - measure_of_accuracy : str
+                Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+        main_grid_kwargs : dict
+            Some required arguments for creating `BaseModel`:
+
+        fit_grid_kwargs : dict
+            All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
 
     Methods
     -------
@@ -285,13 +335,29 @@ class GridBestEstimator(AbstractEstimator):
         except Exception as e:
             raise ValueError(f"The selected estimator does not have the predict_proba method: {e}")
 
+
 class NewOptunaBestEstimator(AbstractEstimator):
+
     """BestModel estimation using OptunaSearchCV optimization.
     ...
 
     Parameters
     ----------
-    ``-1`` means using all processors. (default -1)
+    X : pd.DataFrame
+        Input for training.
+    y : pd.DataFrame
+        Target or label.
+    *args : tuple
+        Additional positional arguments.
+    **kwargs : dict
+        Additional keyword arguments.
+            newoptuna_search_kwargs: dict
+                arguments for OptunaSearchCV, e.g., estimator, CV, etc. 
+               see  https://optuna.readthedocs.io/en/stable/reference/generated/optuna.integration.OptunaSearchCV.html
+            fit_newoptuna_kwargs : dict
+                fit params 
+            main_newoptuna_kwargs : dict
+                other parameters  
     Methods
     -------
     fit(X, y)
@@ -421,6 +487,7 @@ class NewOptunaBestEstimator(AbstractEstimator):
                 does not have predict_proba method! {e}"
             )
 class NewOptunaBestEstimator(AbstractEstimator):
+
     """
     BestModel estimation using OptunaSearchCV optimization.
 
@@ -432,7 +499,26 @@ class NewOptunaBestEstimator(AbstractEstimator):
     *args : tuple
         Additional positional arguments.
     **kwargs : dict
-        Additional keyword arguments.
+            Additional keyword arguments.
+
+            tuner_kwargs : dict, optional
+                Keyword arguments for the tuner from Ray. These arguments will be passed to the tuner during initialization.
+                For more information on tuner arguments, refer to the Tune documentation: https://docs.ray.io/en/latest/tune/index.html
+
+            main_tune_kwargs : dict, optional
+                Keyword arguments for the main tuning process. These arguments will be passed to the main tuning function.
+                The `cv` parameter represents the cross-validation generator or an iterable used for evaluation.
+                The `scoring` parameter represents the strategy to evaluate the performance of the cross-validated model on the test set.
+                It can be a string, callable, list, tuple, or dictionary. Default is None.
+                The `estimator` parameter represents the estimator object used for optimization. 
+                For scoring check https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+                and https://scikit-learn.org/stable/modules/model_evaluation.html#scoring.
+                For CV check https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV
+                as an example.
+
+            fit_tune_kwargs : dict, optional
+                Additional keyword arguments to be passed to the `fit()` method of the estimator during training.
+
 
     Methods
     -------
@@ -557,6 +643,7 @@ class NewOptunaBestEstimator(AbstractEstimator):
             raise ValueError(f"The selected estimator does not have the predict_proba method: {e}")
 
 class RandomBestEstimator(AbstractEstimator):
+
     """
     BestModel estimation using RandomizedSearchCV optimization.
 
@@ -569,6 +656,25 @@ class RandomBestEstimator(AbstractEstimator):
         Additional positional arguments.
     **kwargs : dict
         Additional keyword arguments.
+            random_search_kwargs : dict
+                All arguments for creating a study using RandomSearch. Read at [RandomizedSeachCV Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html)
+                For example:
+
+                - estimator : object
+                    An unfitted estimator that has `fit` and `predict` methods.
+
+                - param_distributions : dict
+                    Parameters that were passed to find the best estimator using the optimization method.
+
+                - scoring : str, callable, list, tuple or dict, default=None
+                    Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+            main_random_kwargs : dict
+                Some required arguments for creating `BaseModel`:
+
+            fit_random_kwargs : dict
+                All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
+
 
     Methods
     -------
@@ -693,6 +799,7 @@ class RandomBestEstimator(AbstractEstimator):
             raise ValueError(f"The selected estimator does not have the predict_proba method: {e}")
 
 class TuneBestEstimator(AbstractEstimator):
+
     """
     BestModel estimation using Ray Tune optimization.
 
@@ -832,6 +939,7 @@ class TuneBestEstimator(AbstractEstimator):
 
 
 class TuneGridBestEstimator(AbstractEstimator):
+
     """
     BestModel estimation using TuneGridSearchCV optimization.
 
@@ -843,7 +951,24 @@ class TuneGridBestEstimator(AbstractEstimator):
     *args : tuple
         Additional positional arguments.
     **kwargs : dict
-        Additional keyword arguments.
+        
+        tunegrid_search_kwargs: dict
+            All arguments for creating a study using TuneGridSeachCV. Read at [TuneGridSeachCV Documentation](https://docs.ray.io/en/latest/tune/api/sklearn.html)
+            For example:
+            - estimator : object
+                An unfitted estimator that has `fit` and `predict` methods.
+
+            - param_grid : dict
+                Parameters that were passed to find the best estimator using the optimization method.
+
+            - scoring : str
+                Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+        main_tunegrid_kwargs : dict
+            Some required arguments for creating `BaseModel`:
+
+        fit_tunegrid_kwargs : dict
+            All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
 
     Methods
     -------
@@ -969,6 +1094,7 @@ class TuneGridBestEstimator(AbstractEstimator):
 
 
 class TuneSearchBestEstimator(AbstractEstimator):
+
     """
     BestModel estimation using Tune optimization.
 
@@ -980,7 +1106,26 @@ class TuneSearchBestEstimator(AbstractEstimator):
     *args : tuple
         Additional positional arguments.
     **kwargs : dict
-        Additional keyword arguments.
+            
+        tune_search_kwargs: dict
+            All arguments for creating a study using TuneSearchCV. Read at [TuneSearchCV Documentation](https://docs.ray.io/en/latest/tune/api/sklearn.html)
+            
+            For example:
+            - estimator : object
+                An unfitted estimator that has `fit` and `predict` methods.
+
+            - param_distributions : dict
+                Parameters that were passed to find the best estimator using the optimization method.
+
+            - scoring : str
+                Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+        main_tune_kwargs : dict
+            Some required arguments for creating `BaseModel`:
+
+        fit_tune_kwargs : dict
+            All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
+
 
     Methods
     -------
@@ -1105,159 +1250,8 @@ class TuneSearchBestEstimator(AbstractEstimator):
             raise ValueError(f"The selected estimator does not have the predict_proba method: {e}")
 
 
-# class BaseModel(BaseEstimator, metaclass=ABCMeta):
-#     """
-#         A class with variaty of toll for hyperparameter optimization capabilities.
-#     ...
-
-#     Parameters
-#     ----------
-#     kwargs : kwargs of the method
-
-#     Methods
-#     -------
-#     fit(X, y)
-#         Fit the feature selection estimator by the best parameters extracted
-#         from optimization methods.
-#     predict(X)
-#         Predict using the best estimator model.
-#     get_best_estimator()
-#         Return best estimator, if aleardy fitted.
-#     Notes
-#     -----
-#     It is recommended to use available factories
-#     to create a new instance of this class.
-
-#     """
-
-#     def __init__(
-#         self,
-#         # grid for test
-#         **kwargs,
-#     ):  
-
-#         self.kwargs=kwargs
-
-#     @classmethod
-#     def optimize_by_gridsearchcv(
-#         self,
-#         # general argument setting
-#         *args,
-#         **grid_search_kwargs,
-
-#     ):
-#         # general argument setting
-#         self.grid_search_kwargs = grid_search_kwargs
-#         gse = GridBestEstimator(**self.grid_search_kwargs)
-#         return gse
-
-#     @classmethod
-#     def optimize_by_optunasearchcv(
-#         self,
-#         # general argument setting
-#         *args,
-#         **newoptuna_search_kwargs,
-
-#     ):
-#         # general argument setting
-#         self.newoptuna_search_kwargs = newoptuna_search_kwargs
-#         noe = NewOptunaBestEstimator(**self.newoptuna_search_kwargs)
-#         return noe 
-
-#     @classmethod
-#     def optimize_by_randomsearchcv(
-#         self,
-#         # general argument setting
-#         *args,
-#         **random_search_kwargs,
-
-#     ):
-#         # general argument setting
-#         self.random_search_kwargs = random_search_kwargs
-#         rse = RandomBestEstimator(**self.random_search_kwargs)
-#         return rse
-
-#     @classmethod
-#     def optimize_by_tunegridsearchcv(
-#         self,
-#         # general argument setting
-#         *args,
-#         **tunegrid_search_kwargs,
-
-#     ):
-#         # general argument setting
-#         self.tunegrid_search_kwargs = tunegrid_search_kwargs
-#         tge = TuneGridBestEstimator(**self.tunegrid_search_kwargs)
-#         return tge
-
-#     @classmethod
-#     def optimize_by_tunesearchcv(
-#         self,
-#         # general argument setting
-#         *args,
-#         **tune_search_kwargs,
-
-#     ):
-#         # general argument setting
-#         self.tune_search_kwargs = tune_search_kwargs
-#         tse = TuneSearchBestEstimator(**self.tune_search_kwargs)
-#         return tse
-
-#     @classmethod
-#     def optimize_by_optuna(
-#         self,
-#         # general argument setting
-#         *args,
-#         **optuna_search_kwargs,
-
-#     ):
-#         # general argument setting
-#         self.optuna_search_kwargs = optuna_search_kwargs 
-#         obe = OptunaBestEstimator(**self.optuna_search_kwargs)
-#         return obe
-
-#     @classmethod
-#     def optimize_by_tune(
-#         self,
-#         # general argument setting
-#         *args,
-#         **tune_search_kwargs,
-
-#     ):
-#         # general argument setting
-#         self.tune_search_kwargs = tune_search_kwargs
-#         tbe = TuneBestEstimator(**self.tune_search_kwargs)
-#         return tbe
-
-#     def fit(self, X, y, *args, **kwargs):
-#         """Fit the feature selection estimator by best params extracted
-#         from optimization methods.
-#         Parameters
-#         ----------
-#         X : Pandas DataFrame
-#             Training data. Must fulfill input requirements of the feature selection
-#             step of the pipeline.
-#         y : Pandas DataFrame or Pandas series
-#             Training targets. Must fulfill label requirements of feature selection
-#             step of the pipeline.
-#         """
-#         pass
-
-#     def predict(self, X):
-#         """Predict using the best estimator model.
-#         Parameters
-#         ----------
-#         X : Pandas DataFrame
-#             Training data. Must fulfill input requirements of the feature selection
-#             step of the pipeline.
-#         """
-#         pass
-
-#     def get_best_estimator(self):
-#         """Return best estimator if model already fitted."""
-#         pass
-
 class BaseModel(BaseEstimator, metaclass=ABCMeta):
+
     """
     A base class with a variety of tools for hyperparameter optimization capabilities.
 
@@ -1284,7 +1278,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         self.kwargs = kwargs
 
     @classmethod
-    def optimize_by_gridsearchcv(cls, *args, **grid_search_kwargs):
+    def optimize_by_gridsearchcv(cls, *args, **kwargs):
         """
         Optimize hyperparameters using GridSearchCV.
 
@@ -1292,19 +1286,37 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         ----------
         *args : tuple
             Additional positional arguments.
-        **grid_search_kwargs : dict
-            Keyword arguments for GridSearchCV.
+
+        **kwargs : dict
+
+            grid_search_kwargs
+                All arguments for creating a study using GridSearch. Read at [GridSeachCV Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html).
+                For example:
+                - estimator : object
+                    An unfitted estimator that has `fit` and `predict` methods.
+
+                - param_grid : dict
+                    Parameters that were passed to find the best estimator using the optimization method.
+
+                - measure_of_accuracy : str
+                    Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+            main_grid_kwargs : dict
+                Some required arguments for creating `BaseModel`:
+
+            fit_grid_kwargs : dict
+                All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
 
         Returns
         -------
         GridBestEstimator
             GridBestEstimator instance.
         """
-        gse = GridBestEstimator(**grid_search_kwargs)
+        gse = GridBestEstimator(**kwargs)
         return gse
 
     @classmethod
-    def optimize_by_optunasearchcv(cls, *args, **newoptuna_search_kwargs):
+    def optimize_by_optunasearchcv(cls, *args, **kwargs):
         """
         Optimize hyperparameters using OptunaSearchCV.
 
@@ -1312,19 +1324,27 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         ----------
         *args : tuple
             Additional positional arguments.
-        **newoptuna_search_kwargs : dict
-            Keyword arguments for OptunaSearchCV.
+        **kwargs : dict
+
+            Additional keyword arguments.
+                newoptuna_search_kwargs: dict
+                    arguments for OptunaSearchCV, e.g., estimator, CV, etc. 
+                see  https://optuna.readthedocs.io/en/stable/reference/generated/optuna.integration.OptunaSearchCV.html
+                fit_newoptuna_kwargs : dict
+                    fit params 
+                main_newoptuna_kwargs : dict
+                    other parameters  
 
         Returns
         -------
         NewOptunaBestEstimator
             NewOptunaBestEstimator instance.
         """
-        noe = NewOptunaBestEstimator(**newoptuna_search_kwargs)
+        noe = NewOptunaBestEstimator(**kwargs)
         return noe
 
     @classmethod
-    def optimize_by_randomsearchcv(cls, *args, **random_search_kwargs):
+    def optimize_by_randomsearchcv(cls, *args, **kwargs):
         """
         Optimize hyperparameters using RandomSearchCV.
 
@@ -1332,19 +1352,38 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         ----------
         *args : tuple
             Additional positional arguments.
-        **random_search_kwargs : dict
-            Keyword arguments for RandomSearchCV.
+
+        random_search_kwargs : dict
+            Additional keyword arguments.
+                random_search_kwargs : dict
+                    All arguments for creating a study using RandomSearch. Read at [RandomizedSeachCV Documentation](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html)
+                    For example:
+
+                    - estimator : object
+                        An unfitted estimator that has `fit` and `predict` methods.
+
+                    - param_distributions : dict
+                        Parameters that were passed to find the best estimator using the optimization method.
+
+                    - scoring : str, callable, list, tuple or dict, default=None
+                        Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+                main_random_kwargs : dict
+                    Some required arguments for creating `BaseModel`:
+
+                fit_random_kwargs : dict
+                    All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
 
         Returns
         -------
         RandomBestEstimator
             RandomBestEstimator instance.
         """
-        rse = RandomBestEstimator(**random_search_kwargs)
+        rse = RandomBestEstimator(**kwargs)
         return rse
 
     @classmethod
-    def optimize_by_tunegridsearchcv(cls, *args, **tunegrid_search_kwargs):
+    def optimize_by_tunegridsearchcv(cls, *args, **kwargs):
         """
         Optimize hyperparameters using TuneGridSearchCV.
 
@@ -1352,19 +1391,35 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         ----------
         *args : tuple
             Additional positional arguments.
-        **tunegrid_search_kwargs : dict
-            Keyword arguments for TuneGridSearchCV.
+
+        **tunegrid_search_kwargs: dict
+            All arguments for creating a study using TuneGridSeachCV. Read at [TuneGridSeachCV Documentation](https://docs.ray.io/en/latest/tune/api/sklearn.html)
+            For example:
+            - estimator : object
+                An unfitted estimator that has `fit` and `predict` methods.
+
+            - param_grid : dict
+                Parameters that were passed to find the best estimator using the optimization method.
+
+            - scoring : str
+                Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+        main_tunegrid_kwargs : dict
+            Some required arguments for creating `BaseModel`:
+
+        fit_tune_kwargs : dict
+            All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
 
         Returns
         -------
         TuneGridBestEstimator
             TuneGridBestEstimator instance.
         """
-        tge = TuneGridBestEstimator(**tunegrid_search_kwargs)
+        tge = TuneGridBestEstimator(**kwargs)
         return tge
 
     @classmethod
-    def optimize_by_tunesearchcv(cls, *args, **tune_search_kwargs):
+    def optimize_by_tunesearchcv(cls, *args, **kwargs):
         """
         Optimize hyperparameters using TuneSearchCV.
 
@@ -1372,19 +1427,38 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         ----------
         *args : tuple
             Additional positional arguments.
-        **tune_search_kwargs : dict
+        **kwargs : dict
             Keyword arguments for TuneSearchCV.
+            
+            tune_search_kwargs: dict
+                All arguments for creating a study using TuneSearchCV. Read at [TuneSearchCV Documentation](https://docs.ray.io/en/latest/tune/api/sklearn.html)
+                
+                For example:
+                - estimator : object
+                    An unfitted estimator that has `fit` and `predict` methods.
+
+                - param_distributions : dict
+                    Parameters that were passed to find the best estimator using the optimization method.
+
+                - scoring : str
+                    Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+            main_tune_kwargs : dict
+                Some required arguments for creating `BaseModel`:
+
+            fit_tune_kwargs : dict
+                All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
 
         Returns
         -------
         TuneSearchBestEstimator
             TuneSearchBestEstimator instance.
         """
-        tse = TuneSearchBestEstimator(**tune_search_kwargs)
+        tse = TuneSearchBestEstimator(**kwargs)
         return tse
 
     @classmethod
-    def optimize_by_optuna(cls, *args, **optuna_search_kwargs):
+    def optimize_by_optuna(cls, *args, **kwargs):
         """
         Optimize hyperparameters using Optuna.
 
@@ -1394,17 +1468,41 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             Additional positional arguments.
         **optuna_search_kwargs : dict
             Keyword arguments for Optuna.
+            
+            study_search_kwargs : dict
+                All arguments for creating a study using Optuna. Read more from `study.create` for Optuna at [Optuna Documentation](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.create_study.html).
+
+            main_optuna_kwargs : dict
+                Some required arguments for creating `BaseModel`:
+
+                - estimator : object
+                    An unfitted estimator that has `fit` and `predict` methods.
+
+                - estimator_params : dict
+                    Parameters that were passed to find the best estimator using the optimization method.
+
+                - measure_of_accuracy : str
+                    Measurement of performance for classification and regression estimator during hyperparameter optimization while estimating the best estimator.
+
+            optimize_kwargs : dict
+                All arguments for the `optimize` object of Optuna, except `objective`. Check at [Optuna Study.optimize](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.Study.html#optuna.study.Study.optimize).
+
+            train_test_split_kwargs : dict
+                All arguments for `train_test_split` function, such as `cv`, `random_state`, except the *array. Check at [scikit-learn train_test_split](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html).
+
+            fit_optuna_kwargs : dict
+                All additional parameters to the `fit()` method of the estimator during training, except `X` and `y`.
 
         Returns
         -------
         OptunaBestEstimator
             OptunaBestEstimator instance.
         """
-        obe = OptunaBestEstimator(**optuna_search_kwargs)
+        obe = OptunaBestEstimator(**kwargs)
         return obe
 
     @classmethod
-    def optimize_by_tune(cls, *args, **tune_search_kwargs):
+    def optimize_by_tune(cls, *args, **kwargs):
         """
         Optimize hyperparameters using Tune.
 
@@ -1413,14 +1511,33 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         *args : tuple
             Additional positional arguments.
         **tune_search_kwargs : dict
-            Keyword arguments for Tune.
+
+                    Additional keyword arguments.
+
+            tuner_kwargs : dict, optional
+                Keyword arguments for the tuner from Ray. These arguments will be passed to the tuner during initialization.
+                For more information on tuner arguments, refer to the Tune documentation: https://docs.ray.io/en/latest/tune/index.html
+
+            main_tune_kwargs : dict, optional
+                Keyword arguments for the main tuning process. These arguments will be passed to the main tuning function.
+                The `cv` parameter represents the cross-validation generator or an iterable used for evaluation.
+                The `scoring` parameter represents the strategy to evaluate the performance of the cross-validated model on the test set.
+                It can be a string, callable, list, tuple, or dictionary. Default is None.
+                The `estimator` parameter represents the estimator object used for optimization. 
+                For scoring check https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
+                and https://scikit-learn.org/stable/modules/model_evaluation.html#scoring.
+                For CV check https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV
+                as an example.
+
+            fit_tune_kwargs : dict, optional
+                Additional keyword arguments to be passed to the `fit()` method of the estimator during training.
 
         Returns
         -------
         TuneBestEstimator
             TuneBestEstimator instance.
         """
-        tbe = TuneBestEstimator(**tune_search_kwargs)
+        tbe = TuneBestEstimator(**kwargs)
         return tbe
 
     def fit(self, X, y, *args, **kwargs):
