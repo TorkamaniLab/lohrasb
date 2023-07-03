@@ -13,6 +13,7 @@ from sklearn.neural_network import *
 from sklearn.svm import *
 from xgboost import *
 from xgbse import *
+from catboost import *
 from lohrasb import logger
 from lohrasb.abstracts.optimizers import OptimizerABC
 from lohrasb.decorators.decorators import trackcalls
