@@ -95,7 +95,7 @@ class OptunaSearch(OptimizerABC):
     ------
     It is recommended to use available factories to create a new instance of this class.
     """
-    
+
     def __init__(
         self,
         X,
@@ -103,11 +103,13 @@ class OptunaSearch(OptimizerABC):
         *args,
         **kwargs,
     ):
-        self.study_search_kwargs = kwargs['kwargs'].get('study_search_kwargs', {})
-        self.main_optuna_kwargs = kwargs['kwargs'].get('main_optuna_kwargs', {})
-        self.optimize_kwargs = kwargs['kwargs'].get('optimize_kwargs', {})
-        self.train_test_split_kwargs = kwargs['kwargs'].get('train_test_split_kwargs', {})
-        self.fit_optuna_kwargs = kwargs['kwargs'].get('fit_optuna_kwargs', {})
+        self.study_search_kwargs = kwargs["kwargs"].get("study_search_kwargs", {})
+        self.main_optuna_kwargs = kwargs["kwargs"].get("main_optuna_kwargs", {})
+        self.optimize_kwargs = kwargs["kwargs"].get("optimize_kwargs", {})
+        self.train_test_split_kwargs = kwargs["kwargs"].get(
+            "train_test_split_kwargs", {}
+        )
+        self.fit_optuna_kwargs = kwargs["kwargs"].get("fit_optuna_kwargs", {})
         self.__optuna_search = None
         self.__best_estimator = None
         self.X = X
@@ -140,7 +142,7 @@ class OptunaSearch(OptimizerABC):
 
     @optimize_kwargs.setter
     def optimize_kwargs(self, value):
-        self._optimize_kwargs= value
+        self._optimize_kwargs = value
 
     @property
     def train_test_split_kwargs(self):
@@ -148,7 +150,7 @@ class OptunaSearch(OptimizerABC):
 
     @train_test_split_kwargs.setter
     def train_test_split_kwargs(self, value):
-        self._train_test_split_kwargs= value
+        self._train_test_split_kwargs = value
 
     @property
     def fit_optuna_kwargs(self):
@@ -156,7 +158,7 @@ class OptunaSearch(OptimizerABC):
 
     @fit_optuna_kwargs.setter
     def fit_optuna_kwargs(self, value):
-        self._fit_optuna_kwargs= value
+        self._fit_optuna_kwargs = value
 
     def prepare_data(self):
         """
@@ -168,28 +170,28 @@ class OptunaSearch(OptimizerABC):
             self.X, self.y, **self.train_test_split_kwargs
         )
 
-        
         return self
 
     def optimize(self):
         """
         Optimize estimator using Optuna engine.
         """
+
         def objective(trial):
             # Calculate the metric for evaluation using CalcMetrics
             calc_metric = CalcMetrics(
                 y_true=self.y_test,
                 y_pred=None,
-                metric=self.main_optuna_kwargs['measure_of_accuracy'],
+                metric=self.main_optuna_kwargs["measure_of_accuracy"],
             )
             # Create a metric calculator using calc_make_scorer method
             metric_calculator = calc_metric.calc_make_scorer(
-                self.main_optuna_kwargs['measure_of_accuracy'],
+                self.main_optuna_kwargs["measure_of_accuracy"],
             )
             # Retrieve estimator parameters and fit parameters
-            estimator_params = self.main_optuna_kwargs['estimator_params']
+            estimator_params = self.main_optuna_kwargs["estimator_params"]
             fit_params = self.fit_optuna_kwargs
-            estimator = self.main_optuna_kwargs['estimator']
+            estimator = self.main_optuna_kwargs["estimator"]
 
             # Retrieve parameters from the trial and create an estimator
             params = _trail_params_retrive(trial, estimator_params)
@@ -224,48 +226,45 @@ class OptunaSearch(OptimizerABC):
             return accr
 
         # Create an Optuna study
-        study = optuna.create_study(
-            **self.study_search_kwargs
-        )
+        study = optuna.create_study(**self.study_search_kwargs)
 
         # Optimize the study using the objective function
-        study.optimize(
-            objective,
-            **self.optimize_kwargs
-        )
+        study.optimize(objective, **self.optimize_kwargs)
 
         # Handle refit and create the final estimator
         for key, value in self.main_optuna_kwargs.items():
-            if key == 'refit':
+            if key == "refit":
                 if value:
                     flag = True
-                    logger.info('If refit is set to True, the optimal model will be refit on the entire dataset, i.e., X_train and y_train!')
+                    logger.info(
+                        "If refit is set to True, the optimal model will be refit on the entire dataset, i.e., X_train and y_train!"
+                    )
                 else:
                     flag = False
 
         if self.fit_optuna_kwargs != {}:
             if flag:
                 est = eval(
-                    self.main_optuna_kwargs['estimator'].__class__.__name__
+                    self.main_optuna_kwargs["estimator"].__class__.__name__
                     + "(**study.best_trial.params)"
                     + ".fit(self.X, self.y, **self.fit_optuna_kwargs)"
                 )
             else:
                 est = eval(
-                    self.main_optuna_kwargs['estimator'].__class__.__name__
+                    self.main_optuna_kwargs["estimator"].__class__.__name__
                     + "(**study.best_trial.params)"
                     + ".fit(self.X_train, self.y_train, **self.fit_optuna_kwargs)"
                 )
         else:
             if flag:
                 est = eval(
-                    self.main_optuna_kwargs['estimator'].__class__.__name__
+                    self.main_optuna_kwargs["estimator"].__class__.__name__
                     + "(**study.best_trial.params)"
                     + ".fit(self.X, self.y)"
                 )
             else:
                 est = eval(
-                    self.main_optuna_kwargs['estimator'].__class__.__name__
+                    self.main_optuna_kwargs["estimator"].__class__.__name__
                     + "(**study.best_trial.params)"
                     + ".fit(self.X_train, self.y_train)"
                 )
@@ -332,7 +331,9 @@ class OptunaSearch(OptimizerABC):
 
         """
         if not self.__best_estimator:
-            raise NotImplementedError("It seems the best estimator is None. Maybe the fit method is not implemented!")
+            raise NotImplementedError(
+                "It seems the best estimator is None. Maybe the fit method is not implemented!"
+            )
 
         return self.__best_estimator
 
@@ -341,7 +342,7 @@ class GridSearch(OptimizerABC):
     """
     Class Factories for initializing BestModel optimizing engines, i.e.,
     GridSearchCV.
-    
+
     Parameters
     ----------
 
@@ -404,16 +405,16 @@ class GridSearch(OptimizerABC):
         *args,
         **kwargs,
     ):
-        
-        self.grid_search_kwargs = kwargs['kwargs'].get('grid_search_kwargs',{})
-        self.main_grid_kwargs = kwargs['kwargs'].get('main_grid_kwargs',{})
-        self.fit_grid_kwargs = kwargs['kwargs'].get('fit_grid_kwargs',{})
+
+        self.grid_search_kwargs = kwargs["kwargs"].get("grid_search_kwargs", {})
+        self.main_grid_kwargs = kwargs["kwargs"].get("main_grid_kwargs", {})
+        self.fit_grid_kwargs = kwargs["kwargs"].get("fit_grid_kwargs", {})
         self.__grid_search = None
         self.__best_estimator = None
         self.__X = X
         self.__y = y
         self.args = args
-    
+
     @property
     def grid_search_kwargs(self):
         return self._grid_search_kwargs
@@ -428,7 +429,7 @@ class GridSearch(OptimizerABC):
 
     @main_grid_kwargs.setter
     def main_grid_kwargs(self, value):
-        self._main_grid_kwargs= value
+        self._main_grid_kwargs = value
 
     @property
     def fit_grid_kwargs(self):
@@ -450,19 +451,21 @@ class GridSearch(OptimizerABC):
         Optimize estimator using GridSearchCV engine.
         """
         self.__grid_search = GridSearchCV(**self.grid_search_kwargs)
-        self.__grid_search.fit(self.__X, self.__y,
-                               *self.args, **self.fit_grid_kwargs)
+        self.__grid_search.fit(self.__X, self.__y, *self.args, **self.fit_grid_kwargs)
         self.__best_estimator = self.__grid_search.best_estimator_
 
         return self
 
     def fit(self, X, y, *args, **kwargs):
         for key, value in self.grid_search_kwargs.items():
-            if key == 'refit':
+            if key == "refit":
                 if value:
-                    self.__grid_search.fit(self.__X, self.__y,
-                                           *self.args, **self.fit_grid_kwargs)
-                    logger.info('If refit is set to True, the optimal model will be refit on the entire dataset again!')
+                    self.__grid_search.fit(
+                        self.__X, self.__y, *self.args, **self.fit_grid_kwargs
+                    )
+                    logger.info(
+                        "If refit is set to True, the optimal model will be refit on the entire dataset again!"
+                    )
         self.__best_estimator = self.__grid_search.best_estimator_
         return self
 
@@ -487,6 +490,7 @@ class GridSearch(OptimizerABC):
                 or best_estomator is null"
             )
 
+
 class NewOptunaSearch(OptimizerABC):
 
     """
@@ -506,12 +510,12 @@ class NewOptunaSearch(OptimizerABC):
     **kwargs : dict
         Additional keyword arguments.
             newoptuna_search_kwargs: dict
-                arguments for OptunaSearchCV, e.g., estimator, CV, etc. 
+                arguments for OptunaSearchCV, e.g., estimator, CV, etc.
                see  https://optuna.readthedocs.io/en/stable/reference/generated/optuna.integration.OptunaSearchCV.html
             fit_newoptuna_kwargs : dict
-                fit params 
+                fit params
             main_newoptuna_kwargs : dict
-                other parameters  
+                other parameters
 
     Returns
     -------
@@ -535,15 +539,17 @@ class NewOptunaSearch(OptimizerABC):
 
     def __init__(self, X: pd.DataFrame, y: pd.DataFrame, *args, **kwargs):
 
-        self.newoptuna_search_kwargs = kwargs['kwargs'].get('newoptuna_search_kwargs', {})
-        self.main_newoptuna_kwargs = kwargs['kwargs'].get('main_newoptuna_kwargs', {})
-        self.fit_newoptuna_kwargs = kwargs['kwargs'].get('fit_newoptuna_kwargs', {})
+        self.newoptuna_search_kwargs = kwargs["kwargs"].get(
+            "newoptuna_search_kwargs", {}
+        )
+        self.main_newoptuna_kwargs = kwargs["kwargs"].get("main_newoptuna_kwargs", {})
+        self.fit_newoptuna_kwargs = kwargs["kwargs"].get("fit_newoptuna_kwargs", {})
         self.__newoptuna_search = None
         self.__best_estimator = None
         self.__X = X
         self.__y = y
         self.args = args
-    
+
     def prepare_data(self):
         """
         Prepare data to be consumed by OptunaSearchCV.
@@ -568,7 +574,9 @@ class NewOptunaSearch(OptimizerABC):
             Returns self after optimizing the estimator.
         """
         self.__newoptuna_search = OptunaSearchCV(**self.newoptuna_search_kwargs)
-        self.__newoptuna_search.fit(self.__X, self.__y, *self.args, **self.fit_newoptuna_kwargs)
+        self.__newoptuna_search.fit(
+            self.__X, self.__y, *self.args, **self.fit_newoptuna_kwargs
+        )
         self.__best_estimator = self.__newoptuna_search.best_estimator_
 
         return self
@@ -597,9 +605,13 @@ class NewOptunaSearch(OptimizerABC):
             Returns self after fitting the estimator.
         """
         for key, value in self.newoptuna_search_kwargs.items():
-            if key == 'refit' and value:
-                self.__newoptuna_search.fit(self.__X, self.__y, *self.args, **self.fit_newoptuna_kwargs)
-                logger.info('If refit is set to True, the optimal model will be refit on the entire dataset again!')
+            if key == "refit" and value:
+                self.__newoptuna_search.fit(
+                    self.__X, self.__y, *self.args, **self.fit_newoptuna_kwargs
+                )
+                logger.info(
+                    "If refit is set to True, the optimal model will be refit on the entire dataset again!"
+                )
         self.__best_estimator = self.__newoptuna_search.best_estimator_
         return self
 
@@ -629,7 +641,10 @@ class NewOptunaSearch(OptimizerABC):
         if self.__newoptuna_search is not None:
             return self.__newoptuna_search
         else:
-            raise NotImplementedError("OptunaSearchCV has not been implemented or the best estimator is None.")
+            raise NotImplementedError(
+                "OptunaSearchCV has not been implemented or the best estimator is None."
+            )
+
 
 class TuneCV(OptimizerABC):
     """
@@ -656,7 +671,7 @@ class TuneCV(OptimizerABC):
             The `cv` parameter represents the cross-validation generator or an iterable used for evaluation.
             The `scoring` parameter represents the strategy to evaluate the performance of the cross-validated model on the test set.
             It can be a string, callable, list, tuple, or dictionary. Default is None.
-            The `estimator` parameter represents the estimator object used for optimization. 
+            The `estimator` parameter represents the estimator object used for optimization.
             For scoring check https://scikit-learn.org/stable/modules/model_evaluation.html#scoring-parameter
             and https://scikit-learn.org/stable/modules/model_evaluation.html#scoring.
             For CV check https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html#sklearn.model_selection.GridSearchCV
@@ -692,9 +707,9 @@ class TuneCV(OptimizerABC):
     """
 
     def __init__(self, X, y, *args, **kwargs):
-        self.tuner_kwargs = kwargs['kwargs'].get('tuner_kwargs', {})
-        self.main_tune_kwargs = kwargs['kwargs'].get('main_tune_kwargs', {})
-        self.fit_tune_kwargs = kwargs['kwargs'].get('fit_tune_kwargs', {})
+        self.tuner_kwargs = kwargs["kwargs"].get("tuner_kwargs", {})
+        self.main_tune_kwargs = kwargs["kwargs"].get("main_tune_kwargs", {})
+        self.fit_tune_kwargs = kwargs["kwargs"].get("fit_tune_kwargs", {})
         self.__tune = None
         self.best_estimator = None
         self.__X = X
@@ -746,17 +761,32 @@ class TuneCV(OptimizerABC):
                 """
                 Objective function for optimization.
                 """
-                if hasattr(self.main_tune_kwargs['estimator'], "set_params"):
-                    est = self.main_tune_kwargs['estimator'].set_params(**config)
+                if hasattr(self.main_tune_kwargs["estimator"], "set_params"):
+                    est = self.main_tune_kwargs["estimator"].set_params(**config)
                 else:
-                    raise AttributeError(f"{self.main_tune_kwargs['estimator']} does not have the 'set_params' attribute!")
+                    raise AttributeError(
+                        f"{self.main_tune_kwargs['estimator']} does not have the 'set_params' attribute!"
+                    )
 
                 if self.fit_tune_kwargs:
                     # Perform cross-validation with fit parameters
-                    scores = cross_val_score(est, X=X, y=y, cv=self.main_tune_kwargs['cv'], fit_params=self.fit_tune_kwargs, scoring=self.main_tune_kwargs['scoring'])
+                    scores = cross_val_score(
+                        est,
+                        X=X,
+                        y=y,
+                        cv=self.main_tune_kwargs["cv"],
+                        fit_params=self.fit_tune_kwargs,
+                        scoring=self.main_tune_kwargs["scoring"],
+                    )
                 else:
                     # Perform cross-validation without fit parameters
-                    scores = cross_val_score(est, X=X, y=y, cv=self.main_tune_kwargs['cv'], scoring=self.main_tune_kwargs['scoring'])
+                    scores = cross_val_score(
+                        est,
+                        X=X,
+                        y=y,
+                        cv=self.main_tune_kwargs["cv"],
+                        scoring=self.main_tune_kwargs["scoring"],
+                    )
 
                 return scores
 
@@ -782,7 +812,7 @@ class TuneCV(OptimizerABC):
         best_config = best_result.config
 
         # Set the estimator with the best hyperparameters
-        est = self.main_tune_kwargs['estimator'].set_params(**best_config)
+        est = self.main_tune_kwargs["estimator"].set_params(**best_config)
 
         # Store the best estimator
         self.best_estimator = est
@@ -791,7 +821,7 @@ class TuneCV(OptimizerABC):
         self.__tune = results
 
         return self
-    
+
     def fit(self, X, y, *args, **kwargs):
         """
         Fit the model to the training data.
@@ -817,10 +847,14 @@ class TuneCV(OptimizerABC):
         """
 
         if self.best_estimator is not None:
-            self.best_estimator.fit(self.__X, self.__y, *self.args, **self.fit_tune_kwargs)
+            self.best_estimator.fit(
+                self.__X, self.__y, *self.args, **self.fit_tune_kwargs
+            )
             return self
         else:
-            raise ValueError("The best estimator is not available! Call the 'optimize' method first.")
+            raise ValueError(
+                "The best estimator is not available! Call the 'optimize' method first."
+            )
 
     def get_best_estimator(self, *args, **kwargs):
         """
@@ -841,7 +875,9 @@ class TuneCV(OptimizerABC):
         if self.best_estimator is not None:
             return self.best_estimator
         else:
-            raise ValueError("The best estimator is not available! Call the 'fit' method first.")
+            raise ValueError(
+                "The best estimator is not available! Call the 'fit' method first."
+            )
 
     def get_optimized_object(self, *args, **kwargs):
         """
@@ -912,7 +948,6 @@ class RandomSearch(OptimizerABC):
     It is recommended to use available factories to create a new instance of this class.
     """
 
-
     def __init__(
         self,
         X,
@@ -920,15 +955,15 @@ class RandomSearch(OptimizerABC):
         *args,
         **kwargs,
     ):
-        self.random_search_kwargs = kwargs['kwargs'].get('random_search_kwargs',{})
-        self.main_random_kwargs = kwargs['kwargs'].get('main_random_kwargs',{})
-        self.fit_random_kwargs = kwargs['kwargs'].get('fit_random_kwargs',{})
+        self.random_search_kwargs = kwargs["kwargs"].get("random_search_kwargs", {})
+        self.main_random_kwargs = kwargs["kwargs"].get("main_random_kwargs", {})
+        self.fit_random_kwargs = kwargs["kwargs"].get("fit_random_kwargs", {})
         self.__random_search = None
         self.__best_estimator = None
         self.__X = X
         self.__y = y
         self.args = args
-    
+
     @property
     def random_search_kwargs(self):
         return self._random_search_kwargs
@@ -982,7 +1017,9 @@ class RandomSearch(OptimizerABC):
         """
         # Create and fit the RandomizedSearchCV object
         self.__random_search = RandomizedSearchCV(**self.random_search_kwargs)
-        self.__random_search.fit(self.__X, self.__y, *self.args, **self.fit_random_kwargs)
+        self.__random_search.fit(
+            self.__X, self.__y, *self.args, **self.fit_random_kwargs
+        )
 
         # Set the best estimator as the result of the random search
         self.__best_estimator = self.__random_search.best_estimator_
@@ -1001,9 +1038,13 @@ class RandomSearch(OptimizerABC):
             The optimized RandomizedSearchCV object.
         """
         # Check if refit is set to True
-        if self.random_search_kwargs.get('refit', False):
-            self.__random_search.fit(self.__X, self.__y, *self.args, **self.fit_random_kwargs)
-            logger.info('If refit is set to True, the optimal model will be refit on the entire dataset again!')
+        if self.random_search_kwargs.get("refit", False):
+            self.__random_search.fit(
+                self.__X, self.__y, *self.args, **self.fit_random_kwargs
+            )
+            logger.info(
+                "If refit is set to True, the optimal model will be refit on the entire dataset again!"
+            )
 
         # Set the best estimator as the result of the random search
         self.__best_estimator = self.__random_search.best_estimator_
@@ -1076,7 +1117,7 @@ class TuneGridSearch(OptimizerABC):
     args : tuple
         Additional positional arguments.
     kwargs : dict
-        
+
         tunegrid_search_kwargs: dict
             All arguments for creating a study using TuneGridSeachCV. Read at [TuneGridSeachCV Documentation](https://docs.ray.io/en/latest/tune/api/sklearn.html)
             For example:
@@ -1116,9 +1157,15 @@ class TuneGridSearch(OptimizerABC):
     """
 
     def __init__(self, X, y, *args, **kwargs):
-        self._tunegrid_search_kwargs = kwargs.get('kwargs', {}).get('tunegrid_search_kwargs', {})
-        self._main_tunegrid_kwargs = kwargs.get('kwargs', {}).get('main_tunegrid_kwargs', {})
-        self._fit_tunegrid_kwargs = kwargs.get('kwargs', {}).get('fit_tunegrid_kwargs', {})
+        self._tunegrid_search_kwargs = kwargs.get("kwargs", {}).get(
+            "tunegrid_search_kwargs", {}
+        )
+        self._main_tunegrid_kwargs = kwargs.get("kwargs", {}).get(
+            "main_tunegrid_kwargs", {}
+        )
+        self._fit_tunegrid_kwargs = kwargs.get("kwargs", {}).get(
+            "fit_tunegrid_kwargs", {}
+        )
         self.__tunegrid_search = None
         self.__best_estimator = None
         self.__X = X
@@ -1230,7 +1277,9 @@ class TuneGridSearch(OptimizerABC):
             Returns self after optimizing the estimator.
         """
         self.__tunegrid_search = TuneGridSearchCV(**self.tunegrid_search_kwargs)
-        self.__tunegrid_search.fit(self.__X, self.__y, *self.args, **self.fit_tunegrid_kwargs)
+        self.__tunegrid_search.fit(
+            self.__X, self.__y, *self.args, **self.fit_tunegrid_kwargs
+        )
         self.__best_estimator = self.__tunegrid_search.best_estimator_
 
         return self
@@ -1263,9 +1312,13 @@ class TuneGridSearch(OptimizerABC):
         If refit is set to True, the optimal model will be refit on the entire dataset again.
         """
         for key, value in self.tunegrid_search_kwargs.items():
-            if key == 'refit' and value:
-                self.__tunegrid_search.fit(self.__X, self.__y, *self.args, **self.fit_tunegrid_kwargs)
-                logger.info('If refit is set to True, the optimal model will be refit on the entire dataset again!')
+            if key == "refit" and value:
+                self.__tunegrid_search.fit(
+                    self.__X, self.__y, *self.args, **self.fit_tunegrid_kwargs
+                )
+                logger.info(
+                    "If refit is set to True, the optimal model will be refit on the entire dataset again!"
+                )
         self.__best_estimator = self.__tunegrid_search.best_estimator_
         return self
 
@@ -1347,10 +1400,10 @@ class TuneSearch(OptimizerABC):
     *args : tuple
         Additional positional arguments.
     **kwargs : dict
-            
+
             tune_search_kwargs: dict
                 All arguments for creating a study using TuneSearchCV. Read at [TuneSearchCV Documentation](https://docs.ray.io/en/latest/tune/api/sklearn.html)
-                
+
                 For example:
                 - estimator : object
                     An unfitted estimator that has `fit` and `predict` methods.
@@ -1388,15 +1441,15 @@ class TuneSearch(OptimizerABC):
     """
 
     def __init__(self, X: pd.DataFrame, y: pd.DataFrame, *args, **kwargs):
-        self.tune_search_kwargs = kwargs['kwargs'].get('tune_search_kwargs', {})
-        self.main_tune_kwargs = kwargs['kwargs'].get('main_tune_kwargs', {})
-        self.fit_tune_kwargs = kwargs['kwargs'].get('fit_tune_kwargs', {})
+        self.tune_search_kwargs = kwargs["kwargs"].get("tune_search_kwargs", {})
+        self.main_tune_kwargs = kwargs["kwargs"].get("main_tune_kwargs", {})
+        self.fit_tune_kwargs = kwargs["kwargs"].get("fit_tune_kwargs", {})
         self.__tune_search = None
         self.__best_estimator = None
         self.__X = X
         self.__y = y
         self.args = args
-    
+
     def prepare_data(self):
         """
         Prepare data to be consumed by TuneSearchCV.
@@ -1450,9 +1503,13 @@ class TuneSearch(OptimizerABC):
             Returns self after fitting the estimator.
         """
         for key, value in self.tune_search_kwargs.items():
-            if key == 'refit' and value:
-                self.__tune_search.fit(self.__X, self.__y, *self.args, **self.fit_tune_kwargs)
-                logger.info('If refit is set to True, the optimal model will be refit on the entire dataset again!')
+            if key == "refit" and value:
+                self.__tune_search.fit(
+                    self.__X, self.__y, *self.args, **self.fit_tune_kwargs
+                )
+                logger.info(
+                    "If refit is set to True, the optimal model will be refit on the entire dataset again!"
+                )
         self.__best_estimator = self.__tune_search.best_estimator_
         return self
 
@@ -1482,4 +1539,6 @@ class TuneSearch(OptimizerABC):
         if self.__tune_search is not None:
             return self.__tune_search
         else:
-            raise NotImplementedError("TuneSearchCV has not been implemented or the best estimator is None.")
+            raise NotImplementedError(
+                "TuneSearchCV has not been implemented or the best estimator is None."
+            )

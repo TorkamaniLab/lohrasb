@@ -9,214 +9,305 @@ from lohrasb import logger
 # for load Environment Variables
 # True there will not be default args for metric
 
-
 def f1_plus_tp(y_true, y_pred):
-    """Return f1_score+True Possitive
+    """Return f1_score+True Positive
+
+    This function calculates the F1 score and adds the count of true positives to it.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
+    
+    # Calculate the F1 score using the f1_score function
     f1 = f1_score(y_true, y_pred)
+    
+    # Compute the confusion matrix using the confusion_matrix function
+    # The labels argument specifies the order of the labels in the matrix
+    # Here, it is set to [0, 1] indicating that label 0 corresponds to the first row, and label 1 corresponds to the second row
     _, _, _, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+    
+    # Add the count of true positives to the F1 score
     return f1 + tp
 
 
 def f1_plus_tn(y_true, y_pred):
-    """Return f1_score+True Negative
+    """Return f1_score + True Negative
+
+    This function calculates the F1 score and adds the count of true negatives to it.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
 
+    # Calculate the F1 score using the f1_score function
     f1 = f1_score(y_true, y_pred)
-    tn, _, _, _ = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
-    return f1 + tn
 
+    # Compute the confusion matrix using the confusion_matrix function
+    # The labels argument specifies the order of the labels in the matrix
+    # Here, it is set to [0, 1] indicating that label 0 corresponds to the first row, and label 1 corresponds to the second row
+    tn, _, _, _ = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+
+    # Add the count of true negatives to the F1 score
+    return f1 + tn
 
 def specificity(y_true, y_pred):
     """Return Specificity
 
+    This function calculates the specificity, which is the true negative rate.
+
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
 
+    # Compute the confusion matrix using the confusion_matrix function
+    # The labels argument specifies the order of the labels in the matrix
+    # Here, it is set to [0, 1] indicating that label 0 corresponds to the first row, and label 1 corresponds to the second row
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+
+    # Calculate specificity by dividing true negatives by the sum of true negatives and false positives
     return tn / (tn + fp)
 
-
 def tn_score(y_true, y_pred):
-    """Return Specificity
+    """Return True Negative (TN) Score
+
+    This function calculates the count of true negatives.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
 
+    # Compute the confusion matrix using the confusion_matrix function
+    # The labels argument specifies the order of the labels in the matrix
+    # Here, it is set to [0, 1] indicating that label 0 corresponds to the first row, and label 1 corresponds to the second row
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
-    return tn
 
+    # Return the count of true negatives
+    return tn
 
 def tn(y_true, y_pred):
-    """Return Specificity
+    """Return True Negative (TN)
+
+    This function calculates the count of true negatives.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
 
+    # Compute the confusion matrix using the confusion_matrix function
+    # The labels argument specifies the order of the labels in the matrix
+    # Here, it is set to [0, 1] indicating that label 0 corresponds to the first row, and label 1 corresponds to the second row
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+
+    # Return the count of true negatives
     return tn
 
-
 def tp_score(y_true, y_pred):
-    """Return Specificity
+    """Return True Positive (TP) Score
+
+    This function calculates the count of true positives.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
 
+    # Compute the confusion matrix using the confusion_matrix function
+    # The labels argument specifies the order of the labels in the matrix
+    # Here, it is set to [0, 1] indicating that label 0 corresponds to the first row, and label 1 corresponds to the second row
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
-    return tp
 
+    # Return the count of true positives
+    return tp
 
 def tp(y_true, y_pred):
-    """Return Specificity
+    """Return True Positive (TP)
+
+    This function calculates the count of true positives.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
 
+    # Compute the confusion matrix using the confusion_matrix function
+    # The labels argument specifies the order of the labels in the matrix
+    # Here, it is set to [0, 1] indicating that label 0 corresponds to the first row, and label 1 corresponds to the second row
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+
+    # Return the count of true positives
     return tp
 
-
 def roc_plus_f1(y_true, y_pred):
-    """Return ROC + f1_score
+    """Return ROC + F1 Score
+
+    This function calculates the sum of the F1 score and the ROC curve.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
+
+    # Calculate the F1 score using the f1_score function
     f1 = f1_score(y_true, y_pred)
+
+    # Compute the ROC curve using the roc_curve function
     roc = roc_curve(y_true, y_pred)
+
+    # Return the sum of the F1 score and the ROC curve
     return np.sum(f1 + roc)
 
-
 def auc_plus_f1(y_true, y_pred):
-    """Return AUC + f1_score
+    """Return AUC + F1 Score
+
+    This function calculates the sum of the F1 score and the Area Under the ROC Curve (AUC).
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
+
+    # Calculate the F1 score using the f1_score function
     f1 = f1_score(y_true, y_pred)
+
+    # Compute the false positive rate (fpr), true positive rate (tpr), and thresholds for the ROC curve using the roc_curve function
     fpr, tpr, thresholds = roc_curve(y_true, y_pred)
+
+    # Calculate the AUC using the auc function
     auc_result = auc(fpr, tpr)
+
+    # Return the sum of the F1 score and the AUC
     return f1 + auc_result
 
 
 def det_curve_ret(y_true, y_pred):
-    """Return det_curve
+    """Return DET Curve
+
+    This function calculates the sum of the false positive rates (fpr) and false negative rates (fnr) for the Detection Error Tradeoff (DET) curve.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
+
+    # Compute the false positive rate (fpr), false negative rate (fnr), and thresholds for the DET curve using the det_curve function
     fpr, fnr, thresholds = det_curve(y_true, y_pred)
+
+    # Return the sum of the false positive rates (fpr) and false negative rates (fnr)
     return np.sum(fpr) + np.sum(fnr)
 
 
 def precision_recall_curve_ret(y_true, y_pred):
-    """Return precision_recall_curve
+    """Return Precision-Recall Curve
+
+    This function calculates the sum of the precision and recall values for the Precision-Recall curve.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
+
+    # Compute the precision, recall, and thresholds for the Precision-Recall curve using the precision_recall_curve function
     precision, recall, thresholds = precision_recall_curve(y_true, y_pred)
+
+    # Return the sum of the precision and recall values
     return np.sum(precision) + np.sum(recall)
 
-
 def precision_recall_fscore_support_ret(y_true, y_pred):
-    """Return precision_recall_fscore_support
+    """Return Precision, Recall, F1-Score, and Support
+
+    This function calculates the sum of the values returned by the precision_recall_fscore_support function.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
+
+    # Compute the precision, recall, F1-score, and support using the precision_recall_fscore_support function
     output = precision_recall_fscore_support(y_true, y_pred)
+
+    # Return the sum of the values returned by precision_recall_fscore_support
     return np.sum(output)
 
 
 def roc_curve_ret(y_true, y_pred):
-    """Return roc_curve
+    """Return ROC Curve
+
+    This function calculates the difference between the sum of the true positive rates (tpr) and the sum of the false positive rates (fpr) for the ROC curve.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
+        The true values.
+    y_pred : Pandas DataFrame or Pandas Series
+        The predicted values.
     """
+
+    # Compute the false positive rate (fpr), true positive rate (tpr), and thresholds for the ROC curve using the roc_curve function
     fpr, tpr, thresholds = roc_curve(y_true, y_pred)
+
+    # Return the difference between the sum of the true positive rates (tpr) and the sum of the false positive rates (fpr)
     return np.sum(tpr) - np.sum(fpr)
 
-
 class CalcMetrics:
-    """Return roc_curve
+    """ 
+    Class for calculating metrics.
 
     Parameters
     ----------
     y_true : Pandas DataFrame or Pandas Series
-        True values
-    y_pred : Pandas DataFrame Pandas Series
-        predicted values.
-    metric : Str
-        Name of a metric function, e.g., f1_score.
-    d : dict
-        A mapping dictionary that maps a metric function's string name
-         to its representative function, e.g., "accuracy_score": accuracy_score.
+        True values.
+    y_pred : Pandas DataFrame or Pandas Series
+        Predicted values.
+    metric : str
+        Name of the metric function.
+    d : dict, optional
+        A mapping dictionary that maps a metric function's string name to its representative function, by default None.
+    change_default_args_of_metric : bool, optional
+        Flag to change the default arguments of the metric function, by default False.
+    *args, **kwargs
+        Additional arguments to be passed to the metric function.
+
     """
 
     def __init__(
@@ -235,7 +326,6 @@ class CalcMetrics:
             "f1_score": f1_score,  # normal
             "fbeta_score": fbeta_score,  # normal
             "hamming_loss": hamming_loss,  # normal minimize
-            "fbeta_score": fbeta_score,  # normal
             "jaccard_score": jaccard_score,  # normal
             "matthews_corrcoef": matthews_corrcoef,  # normal
             "ndcg_score": ndcg_score,  # normal
@@ -264,9 +354,7 @@ class CalcMetrics:
             "mean_absolute_error": mean_absolute_error,
             "mean_squared_log_error": mean_squared_log_error,
             "mean_absolute_percentage_error": mean_absolute_percentage_error,
-            "mean_squared_log_error": mean_squared_log_error,
             "median_absolute_error": median_absolute_error,
-            "mean_absolute_percentage_error": mean_absolute_percentage_error,
             "r2_score": r2_score,
             "mean_poisson_deviance": mean_poisson_deviance,
             "mean_gamma_deviance": mean_gamma_deviance,
@@ -284,47 +372,40 @@ class CalcMetrics:
         self.y_pred = y_pred
         self.metric = metric
         self.d = d
-        # set change_default_args_of_metric based on debug mode
         self.change_default_args_of_metric = change_default_args_of_metric
         self.args = args
         self.kwargs = kwargs
 
     def resolve_name(self):
         """
-        Return a metric function.
+        Resolve the metric function based on the given metric name.
         """
-        if self.d[self.metric]:
+        if self.metric in self.d:
             return self.d[self.metric]
 
     def get_func_args(self):
         """
-        Return a dictionary of arguments of a metric function.
+        Get the arguments of the metric function.
         """
         args_of_func = inspect.signature(self.resolve_name()).parameters
         return args_of_func
 
     def get_func_default_args(self):
         """
-        Return a dictionary of all default arguments of a metric function.
+        Get the default arguments of the metric function.
         """
         args_of_func = self.get_func_args()
         d = {}
         for name, value in args_of_func.items():
             value_str = str(value)
-            if (
-                "=" in value_str
-                and str(value) != "y_true"
-                and str(value) != "y_score"
-                and str(value) != "y_pred"
-                and str(value) != "y_prob"
-            ):
+            if "=" in value_str and value not in ["y_true", "y_score", "y_pred", "y_prob"]:
                 d[name] = value
         func_default_args = d
         return func_default_args
 
     def get_transformed_default_args(self):
         """
-        Return a fixed dictionary of all default arguments of a metric function.
+        Get the transformed default arguments of the metric function.
         """
         func_default_args = self.get_func_default_args()
         d = {}
@@ -358,70 +439,67 @@ class CalcMetrics:
                 except ValueError:
                     logger.warning(f"Warning! {k} is not used in {self.metric}")
 
-        transformed_defualt_args = d
-        return transformed_defualt_args
+        transformed_default_args = d
+        return transformed_default_args
 
-    def asign_default(self):
+    def assign_default(self):
         """
-        Provide a way for users to change default values of default
-        arguments of a metric function.
+        Provide a way for users to change the default values of the metric function's default arguments.
         """
         metric = self.resolve_name()
-        transformed_defualt_args = self.get_transformed_default_args()
+        transformed_default_args = self.get_transformed_default_args()
         if self.change_default_args_of_metric:
-            if len(transformed_defualt_args) > 0:
+            if len(transformed_default_args) > 0:
                 ans = input(
-                    f"Do you want to change defualt arguments for {str(metric.__name__)} Y/N? : "
+                    f"Do you want to change the default arguments for {str(metric.__name__)}? (Y/N): "
                 )
-                if ans == "Y" or ans == "y" or ans == "yes":
+                if ans.lower() in ["y", "yes"]:
                     self.change_default_args_of_metric = True
                 else:
                     self.change_default_args_of_metric = False
                 if self.change_default_args_of_metric:
-                    for t, v in transformed_defualt_args.items():
+                    for t, v in transformed_default_args.items():
                         value_input = input(
-                            f"Set value for {t} of {str(metric.__name__)} : "
+                            f"Set a value for {t} of {str(metric.__name__)}: "
                         )
                         if value_input == "":
-                            transformed_defualt_args[t] = v
-                        elif "True" == value_input or "true" == value_input:
-                            transformed_defualt_args[t] = True
-                        elif "False" == value_input or "false" == value_input:
-                            transformed_defualt_args[t] = False
-                        elif "None" == value_input or "none" == value_input:
-                            transformed_defualt_args[t] = None
+                            transformed_default_args[t] = v
+                        elif value_input.lower() in ["true", "false"]:
+                            transformed_default_args[t] = value_input.lower() == "true"
+                        elif value_input.lower() == "none":
+                            transformed_default_args[t] = None
                         else:
-                            transformed_defualt_args[t] = str(value_input)
+                            transformed_default_args[t] = str(value_input)
 
-                    for t, v in transformed_defualt_args.items():
+                    for t, v in transformed_default_args.items():
                         if not isinstance(v, bool):
                             try:
                                 float_v = float(v)
-                                transformed_defualt_args[t] = float_v
+                                transformed_default_args[t] = float_v
                             except Exception as e:
                                 logger.warning(
                                     f"Warning! {t} is not used in {self.metric}"
                                 )
                             try:
                                 int_v = int(v)
-                                transformed_defualt_args[t] = int_v
+                                transformed_default_args[t] = int_v
                             except Exception as e:
                                 logger.warning(
                                     f"Warning! {t} is not used in {self.metric}"
                                 )
 
-        return transformed_defualt_args
+        return transformed_default_args
 
     def get_default_params_if_any(self):
         """
-        Return a default params of  metric function.
+        Get the default parameters of the metric function, if any.
         """
-        asign_default = self.asign_default()
-        return asign_default
+        assign_default = self.assign_default()
+        return assign_default
 
     def get_func_string_if_any(self):
         """
-        Return a metrics function if any.
+        Get the metric function as a string, if any.
         """
         metric = self.resolve_name()
         func = str(metric.__name__)
@@ -429,23 +507,22 @@ class CalcMetrics:
 
     def get_metric_func(self):
         """
-        Return a metric function and its default assigned arguments.
+        Get the metric function and its default assigned arguments.
         """
-        asign_default = self.asign_default()
+        assign_default = self.assign_default()
         metric = self.resolve_name()
         func = str(metric.__name__)
-        f_str = func + "(" + "self.y_true,self.y_pred, **asign_default" + ")"
+        f_str = func + "(" + "self.y_true, self.y_pred, **assign_default" + ")"
         return eval(f_str)
 
     def calc_make_scorer(self, metric):
         """
-        Calculate function body of a function using make_scorer
-        see:
-            https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html
+        Calculate the function body of a function using make_scorer.
+        See: https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html
 
-        Parameters:
-        -----------
-        metric: str
+        Parameters
+        ----------
+        metric : str
             String representation of a metric function.
         """
         metrics_list_for_maximizing = [
@@ -514,39 +591,42 @@ class CalcMetrics:
                 return metric
             else:
                 raise TypeError(
-                    f"selected {metric} is not proper. Read examples and documentations !"
+                    f"The selected metric {metric} is not proper. Read the examples and documentation!"
                 )
         else:
             raise TypeError(
-                f"selected {metric} is not proper. Read examples and documentations !"
+                f"The selected metric {metric} is not proper. Read the examples and documentation!"
             )
 
     def get_simple_metric(self, metric, y_true, y_pred, params=None):
         """
-        Return a simple metric of y_true, y_pred
-        Parameters:
-        -----------
-        metric: str
+        Get the simple metric value for y_true and y_pred.
+
+        Parameters
+        ----------
+        metric : str
             String representation of a metric function.
         y_true : Pandas DataFrame or Pandas Series
-            True values
-        y_pred : Pandas DataFrame Pandas Series
-            predicted values.
+            True values.
+        y_pred : Pandas DataFrame or Pandas Series
+            Predicted values.
+        params : dict, optional
+            Additional parameters for the metric function, by default None.
         """
         if params is None:
-            f_str = metric + "(" + "y_true,y_pred" + ")"
+            f_str = metric + "(" + "y_true, y_pred" + ")"
             return eval(f_str)
         if isinstance(params, dict) and len(params) == 0:
-            f_str = metric + "(" + "y_true,y_pred" + ")"
+            f_str = metric + "(" + "y_true, y_pred" + ")"
             return eval(f_str)
         if isinstance(params, dict) and len(params) > 0:
-            f_str = metric + "(" + "y_true,y_pred,**params" + ")"
+            f_str = metric + "(" + "y_true, y_pred, **params" + ")"
             return eval(f_str)
         return None
 
 
 if __name__ == "__main__":
-    # test metrics
+    # Test metrics
     calcmetric = CalcMetrics(
         y_true=np.array([0, 0, 1, 0]),
         y_pred=np.array([0, 1, 1, 0]),
