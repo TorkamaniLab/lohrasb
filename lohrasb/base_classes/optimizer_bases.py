@@ -11,6 +11,27 @@ from sklearn.metrics import *
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
 from sklearn.neural_network import *
 from sklearn.svm import *
+from sklearn.linear_model import ElasticNet, Lasso, LinearRegression, LogisticRegression, Ridge, SGDRegressor
+
+# Gradient boosting frameworks
+from catboost import CatBoostClassifier, CatBoostRegressor
+from lightgbm import LGBMClassifier, LGBMRegressor
+from xgboost import XGBClassifier, XGBRegressor
+
+# Ensemble methods
+from sklearn.ensemble import (AdaBoostClassifier, AdaBoostRegressor, ExtraTreesClassifier, ExtraTreesRegressor, 
+                              GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor)
+
+# Other classifiers and regressors
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.neural_network import MLPClassifier, MLPRegressor
+from sklearn.svm import SVC, LinearSVR, SVR
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+
+# Imbalanced-learn ensemble
+from imblearn.ensemble import BalancedRandomForestClassifier
+
 from xgboost import *
 from xgbse import *
 from catboost import *

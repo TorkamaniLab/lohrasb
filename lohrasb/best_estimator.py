@@ -724,7 +724,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                     - tunegrid_search_kwargs : dict
                         Arguments for configuring TuneGridSearchCV, e.g., estimator, param_grid, scoring etc.
                         See https://docs.ray.io/en/latest/tune/api/sklearn.html
-                    - fit_tune_kwargs : dict
+                    - fit_tunegrid_kwargs : dict
                         Parameters for the `fit` method.
                     - main_tunegrid_kwargs : dict
                         Other additional parameters.
@@ -748,8 +748,8 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
 
         # fit_tune_kwargs should be a dictionary, if provided
-        if 'fit_tune_kwargs' in kwargs['kwargs'] and not isinstance(kwargs['kwargs']['fit_tune_kwargs'], dict):
-            raise TypeError("Expected a dictionary for keyword argument: fit_tune_kwargs")
+        if 'fit_tunegrid_kwargs' in kwargs['kwargs'] and not isinstance(kwargs['kwargs']['fit_tunegrid_kwargs'], dict):
+            raise TypeError("Expected a dictionary for keyword argument: fit_tunegrid_kwargs")
 
         # Ensure the 'estimator' key exists within the tunegrid_search_kwargs and is an estimator
         if 'estimator' not in kwargs['kwargs']['tunegrid_search_kwargs']:
