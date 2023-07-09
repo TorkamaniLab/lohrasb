@@ -1,9 +1,7 @@
 # General purpose
 from ray import air,tune
 from ray.air import session
-from xgboost import XGBClassifier
 from ray.tune.search.hyperopt import HyperOptSearch
-
 import joblib
 import numpy as np
 import os
@@ -14,44 +12,6 @@ import time
 # Datasets
 from sklearn.datasets import make_classification, make_regression
 
-# Estimators
-# Linear models
-from sklearn.linear_model import (
-    ElasticNet,
-    Lasso,
-    LinearRegression,
-    LogisticRegression,
-    Ridge,
-    SGDRegressor,
-)
-
-# Gradient boosting frameworks
-from catboost import CatBoostClassifier, CatBoostRegressor
-from lightgbm import LGBMClassifier, LGBMRegressor
-from xgboost import XGBClassifier, XGBRegressor
-
-# Ensemble methods
-from sklearn.ensemble import (
-    AdaBoostClassifier,
-    AdaBoostRegressor,
-    ExtraTreesClassifier,
-    ExtraTreesRegressor,
-    GradientBoostingClassifier,
-    GradientBoostingRegressor,
-    RandomForestClassifier,
-    RandomForestRegressor,
-)
-
-# Other classifiers and regressors
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
-from sklearn.neural_network import MLPClassifier, MLPRegressor
-from sklearn.svm import SVC, LinearSVR, SVR
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-
-# Imbalanced-learn ensemble
-from imblearn.ensemble import BalancedRandomForestClassifier
-
 # Model selection tools
 from sklearn.model_selection import KFold, train_test_split
 
@@ -61,85 +21,9 @@ from sklearn.metrics import f1_score, make_scorer, r2_score
 # Custom estimator
 from lohrasb.best_estimator import BaseModel
 
+from lohrasb.tests_conf import *
 
-
-
-
-# Define hyperparameters for each model
-lr_params = {"C": tune.uniform(0.001, 10.0)}
-rf_params = {
-    "n_estimators": tune.randint(100, 200),
-    "max_depth": tune.randint(3, 20),
-}
-xgb_params = {
-    "n_estimators": tune.randint(50, 200),
-    "max_depth": tune.randint(3, 15),
-    "learning_rate": tune.uniform(0.01, 0.1),
-}
-cb_params = {
-    "iterations": tune.randint(50, 200),
-    "depth": tune.randint(4, 8),
-    "learning_rate": tune.uniform(0.01, 0.1),
-}
-lgbm_params = {
-    "n_estimators": tune.randint(50, 200),
-    "max_depth": tune.randint(10, 20),
-    "learning_rate": tune.uniform(0.01, 0.1),
-}
-brf_params = {
-    "n_estimators": tune.randint(50, 200),
-    "max_depth": tune.randint(10, 20),
-}
-gbc_params = {
-    "n_estimators": tune.randint(50, 200),
-    "learning_rate": tune.uniform(0.001, 0.1),
-    "max_depth": tune.randint(3, 10),
-}
-abc_params = {
-    "n_estimators": tune.randint(50, 200),
-    "learning_rate": tune.uniform(0.001, 0.1),
-}
-svc_params = {
-    "C": tune.uniform(0.1, 10),
-    "gamma": tune.uniform(0.001, 0.1),
-}
-# knn_params = {
-#     "n_neighbors": tune.randint(3, 7),
-#     "weights": tune.choice(
-#         ["uniform", "distance"]
-#     ),
-# }
-dtc_params = {
-    "criterion": tune.choice(
-        ["gini", "entropy"]
-    ),
-    "max_depth": tune.randint(5, 10),
-}
-etc_params = {
-    "n_estimators": tune.randint(50, 200),
-    "max_depth": tune.randint(5, 10),
-}
-# gnb_params = {}
-
-# Put models and hyperparameters into a list of tuples
-estimators_params = [
-    (LogisticRegression, lr_params),
-    (RandomForestClassifier, rf_params),
-    (XGBClassifier, xgb_params),
-    (CatBoostClassifier, cb_params),
-    (LGBMClassifier, lgbm_params),
-    (BalancedRandomForestClassifier, brf_params),
-    (GradientBoostingClassifier, gbc_params),
-    (AdaBoostClassifier, abc_params),
-    (SVC, svc_params),
-   # (KNeighborsClassifier, knn_params),
-    (DecisionTreeClassifier, dtc_params),
-    (ExtraTreesClassifier, etc_params),
-   # (GaussianNB, gnb_params),
-]
-
-
-@pytest.mark.parametrize("estimator, params", estimators_params)
+@pytest.mark.parametrize("estimator, params", estimators_params_tunesearch_clfs)
 def test_optimize_by_tune_classification(estimator, params):
     # Create synthetic dataset
     search_alg = HyperOptSearch()
@@ -197,7 +81,7 @@ def test_optimize_by_tune_classification(estimator, params):
     )  # change f1_score to support multiclass
 
 
-@pytest.mark.parametrize("estimator, params", estimators_params)
+@pytest.mark.parametrize("estimator, params", estimators_params_tunesearch_clfs)
 def test_optimize_by_tune_overfitting_classification(estimator, params):
     # Create synthetic dataset
     search_alg = HyperOptSearch()
@@ -250,7 +134,7 @@ def test_optimize_by_tune_overfitting_classification(estimator, params):
     assert score_train - score_test < 0.25, "The model is overfitting."
 
 
-@pytest.mark.parametrize("estimator, params", estimators_params)
+@pytest.mark.parametrize("estimator, params", estimators_params_tunesearch_clfs)
 def test_optimize_by_tune_model_persistence_classification(estimator, params):
     search_alg = HyperOptSearch()
     X, y = make_classification(
@@ -300,7 +184,7 @@ def test_optimize_by_tune_model_persistence_classification(estimator, params):
     os.remove("test_model.pkl")
 
 
-@pytest.mark.parametrize("estimator, params", estimators_params)
+@pytest.mark.parametrize("estimator, params", estimators_params_tunesearch_clfs)
 def test_optimize_by_tune_efficiency_classification(estimator, params):
     search_alg = HyperOptSearch()
     X, y = make_classification(
@@ -345,88 +229,8 @@ def test_optimize_by_tune_efficiency_classification(estimator, params):
     assert end_time - start_time < 100, "The model took too long to train."
 
 
-# Define hyperparameters for each model
-lr_params = {
-    "fit_intercept": tune.choice([True, False])
-}
-ridge_params = {"alpha": tune.uniform(0.5, 1.0)}
-lasso_params = {"alpha": tune.uniform(0.5, 1.0)}
-elastic_params = {
-    "alpha": tune.uniform(0.5, 1.0),
-    "l1_ratio": tune.uniform(0.5, 0.7),
-}
-xgb_params = {
-    "max_depth": tune.randint(3, 5),
-    "learning_rate": tune.uniform(0.01, 0.1),
-}
-lgbm_params = {
-    "max_depth": tune.randint(3, 5),
-    "learning_rate": tune.uniform(0.01, 0.1),
-}
-cb_params = {
-    "depth": tune.randint(3, 5),
-    "learning_rate": tune.uniform(0.01, 0.10),
-}
-# svr_params = {'kernel': tune.choice(['linear', 'poly', 'rbf', 'sigmoid']), 'C': tune.uniform(0.1, 1.0)}
-# lsvr_params = {"C": tune.uniform(0.5, 1.0)}
-# knr_params = {'n_neighbors': tune.randint(30,50),  # Increasing the number of neighbors can help in making the model more generalized.
-#     'weights': tune.choice(['uniform', 'distance']),  # The 'distance' option can give more importance to closer instances, which may help reduce overfitting.
-#     'algorithm': tune.choice(['auto', 'ball_tree', 'kd_tree', 'brute']),  # The algorithm used to compute the nearest neighbors can sometimes have an effect on overfitting, but it generally depends more on the dataset.
-#     'p': tune.randint(1, 2)  # This corresponds to the power parameter for the Minkowski metric. 1 is for manhattan_distance and 2 for euclidean_distance.
-#     }
-# dtr_params = {'max_depth': tune.randint(3, 5), 'min_samples_split': tune.randint(2,  5),'min_samples_leaf': tune.randint(2,  5), 'max_features': tune.choice( ['auto', 'sqrt', 'log2']), 'max_leaf_nodes': tune.randint( 5, 10)}
-rfr_params = {
-    "n_estimators": tune.randint(50, 200),
-    "max_depth": tune.randint(10, 20),
-}
-# gbr_params = {
-#     "n_estimators": tune.randint(50, 200),
-#     "max_depth": tune.randint(3, 10),
-#     "learning_rate": tune.uniform(0.001, 0.1),
-# }
-etr_params = {
-    "n_estimators": tune.randint(50, 200),
-    "max_depth": tune.randint(10, 20),
-}
-abr_params = {
-    "n_estimators": tune.randint(50, 200),
-    "learning_rate": tune.uniform(0.001, 0.1),
-}
-# sgr_params = {
-#     "loss": tune.choice(
-#         ["squared_loss", "huber", "epsilon_insensitive"])
-#     ,
-#     "penalty": tune.choice(
-#         {"l2", "l1", "elasticnet"})
-#     ,
-#     "alpha": tune.uniform(0.0001, 0.01),
-# }
 
-# Put models and hyperparameters into a list of tuples
-estimators_params = [
-    (LinearRegression, lr_params),
-    (Ridge, ridge_params),
-    (Lasso, lasso_params),
-    (ElasticNet, elastic_params),
-    (XGBRegressor, xgb_params),
-    (LGBMRegressor, lgbm_params),
-    (CatBoostRegressor, cb_params),
-    # TODO underfit
-    # (SVR, svr_params),
-    # (LinearSVR, lsvr_params),
-    # TODO overfit
-    # (KNeighborsRegressor, knr_params),
-    # TODO underfit
-    # (DecisionTreeRegressor, dtr_params),
-    (RandomForestRegressor, rfr_params),
-    # (GradientBoostingRegressor, gbr_params),
-    (ExtraTreesRegressor, etr_params),
-    (AdaBoostRegressor, abr_params),
-    # (SGDRegressor, sgr_params),
-]
-
-
-@pytest.mark.parametrize("estimator, params", estimators_params)
+@pytest.mark.parametrize("estimator, params", estimators_params_tunesearch_regs)
 def test_optimize_by_tune_regression(estimator, params):
     search_alg = HyperOptSearch()
     # Create synthetic regression dataset
@@ -478,7 +282,7 @@ def test_optimize_by_tune_regression(estimator, params):
     ), f"Expected r2_score to be greater than or equal to 0.7, but got {score}"
 
 
-@pytest.mark.parametrize("estimator, params", estimators_params)
+@pytest.mark.parametrize("estimator, params", estimators_params_tunesearch_regs)
 def test_optimize_by_tune_overfitting_regression(estimator, params):
     search_alg = HyperOptSearch()
     # Create synthetic dataset
@@ -526,7 +330,7 @@ def test_optimize_by_tune_overfitting_regression(estimator, params):
     assert score_train - score_test < 0.25, "The model is overfitting."
 
 
-@pytest.mark.parametrize("estimator, params", estimators_params)
+@pytest.mark.parametrize("estimator, params", estimators_params_tunesearch_regs)
 def test_optimize_by_tune_model_persistence_regression(estimator, params):
     search_alg = HyperOptSearch()
     X, y = make_regression(
@@ -571,7 +375,7 @@ def test_optimize_by_tune_model_persistence_regression(estimator, params):
     os.remove("test_model.pkl")
 
 
-@pytest.mark.parametrize("estimator, params", estimators_params)
+@pytest.mark.parametrize("estimator, params", estimators_params_tunesearch_regs)
 def test_optimize_by_tune_efficiency_regression(estimator, params):
     search_alg = HyperOptSearch()
     X, y = make_regression(
