@@ -1,54 +1,71 @@
 import numpy as np
+import optuna
 import pandas as pd
+import ray
+
+# Gradient boosting frameworks
+from catboost import *
+from catboost import CatBoostClassifier, CatBoostRegressor
+
+# Imbalanced-learn ensemble
 from imblearn.ensemble import *
+from imblearn.ensemble import BalancedRandomForestClassifier
 from interpret.blackbox import *
 from interpret.glassbox import *
 from lightgbm import *
-from ray.tune.sklearn import TuneGridSearchCV, TuneSearchCV
-from sklearn.ensemble import *
-from sklearn.linear_model import *
-from sklearn.metrics import *
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
-from sklearn.neural_network import *
-from sklearn.svm import *
-from sklearn.linear_model import ElasticNet, Lasso, LinearRegression, LogisticRegression, Ridge, SGDRegressor
-
-# Gradient boosting frameworks
-from catboost import CatBoostClassifier, CatBoostRegressor
 from lightgbm import LGBMClassifier, LGBMRegressor
-from xgboost import XGBClassifier, XGBRegressor
+from optuna.integration import OptunaSearchCV
+from ray import tune
+from ray.air import session
+from ray.tune.sklearn import TuneGridSearchCV, TuneSearchCV
 
 # Ensemble methods
-from sklearn.ensemble import (AdaBoostClassifier, AdaBoostRegressor, ExtraTreesClassifier, ExtraTreesRegressor, 
-                              GradientBoostingClassifier, GradientBoostingRegressor, RandomForestClassifier, RandomForestRegressor)
+from sklearn.ensemble import *
+from sklearn.ensemble import (
+    AdaBoostClassifier,
+    AdaBoostRegressor,
+    ExtraTreesClassifier,
+    ExtraTreesRegressor,
+    GradientBoostingClassifier,
+    GradientBoostingRegressor,
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
+from sklearn.linear_model import *
+from sklearn.linear_model import (
+    ElasticNet,
+    Lasso,
+    LinearRegression,
+    LogisticRegression,
+    Ridge,
+    SGDRegressor,
+)
+from sklearn.metrics import *
+from sklearn.model_selection import (
+    GridSearchCV,
+    RandomizedSearchCV,
+    cross_val_score,
+    train_test_split,
+)
 
 # Other classifiers and regressors
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.neural_network import *
 from sklearn.neural_network import MLPClassifier, MLPRegressor
-from sklearn.svm import SVC, LinearSVR, SVR
+from sklearn.svm import *
+from sklearn.svm import SVC, SVR, LinearSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-
-# Imbalanced-learn ensemble
-from imblearn.ensemble import BalancedRandomForestClassifier
-
 from xgboost import *
+from xgboost import XGBClassifier, XGBRegressor
 from xgbse import *
-from catboost import *
+
 from lohrasb import logger
 from lohrasb.abstracts.optimizers import OptimizerABC
 from lohrasb.decorators.decorators import trackcalls
 from lohrasb.utils.helper_funcs import _trail_params_retrive  # maping_mesurements,
 from lohrasb.utils.metrics import *
 from lohrasb.utils.metrics import CalcMetrics
-import optuna
-from optuna.integration import OptunaSearchCV
-from ray import tune
-from lightgbm import LGBMClassifier
-from xgboost import XGBClassifier
-from sklearn.model_selection import cross_val_score
-from ray.air import session
-import ray
 
 
 class OptunaSearch(OptimizerABC):
@@ -426,7 +443,6 @@ class GridSearch(OptimizerABC):
         *args,
         **kwargs,
     ):
-
         self.grid_search_kwargs = kwargs["kwargs"].get("grid_search_kwargs", {})
         self.main_grid_kwargs = kwargs["kwargs"].get("main_grid_kwargs", {})
         self.fit_grid_kwargs = kwargs["kwargs"].get("fit_grid_kwargs", {})
@@ -559,7 +575,6 @@ class NewOptunaSearch(OptimizerABC):
     """
 
     def __init__(self, X: pd.DataFrame, y: pd.DataFrame, *args, **kwargs):
-
         self.newoptuna_search_kwargs = kwargs["kwargs"].get(
             "newoptuna_search_kwargs", {}
         )

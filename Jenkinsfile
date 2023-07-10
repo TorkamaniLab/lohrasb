@@ -1,65 +1,39 @@
 
 pipeline {
+     agent any
 
-    
-    agent any
-
-    stages {
-
-        stage("Download-data-build-test-lohrasb"){
-
-             steps {
-
-                                            sh '''
+     stages {
+          stage('build-test-lohrasb') {
+               steps {
+                    sh '''
                                                  docker version
                                                  docker info
                                                  docker build -f Dockerfile.test -t build-image-test-lohrasb .
                                             '''
+               }
+          }
 
-
-             }
-
-        }
-
-        stage("build-container-test-lohrasb") {
-            
-
-                 
-             steps {
-
-                                            
-
-                                                sh '''
+          stage('build-container-test-lohrasb') {
+               steps {
+                    sh '''
                                                  docker run build-image-test-lohrasb
                                                 '''
-                                            
-            
-                 }
-            }
+               }
+          }
 
-         
-        
-        stage("build-image-pypi-lohrasb") {
-                 
-             steps {
-
-                                                 sh '''
+          stage('build-image-pypi-lohrasb') {
+               steps {
+                    sh '''
                                                  docker version
                                                  docker info
                                                  docker build -f Dockerfile.publish -t build-image-pypi-lohrasb .
                                                  '''
+               }
+          }
 
-            
-                 }
-            }
-    
-        stage("build-container-pypi-lohrasb") {
-            
-
-                 
-             steps {
-
-                 withCredentials([
+          stage('build-container-pypi-lohrasb') {
+               steps {
+                    withCredentials([
                               usernamePassword(credentialsId: 'twine-login-info-lohrasb',
                               usernameVariable: 'username',
                               passwordVariable: 'password',
@@ -68,21 +42,15 @@ pipeline {
                               usernameVariable: 'gitusername',
                               passwordVariable: 'gitpassword',
                               )
-                              
-                                              ]) 
+
+                                              ])
 
                                               {
-
-                                                 sh '''
+                         sh '''
                                                  docker run --env username=${username} --env password=${password} --env gitusername=${gitusername}  --env gitpassword=${gitpassword} build-image-pypi-lohrasb
                                                  '''
                                               }
-            
-                 }
-            }
-
-    
+               }
+          }
+     }
 }
-
-}
-

@@ -13,18 +13,7 @@ ENV username = $username
 ENV password = $password
 ENV gitusername = $gitusername
 ENV gitpassword = $gitpassword
-ENV POETRY_VERSION=1.3.2
-
-
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends         gnumeric 
-RUN apt-get install -y --no-install-recommends python3-pip
-
-
-WORKDIR /lohrasb/lohrasb/data
-RUN curl -O -k 'https://archive.ics.uci.edu/ml/machine-learning-databases/00350/default%20of%20credit%20card%20clients.xls' 
-RUN  ssconvert default%20of%20credit%20card%20clients.xls data1.csv 
-RUN  grep -v "X1" data1.csv > data.csv
+ENV POETRY_VERSION=1.5.1
 
 # Install and setup poetry
 WORKDIR /lohrasb

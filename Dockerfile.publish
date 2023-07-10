@@ -1,31 +1,40 @@
-
+# Start from Python 3.10 image
 FROM python:3.10
 
+# Create a new user 'admin' with /bin/sh as the default shell
 RUN useradd -ms /bin/sh admin
-COPY --chown=admin:admin . /lohrasb
- 
-# Keeps Python from generating .pyc files in the container
-ENV PYTHONDONTWRITEBYTECODE 1
-# Turns off buffering for easier container logging
-ENV PYTHONUNBUFFERED 1
-ENV username = $username
-ENV password = $password
-ENV gitusername = $gitusername
-ENV gitpassword = $gitpassword
-ENV POETRY_VERSION=1.5.1
 
-# Install and setup poetry
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    POETRY_VERSION=1.5.1
+
+# Use build args for sensitive information
+ARG username
+ARG password
+ARG gitusername
+ARG gitpassword
+
 WORKDIR /lohrasb
-RUN pip3 install --upgrade pip
-RUN pip install "poetry==$POETRY_VERSION"
-RUN poetry config virtualenvs.create false
-RUN poetry cache clear --all pypi 
-RUN poetry install  --no-interaction --no-ansi
 
+# Copy local code to the container image.
+COPY --chown=admin:admin . . 
+
+# Upgrade pip and install poetry
+RUN pip3 install --upgrade pip && \
+    pip install "poetry==$POETRY_VERSION" && \
+    poetry config virtualenvs.create false && \
+    poetry cache clear --all pypi 
+
+# Install project dependencies without installing the actual package (useful for development)
+RUN poetry install --no-root --no-interaction --no-ansi
+
+# Change to the 'admin' user
 USER admin
-RUN poetry build 
-RUN chmod +x ./entrypoint.sh
 
+# Build the project and make the entrypoint script executable
+RUN poetry build && \
+    chmod +x ./entrypoint.sh
 
-# run entrypoint.sh
+# Run entrypoint.sh
 CMD ["bash", "./entrypoint.sh"]

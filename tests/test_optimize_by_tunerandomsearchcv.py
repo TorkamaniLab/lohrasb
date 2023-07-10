@@ -9,23 +9,10 @@ from sklearn.metrics import f1_score, r2_score
 from lohrasb.best_estimator import BaseModel
 from lohrasb.tests_conf import estimators_params_regs, estimators_params_clfs
 
-TUNE_SEARCH_KWARGS = {
-    'verbose': 3,
-    'n_jobs': None,
-    'cv': KFold(2),
-    'early_stopping': None,
-    'refit': True,
-    'error_score': 'raise',
-    'return_train_score': False,
-    'local_dir': '~/ray_results',
-    'name': None,
-    'max_iters': 1,
-    'use_gpu': False,
-    'loggers': None,
-    'pipeline_auto_early_stop': True,
-    'stopper': None,
-    'time_budget_s': None,
-    'mode': None,
+SEARCH_KWARGS = {
+                'verbose':3,
+                'n_jobs':-1,
+                'cv':KFold(2),
 }
 
 def setup_test(estimator, params, score_func, task_type):
@@ -46,42 +33,52 @@ def setup_test(estimator, params, score_func, task_type):
     est = estimator()
     kwargs = {
         'kwargs': {
-            'tune_search_kwargs': {**TUNE_SEARCH_KWARGS, 'estimator': est, 'param_distributions': params, 'scoring': score_func},
+            'tune_search_kwargs': {**SEARCH_KWARGS, 'estimator': est, 'param_distributions': params, 'scoring': score_func},
             'main_tune_kwargs': {},
             'fit_tune_kwargs': {}
         }
     }
-
     obj = BaseModel().optimize_by_tunesearchcv(**kwargs)
     obj.fit(X_train, y_train)
     score = obj.predict(X_train)
 
-    return obj, score, X_test, y_test
+    return obj, score, X_test, y_test, y_train
 
 for test_type, func in [('clf', f1_score), ('reg', r2_score)]:
     @pytest.mark.parametrize('estimator, params', globals()[f'estimators_params_{test_type}s'])
     def test_performance(estimator, params):
-        obj, score, X_test, y_test = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
+        obj, score, X_test, y_test,y_train = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
         assert func(y_test, obj.predict(X_test)) > 0.5
 
     @pytest.mark.parametrize('estimator, params', globals()[f'estimators_params_{test_type}s'])
     def test_overfitting(estimator, params):
-        obj, score, X_test, y_test = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
-        score_test = func(y_test, obj.predict(X_test), average='macro')
-        assert score - score_test < 0.25, "The model is overfitting."
+        obj, score, X_test, y_test, y_train = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
+        score_train = func(y_train, score)
+        score_test = func(y_test, obj.predict(X_test))
+        assert score_train - score_test < 0.25, "The model is overfitting."
 
     @pytest.mark.parametrize('estimator, params', globals()[f'estimators_params_{test_type}s'])
     def test_persistence(estimator, params):
-        obj, X_test, y_test = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
+        obj, score, X_test, y_test,y_train = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
         model_path = 'test_model.pkl'
-        joblib.dump(obj, model_path)
-        loaded_model = joblib.load(model_path)
+
+        # use dill to serialize the object to a file
+        with open(model_path, 'wb') as f:
+            dill.dump(obj, f)
+
+        # use dill to deserialize the object from the file
+        with open(model_path, 'rb') as f:
+            loaded_model = dill.load(f)
+
+        # use the model
         assert np.allclose(obj.predict(X_test), loaded_model.predict(X_test)), "The saved model does not match the loaded model."
-        os.remove(model_path)
+
+        # remove the file
+        os.remove(model_path) 
 
     @pytest.mark.parametrize('estimator, params', globals()[f'estimators_params_{test_type}s'])
-    def test_efficiency(estimator, params):
+    def test_performance(estimator, params):
         start_time = time.time()
-        obj, X_test, y_test = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
+        obj, score, X_test, y_test,y_train= setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
         end_time = time.time()
         assert end_time - start_time < 100, "The model took too long to train."

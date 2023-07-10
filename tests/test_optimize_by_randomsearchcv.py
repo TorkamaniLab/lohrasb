@@ -1,279 +1,74 @@
-# General purpose
+import os
+import time
+import pytest
 import joblib
 import numpy as np
-import os
-import pytest
-import time
-
-# Datasets
 from sklearn.datasets import make_classification, make_regression
-
-# Model selection tools
-from sklearn.model_selection import RandomizedSearchCV, KFold, train_test_split
-
-# Metrics
-from sklearn.metrics import f1_score, make_scorer, r2_score
-
-# Custom estimator
+from sklearn.model_selection import KFold, train_test_split
+from sklearn.metrics import f1_score, r2_score
 from lohrasb.best_estimator import BaseModel
+from lohrasb.tests_conf import estimators_params_regs, estimators_params_clfs
 
-from lohrasb.tests_conf import *
+SEARCH_KWARGS = {
+                'verbose':3,
+                'n_jobs':-1,
+                'cv':KFold(2),
+}
 
+def setup_test(estimator, params, score_func, task_type):
+    data_params = {
+        'classification': {
+            'func': make_classification,
+            'args': {'n_samples': 1000, 'n_features': 20, 'n_informative': 3, 'n_redundant': 10, 'n_classes': 3, 'random_state': 42}
+        },
+        'regression': {
+            'func': make_regression,
+            'args': {'n_samples': 100, 'n_features': 10, 'n_informative': 5, 'n_targets': 1, 'random_state': 1}
+        }
+    }
 
-@pytest.mark.parametrize('estimator, params', estimators_params_clfs)
-def test_optimize_by_randomsearchcv_classification(estimator, params):
-    # Create synthetic dataset
-    X, y = make_classification(n_samples=1000, n_features=20, n_informative=3, n_redundant=10, n_classes=3, random_state=42)
+    X, y = data_params[task_type]['func'](**data_params[task_type]['args'])
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Initialize the estimator
     est = estimator()
-
-    # Create keyword arguments for randomSearchCV
     kwargs = {
         'kwargs': {
-            'random_search_kwargs': {
-                'estimator': est,
-                'param_distributions': params,
-                'scoring': 'f1_macro', # change scoring to support multiclass
-                'verbose':3,
-                'n_jobs':-1,
-                'cv':KFold(2),
-                'n_iter':10,
-            },
+            'random_search_kwargs': {**SEARCH_KWARGS, 'estimator': est, 'param_distributions': params, 'scoring': score_func},
             'main_random_kwargs': {},
             'fit_random_kwargs': {}
         }
     }
-
-    # Run optimize_by_randomsearchcv
     obj = BaseModel().optimize_by_randomsearchcv(**kwargs)
-    obj.fit(X_train,y_train)
+    obj.fit(X_train, y_train)
+    score = obj.predict(X_train)
 
-    # Predict on test data
-    y_pred = obj.predict(X_test)
+    return obj, score, X_test, y_test, y_train
 
-    # Check if f1 score is above acceptable threshold (0.5 here)
-    assert f1_score(y_test, y_pred, average='macro') > 0.5  # change f1_score to support multiclass
+for test_type, func in [('clf', f1_score), ('reg', r2_score)]:
+    @pytest.mark.parametrize('estimator, params', globals()[f'estimators_params_{test_type}s'])
+    def test_performance(estimator, params):
+        obj, score, X_test, y_test,y_train = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
+        assert func(y_test, obj.predict(X_test)) > 0.5
 
+    @pytest.mark.parametrize('estimator, params', globals()[f'estimators_params_{test_type}s'])
+    def test_overfitting(estimator, params):
+        obj, score, X_test, y_test, y_train = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
+        score_train = func(y_train, score)
+        score_test = func(y_test, obj.predict(X_test))
+        assert score_train - score_test < 0.25, "The model is overfitting."
 
-@pytest.mark.parametrize('estimator, params', estimators_params_clfs)
-def test_optimize_by_randomsearchcv_overfitting_classification(estimator, params):
-    # Create synthetic dataset
-    X, y = make_classification(n_samples=1000, n_features=20, n_informative=3, n_redundant=10, n_classes=3, random_state=42)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Initialize the estimator
-    est = estimator()
-
-    # Create keyword arguments for randomSearchCV
-    kwargs = {
-        'kwargs': {
-            'random_search_kwargs': {
-                'estimator': est,
-                'param_distributions': params,
-                'scoring': 'f1_macro', # change scoring to support multiclass
-                'verbose':3,
-                'n_jobs':-1,
-                'cv':KFold(2),
-                'n_iter':10,
-            },
-            'main_random_kwargs': {},
-            'fit_random_kwargs': {}
-        }
-    }
-
-    # Run optimize_by_randomsearchcv
-    obj = BaseModel().optimize_by_randomsearchcv(**kwargs)
-    obj.fit(X_train,y_train)
-    score_train = f1_score(y_train, obj.predict(X_train), average='macro')
-    score_test = f1_score(y_test, obj.predict(X_test), average='macro')
-    assert score_train - score_test < 0.25, "The model is overfitting."
-
-
-@pytest.mark.parametrize('estimator, params', estimators_params_clfs)
-def test_optimize_by_randomsearchcv_model_persistence_classification(estimator, params):
-    X, y = make_classification(n_samples=100, n_features=20, n_informative=3, n_redundant=10, n_classes=3, random_state=42)
-    # Initialize the estimator
-    est = estimator()
-    # Create keyword arguments for randomSearchCV
-    kwargs = {
-        'kwargs': {
-            'random_search_kwargs': {
-                'estimator': est,
-                'param_distributions': params,
-                'scoring': 'f1_macro', # change scoring to support multiclass
-                'verbose':3,
-                'n_jobs':-1,
-                'cv':KFold(2),
-                'n_iter':10,
-            },
-            'main_random_kwargs': {},
-            'fit_random_kwargs': {}
-        }
-    }
-
-    # Run optimize_by_randomsearchcv
-    obj = BaseModel().optimize_by_randomsearchcv(**kwargs)
-    obj.fit(X,y)
-    joblib.dump(obj, 'test_model.pkl')
-    loaded_model = joblib.load('test_model.pkl')
-    assert np.allclose(obj.predict(X), loaded_model.predict(X)), "The saved model does not match the loaded model."
-    os.remove('test_model.pkl')
-
-@pytest.mark.parametrize('estimator, params', estimators_params_clfs)
-def test_optimize_by_randomsearchcv_efficiency_classification(estimator, params):
-    X, y = make_classification(n_samples=100, n_features=20, n_informative=3, n_redundant=10, n_classes=3, random_state=42)
-    est = estimator()
-    # Create keyword arguments for randomSearchCV
-    kwargs = {
-        'kwargs': {
-            'random_search_kwargs': {
-                'estimator': est,
-                'param_distributions': params,
-                'scoring': 'f1_macro', # change scoring to support multiclass
-                'verbose':3,
-                'n_jobs':-1,
-                'cv':KFold(2),
-                'n_iter':10,
-            },
-            'main_random_kwargs': {},
-            'fit_random_kwargs': {}
-        }
-    }
-
-    start_time = time.time()
-    obj = BaseModel().optimize_by_randomsearchcv(**kwargs)
-    obj.fit(X, y)
-    end_time = time.time()
-    assert end_time - start_time < 100, "The model took too long to train."
-
-@pytest.mark.parametrize('estimator, params', estimators_params_regs)
-def test_optimize_by_randomsearchcv_regression(estimator, params):
-    # Create synthetic regression dataset
-    X, y = make_regression(n_samples=100, n_features=10, n_informative=5, n_targets=1, random_state=1)
-
-    # Initialize the estimator
-    est = estimator()
-
-    # Create keyword arguments for randomSearchCV
-    kwargs = {
-        'kwargs': {
-            'random_search_kwargs': {
-                'estimator': est,
-                'param_distributions': params,
-                'scoring':make_scorer(r2_score, greater_is_better=True),
-                'verbose':3,
-                'n_jobs':-1,
-                'cv':KFold(3),
-                'n_iter':10,
-            },
-            'main_random_kwargs': {},
-            'fit_random_kwargs': {}
-        }
-    }
-
-    # Create obj of the class
-    obj = BaseModel().optimize_by_randomsearchcv(
-        **kwargs
-    )
-
-    # Check if instance created successfully
-    assert obj is not None
-
-    # Fit data and predict
-    obj.fit(X, y)
-    predictions = obj.predict(X)
-    score = r2_score(y, predictions)
-    assert score >= 0.7, f"Expected r2_score to be greater than or equal to 0.7, but got {score}"
-
-@pytest.mark.parametrize('estimator, params', estimators_params_regs)
-def test_optimize_by_randomsearchcv_overfitting_regression(estimator, params):
-    # Create synthetic dataset
-    X, y = make_regression(n_samples=100, n_features=10, n_informative=5, n_targets=1, random_state=1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    # Initialize the estimator
-    est = estimator()
-
-    # Create keyword arguments for randomSearchCV
-    kwargs = {
-        'kwargs': {
-            'random_search_kwargs': {
-                'estimator': est,
-                'param_distributions': params,
-                'scoring':make_scorer(r2_score, greater_is_better=True),
-                'verbose':3,
-                'n_jobs':-1,
-                'cv':KFold(2),
-                'n_iter':10,
-            },
-            'main_random_kwargs': {},
-            'fit_random_kwargs': {}
-        }
-    }
-
-    # Run optimize_by_randomsearchcv
-    obj = BaseModel().optimize_by_randomsearchcv(**kwargs)
-    obj.fit(X_train,y_train)
-    score_train = r2_score(y_train, obj.predict(X_train))
-    score_test = r2_score(y_test, obj.predict(X_test))
-    assert score_train - score_test < 0.25, "The model is overfitting."
-
-
-@pytest.mark.parametrize('estimator, params', estimators_params_regs)
-def test_optimize_by_randomsearchcv_model_persistence_regression(estimator, params):
-    X, y = make_regression(n_samples=100, n_features=10, n_informative=5, n_targets=1, random_state=1)
-    # Initialize the estimator
-    est = estimator()
-    # Create keyword arguments for randomSearchCV
-    kwargs = {
-        'kwargs': {
-            'random_search_kwargs': {
-                'estimator': est,
-                'param_distributions': params,
-                'scoring':make_scorer(r2_score, greater_is_better=True),
-                'verbose':3,
-                'n_jobs':-1,
-                'cv':KFold(2),
-                'n_iter':10,
-            },
-            'main_random_kwargs': {},
-            'fit_random_kwargs': {}
-        }
-    }
-
-    # Run optimize_by_randomsearchcv
-    obj = BaseModel().optimize_by_randomsearchcv(**kwargs)
-    obj.fit(X,y)
-    joblib.dump(obj, 'test_model.pkl')
-    loaded_model = joblib.load('test_model.pkl')
-    assert np.allclose(obj.predict(X), loaded_model.predict(X)), "The saved model does not match the loaded model."
-    os.remove('test_model.pkl')
-
-@pytest.mark.parametrize('estimator, params', estimators_params_regs)
-def test_optimize_by_randomsearchcv_efficiency_regression(estimator, params):
-    X, y = make_regression(n_samples=100, n_features=10, n_informative=5, n_targets=1, random_state=1)
-    est = estimator()
-    # Create keyword arguments for randomSearchCV
-    kwargs = {
-        'kwargs': {
-            'random_search_kwargs': {
-                'estimator': est,
-                'param_distributions': params,
-                'scoring':make_scorer(r2_score, greater_is_better=True),
-                'verbose':3,
-                'n_jobs':-1,
-                'cv':KFold(2),
-                'n_iter':10,
-            },
-            'main_random_kwargs': {},
-            'fit_random_kwargs': {}
-        }
-    }
-
-    start_time = time.time()
-    obj = BaseModel().optimize_by_randomsearchcv(**kwargs)
-    obj.fit(X, y)
-    end_time = time.time()
-    assert end_time - start_time < 100, "The model took too long to train."
+    @pytest.mark.parametrize('estimator, params', globals()[f'estimators_params_{test_type}s'])
+    def test_persistence(estimator, params):
+        obj, score, X_test, y_test,y_train = setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
+        model_path = 'test_model.pkl'
+        joblib.dump(obj, model_path)
+        loaded_model = joblib.load(model_path)
+        assert np.allclose(obj.predict(X_test), loaded_model.predict(X_test)), "The saved model does not match the loaded model."
+        os.remove(model_path)
+    
+    @pytest.mark.parametrize('estimator, params', globals()[f'estimators_params_{test_type}s'])
+    def test_performance(estimator, params):
+        start_time = time.time()
+        obj, score, X_test, y_test,y_train= setup_test(estimator, params, 'f1_macro' if test_type == 'clf' else 'r2', 'classification' if test_type == 'clf' else 'regression')
+        end_time = time.time()
+        assert end_time - start_time < 100, "The model took too long to train."

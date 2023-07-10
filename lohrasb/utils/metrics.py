@@ -9,6 +9,7 @@ from lohrasb import logger
 # for load Environment Variables
 # True there will not be default args for metric
 
+
 def f1_plus_tp(y_true, y_pred):
     """Return f1_score+True Positive
 
@@ -21,15 +22,15 @@ def f1_plus_tp(y_true, y_pred):
     y_pred : Pandas DataFrame or Pandas Series
         The predicted values.
     """
-    
+
     # Calculate the F1 score using the f1_score function
     f1 = f1_score(y_true, y_pred)
-    
+
     # Compute the confusion matrix using the confusion_matrix function
     # The labels argument specifies the order of the labels in the matrix
     # Here, it is set to [0, 1] indicating that label 0 corresponds to the first row, and label 1 corresponds to the second row
     _, _, _, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
-    
+
     # Add the count of true positives to the F1 score
     return f1 + tp
 
@@ -58,6 +59,7 @@ def f1_plus_tn(y_true, y_pred):
     # Add the count of true negatives to the F1 score
     return f1 + tn
 
+
 def specificity(y_true, y_pred):
     """Return Specificity
 
@@ -78,6 +80,7 @@ def specificity(y_true, y_pred):
 
     # Calculate specificity by dividing true negatives by the sum of true negatives and false positives
     return tn / (tn + fp)
+
 
 def tn_score(y_true, y_pred):
     """Return True Negative (TN) Score
@@ -100,6 +103,7 @@ def tn_score(y_true, y_pred):
     # Return the count of true negatives
     return tn
 
+
 def tn(y_true, y_pred):
     """Return True Negative (TN)
 
@@ -120,6 +124,7 @@ def tn(y_true, y_pred):
 
     # Return the count of true negatives
     return tn
+
 
 def tp_score(y_true, y_pred):
     """Return True Positive (TP) Score
@@ -142,6 +147,7 @@ def tp_score(y_true, y_pred):
     # Return the count of true positives
     return tp
 
+
 def tp(y_true, y_pred):
     """Return True Positive (TP)
 
@@ -162,6 +168,7 @@ def tp(y_true, y_pred):
 
     # Return the count of true positives
     return tp
+
 
 def roc_plus_f1(y_true, y_pred):
     """Return ROC + F1 Score
@@ -184,6 +191,7 @@ def roc_plus_f1(y_true, y_pred):
 
     # Return the sum of the F1 score and the ROC curve
     return np.sum(f1 + roc)
+
 
 def auc_plus_f1(y_true, y_pred):
     """Return AUC + F1 Score
@@ -250,6 +258,7 @@ def precision_recall_curve_ret(y_true, y_pred):
     # Return the sum of the precision and recall values
     return np.sum(precision) + np.sum(recall)
 
+
 def precision_recall_fscore_support_ret(y_true, y_pred):
     """Return Precision, Recall, F1-Score, and Support
 
@@ -289,8 +298,9 @@ def roc_curve_ret(y_true, y_pred):
     # Return the difference between the sum of the true positive rates (tpr) and the sum of the false positive rates (fpr)
     return np.sum(tpr) - np.sum(fpr)
 
+
 class CalcMetrics:
-    """ 
+    """
     Class for calculating metrics.
 
     Parameters
@@ -398,7 +408,12 @@ class CalcMetrics:
         d = {}
         for name, value in args_of_func.items():
             value_str = str(value)
-            if "=" in value_str and value not in ["y_true", "y_score", "y_pred", "y_prob"]:
+            if "=" in value_str and value not in [
+                "y_true",
+                "y_score",
+                "y_pred",
+                "y_prob",
+            ]:
                 d[name] = value
         func_default_args = d
         return func_default_args

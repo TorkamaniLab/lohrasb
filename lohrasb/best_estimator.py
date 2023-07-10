@@ -1,16 +1,18 @@
 from abc import ABCMeta
 from pickletools import optimize
+
 from sklearn.base import BaseEstimator
+
 from lohrasb import logger
 from lohrasb.abstracts.estimators import AbstractEstimator
 from lohrasb.base_classes.optimizer_bases import (
     GridSearch,
+    NewOptunaSearch,
     OptunaSearch,
     RandomSearch,
+    TuneCV,
     TuneGridSearch,
     TuneSearch,
-    NewOptunaSearch,
-    TuneCV,
 )
 
 
@@ -579,30 +581,45 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
             GridBestEstimator instance.
         """
         # Ensure grid_search_kwargs, main_grid_kwargs are provided and are dictionaries
-        required_kwargs = ['grid_search_kwargs']
+        required_kwargs = ["grid_search_kwargs"]
         for kwarg in required_kwargs:
-            if kwarg not in kwargs['kwargs']:
-                raise ValueError(f'Missing required keyword argument: {kwarg}')
-            if not isinstance(kwargs['kwargs'][kwarg], dict):
-                raise TypeError(f'Expected a dictionary for keyword argument: {kwarg}')
+            if kwarg not in kwargs["kwargs"]:
+                raise ValueError(f"Missing required keyword argument: {kwarg}")
+            if not isinstance(kwargs["kwargs"][kwarg], dict):
+                raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
 
         # fit_grid_kwargs should be a dictionary, if provided
-        if 'fit_grid_kwargs' in kwargs['kwargs'] and not isinstance(kwargs['kwargs']['fit_grid_kwargs'], dict):
-            raise TypeError(f'Expected a dictionary for keyword argument: fit_grid_kwargs')
+        if "fit_grid_kwargs" in kwargs["kwargs"] and not isinstance(
+            kwargs["kwargs"]["fit_grid_kwargs"], dict
+        ):
+            raise TypeError(
+                "Expected a dictionary for keyword argument: fit_grid_kwargs"
+            )
 
         # Ensure the 'estimator' key exists within the grid_search_kwargs and is an estimator
-        if 'estimator' not in kwargs['kwargs']['grid_search_kwargs']:
-            raise ValueError("The 'estimator' key must exist within the grid_search_kwargs.")
-        if not hasattr(kwargs['kwargs']['grid_search_kwargs']['estimator'], 'fit') or not hasattr(kwargs['kwargs']['grid_search_kwargs']['estimator'], 'predict'):
-            raise TypeError("The 'estimator' must have both 'fit' and 'predict' methods.")
+        if "estimator" not in kwargs["kwargs"]["grid_search_kwargs"]:
+            raise ValueError(
+                "The 'estimator' key must exist within the grid_search_kwargs."
+            )
+        if not hasattr(
+            kwargs["kwargs"]["grid_search_kwargs"]["estimator"], "fit"
+        ) or not hasattr(
+            kwargs["kwargs"]["grid_search_kwargs"]["estimator"], "predict"
+        ):
+            raise TypeError(
+                "The 'estimator' must have both 'fit' and 'predict' methods."
+            )
 
         # Ensure the 'param_grid' key exists within the grid_search_kwargs and is a dictionary
-        if 'param_grid' not in kwargs['kwargs']['grid_search_kwargs']:
-            raise ValueError("The 'param_grid' key must exist within the grid_search_kwargs.")
-        if not isinstance(kwargs['kwargs']['grid_search_kwargs']['param_grid'], dict):
+        if "param_grid" not in kwargs["kwargs"]["grid_search_kwargs"]:
+            raise ValueError(
+                "The 'param_grid' key must exist within the grid_search_kwargs."
+            )
+        if not isinstance(kwargs["kwargs"]["grid_search_kwargs"]["param_grid"], dict):
             raise TypeError("'param_grid' must be a dictionary of parameters to tune.")
 
         return GridBestEstimator(**kwargs)
+
     @classmethod
     def optimize_by_optunasearchcv(cls, *args, **kwargs):
         """
@@ -631,30 +648,43 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         """
 
         # Ensure kwargs is provided and is a dictionary
-        if 'kwargs' not in kwargs or not isinstance(kwargs['kwargs'], dict):
+        if "kwargs" not in kwargs or not isinstance(kwargs["kwargs"], dict):
             raise TypeError("The 'kwargs' key must exist and must be a dictionary.")
 
         # Ensure newoptuna_search_kwargs, main_newoptuna_kwargs are provided and are dictionaries
-        required_kwargs = ['newoptuna_search_kwargs', 'main_newoptuna_kwargs']
+        required_kwargs = ["newoptuna_search_kwargs", "main_newoptuna_kwargs"]
         for kwarg in required_kwargs:
-            if kwarg not in kwargs['kwargs']:
+            if kwarg not in kwargs["kwargs"]:
                 raise ValueError(f"Missing required keyword argument: {kwarg}")
-            if not isinstance(kwargs['kwargs'][kwarg], dict):
+            if not isinstance(kwargs["kwargs"][kwarg], dict):
                 raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
 
         # fit_newoptuna_kwargs should be a dictionary, if provided
-        if 'fit_newoptuna_kwargs' in kwargs['kwargs'] and not isinstance(kwargs['kwargs']['fit_newoptuna_kwargs'], dict):
-            raise TypeError("Expected a dictionary for keyword argument: fit_newoptuna_kwargs")
+        if "fit_newoptuna_kwargs" in kwargs["kwargs"] and not isinstance(
+            kwargs["kwargs"]["fit_newoptuna_kwargs"], dict
+        ):
+            raise TypeError(
+                "Expected a dictionary for keyword argument: fit_newoptuna_kwargs"
+            )
 
         # Ensure the 'estimator' key exists within the newoptuna_search_kwargs and is an estimator
-        if 'estimator' not in kwargs['kwargs']['newoptuna_search_kwargs']:
-            raise ValueError("The 'estimator' key must exist within the newoptuna_search_kwargs.")
-        if not hasattr(kwargs['kwargs']['newoptuna_search_kwargs']['estimator'], 'fit') or not hasattr(kwargs['kwargs']['newoptuna_search_kwargs']['estimator'], 'predict'):
-            raise TypeError("The 'estimator' within newoptuna_search_kwargs must have both 'fit' and 'predict' methods.")
+        if "estimator" not in kwargs["kwargs"]["newoptuna_search_kwargs"]:
+            raise ValueError(
+                "The 'estimator' key must exist within the newoptuna_search_kwargs."
+            )
+        if not hasattr(
+            kwargs["kwargs"]["newoptuna_search_kwargs"]["estimator"], "fit"
+        ) or not hasattr(
+            kwargs["kwargs"]["newoptuna_search_kwargs"]["estimator"], "predict"
+        ):
+            raise TypeError(
+                "The 'estimator' within newoptuna_search_kwargs must have both 'fit' and 'predict' methods."
+            )
 
         # Additional checks can be added as necessary...
 
         return NewOptunaBestEstimator(**kwargs)
+
     @classmethod
     def optimize_by_randomsearchcv(cls, *args, **kwargs):
         """
@@ -683,31 +713,43 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         """
 
         # Ensure kwargs is provided and is a dictionary
-        if 'kwargs' not in kwargs or not isinstance(kwargs['kwargs'], dict):
+        if "kwargs" not in kwargs or not isinstance(kwargs["kwargs"], dict):
             raise TypeError("The 'kwargs' key must exist and must be a dictionary.")
 
         # Ensure random_search_kwargs, main_random_kwargs are provided and are dictionaries
-        required_kwargs = ['random_search_kwargs', 'main_random_kwargs']
+        required_kwargs = ["random_search_kwargs", "main_random_kwargs"]
         for kwarg in required_kwargs:
-            if kwarg not in kwargs['kwargs']:
+            if kwarg not in kwargs["kwargs"]:
                 raise ValueError(f"Missing required keyword argument: {kwarg}")
-            if not isinstance(kwargs['kwargs'][kwarg], dict):
+            if not isinstance(kwargs["kwargs"][kwarg], dict):
                 raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
 
         # fit_random_kwargs should be a dictionary, if provided
-        if 'fit_random_kwargs' in kwargs['kwargs'] and not isinstance(kwargs['kwargs']['fit_random_kwargs'], dict):
-            raise TypeError("Expected a dictionary for keyword argument: fit_random_kwargs")
+        if "fit_random_kwargs" in kwargs["kwargs"] and not isinstance(
+            kwargs["kwargs"]["fit_random_kwargs"], dict
+        ):
+            raise TypeError(
+                "Expected a dictionary for keyword argument: fit_random_kwargs"
+            )
 
         # Ensure the 'estimator' key exists within the random_search_kwargs and is an estimator
-        if 'estimator' not in kwargs['kwargs']['random_search_kwargs']:
-            raise ValueError("The 'estimator' key must exist within the random_search_kwargs.")
-        if not hasattr(kwargs['kwargs']['random_search_kwargs']['estimator'], 'fit') or not hasattr(kwargs['kwargs']['random_search_kwargs']['estimator'], 'predict'):
-            raise TypeError("The 'estimator' within random_search_kwargs must have both 'fit' and 'predict' methods.")
+        if "estimator" not in kwargs["kwargs"]["random_search_kwargs"]:
+            raise ValueError(
+                "The 'estimator' key must exist within the random_search_kwargs."
+            )
+        if not hasattr(
+            kwargs["kwargs"]["random_search_kwargs"]["estimator"], "fit"
+        ) or not hasattr(
+            kwargs["kwargs"]["random_search_kwargs"]["estimator"], "predict"
+        ):
+            raise TypeError(
+                "The 'estimator' within random_search_kwargs must have both 'fit' and 'predict' methods."
+            )
 
         # Additional checks can be added as necessary...
 
         return RandomBestEstimator(**kwargs)
-    
+
     @classmethod
     def optimize_by_tunegridsearchcv(cls, *args, **kwargs):
         """
@@ -736,30 +778,43 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         """
 
         # Ensure kwargs is provided and is a dictionary
-        if 'kwargs' not in kwargs or not isinstance(kwargs['kwargs'], dict):
+        if "kwargs" not in kwargs or not isinstance(kwargs["kwargs"], dict):
             raise TypeError("The 'kwargs' key must exist and must be a dictionary.")
 
         # Ensure tunegrid_search_kwargs, main_tunegrid_kwargs are provided and are dictionaries
-        required_kwargs = ['tunegrid_search_kwargs', 'main_tunegrid_kwargs']
+        required_kwargs = ["tunegrid_search_kwargs", "main_tunegrid_kwargs"]
         for kwarg in required_kwargs:
-            if kwarg not in kwargs['kwargs']:
+            if kwarg not in kwargs["kwargs"]:
                 raise ValueError(f"Missing required keyword argument: {kwarg}")
-            if not isinstance(kwargs['kwargs'][kwarg], dict):
+            if not isinstance(kwargs["kwargs"][kwarg], dict):
                 raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
 
         # fit_tune_kwargs should be a dictionary, if provided
-        if 'fit_tunegrid_kwargs' in kwargs['kwargs'] and not isinstance(kwargs['kwargs']['fit_tunegrid_kwargs'], dict):
-            raise TypeError("Expected a dictionary for keyword argument: fit_tunegrid_kwargs")
+        if "fit_tunegrid_kwargs" in kwargs["kwargs"] and not isinstance(
+            kwargs["kwargs"]["fit_tunegrid_kwargs"], dict
+        ):
+            raise TypeError(
+                "Expected a dictionary for keyword argument: fit_tunegrid_kwargs"
+            )
 
         # Ensure the 'estimator' key exists within the tunegrid_search_kwargs and is an estimator
-        if 'estimator' not in kwargs['kwargs']['tunegrid_search_kwargs']:
-            raise ValueError("The 'estimator' key must exist within the tunegrid_search_kwargs.")
-        if not hasattr(kwargs['kwargs']['tunegrid_search_kwargs']['estimator'], 'fit') or not hasattr(kwargs['kwargs']['tunegrid_search_kwargs']['estimator'], 'predict'):
-            raise TypeError("The 'estimator' within tunegrid_search_kwargs must have both 'fit' and 'predict' methods.")
+        if "estimator" not in kwargs["kwargs"]["tunegrid_search_kwargs"]:
+            raise ValueError(
+                "The 'estimator' key must exist within the tunegrid_search_kwargs."
+            )
+        if not hasattr(
+            kwargs["kwargs"]["tunegrid_search_kwargs"]["estimator"], "fit"
+        ) or not hasattr(
+            kwargs["kwargs"]["tunegrid_search_kwargs"]["estimator"], "predict"
+        ):
+            raise TypeError(
+                "The 'estimator' within tunegrid_search_kwargs must have both 'fit' and 'predict' methods."
+            )
 
         # Additional checks can be added as necessary...
 
         return TuneGridBestEstimator(**kwargs)
+
     @classmethod
     def optimize_by_tunesearchcv(cls, *args, **kwargs):
         """
@@ -788,26 +843,38 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         """
 
         # Ensure kwargs is provided and is a dictionary
-        if 'kwargs' not in kwargs or not isinstance(kwargs['kwargs'], dict):
+        if "kwargs" not in kwargs or not isinstance(kwargs["kwargs"], dict):
             raise TypeError("The 'kwargs' key must exist and must be a dictionary.")
 
         # Ensure tune_search_kwargs, main_tune_kwargs are provided and are dictionaries
-        required_kwargs = ['tune_search_kwargs', 'main_tune_kwargs']
+        required_kwargs = ["tune_search_kwargs", "main_tune_kwargs"]
         for kwarg in required_kwargs:
-            if kwarg not in kwargs['kwargs']:
+            if kwarg not in kwargs["kwargs"]:
                 raise ValueError(f"Missing required keyword argument: {kwarg}")
-            if not isinstance(kwargs['kwargs'][kwarg], dict):
+            if not isinstance(kwargs["kwargs"][kwarg], dict):
                 raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
 
         # fit_tune_kwargs should be a dictionary, if provided
-        if 'fit_tune_kwargs' in kwargs['kwargs'] and not isinstance(kwargs['kwargs']['fit_tune_kwargs'], dict):
-            raise TypeError("Expected a dictionary for keyword argument: fit_tune_kwargs")
+        if "fit_tune_kwargs" in kwargs["kwargs"] and not isinstance(
+            kwargs["kwargs"]["fit_tune_kwargs"], dict
+        ):
+            raise TypeError(
+                "Expected a dictionary for keyword argument: fit_tune_kwargs"
+            )
 
         # Ensure the 'estimator' key exists within the tune_search_kwargs and is an estimator
-        if 'estimator' not in kwargs['kwargs']['tune_search_kwargs']:
-            raise ValueError("The 'estimator' key must exist within the tune_search_kwargs.")
-        if not hasattr(kwargs['kwargs']['tune_search_kwargs']['estimator'], 'fit') or not hasattr(kwargs['kwargs']['tune_search_kwargs']['estimator'], 'predict'):
-            raise TypeError("The 'estimator' within tune_search_kwargs must have both 'fit' and 'predict' methods.")
+        if "estimator" not in kwargs["kwargs"]["tune_search_kwargs"]:
+            raise ValueError(
+                "The 'estimator' key must exist within the tune_search_kwargs."
+            )
+        if not hasattr(
+            kwargs["kwargs"]["tune_search_kwargs"]["estimator"], "fit"
+        ) or not hasattr(
+            kwargs["kwargs"]["tune_search_kwargs"]["estimator"], "predict"
+        ):
+            raise TypeError(
+                "The 'estimator' within tune_search_kwargs must have both 'fit' and 'predict' methods."
+            )
 
         # Additional checks can be added as necessary...
 
@@ -827,7 +894,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 'kwargs' : dict
                     Additional keyword arguments including:
                     - study_search_kwargs : dict
-                        Arguments for creating a study using Optuna. 
+                        Arguments for creating a study using Optuna.
                         See https://optuna.readthedocs.io/en/stable/reference/generated/optuna.create_study.html
                     - main_optuna_kwargs : dict
                         Required arguments for `BaseModel`, e.g., estimator, estimator_params, measure_of_accuracy.
@@ -835,7 +902,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                         Arguments for `optimize` method of Optuna, except `objective`.
                         See https://optuna.readthedocs.io/en/stable/reference/generated/optuna.study.Study.html#optuna.study.Study.optimize
                     - train_test_split_kwargs : dict
-                        Arguments for `train_test_split` function, such as `cv`, `random_state`, etc. except the *array. 
+                        Arguments for `train_test_split` function, such as `cv`, `random_state`, etc. except the *array.
                         See https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
                     - fit_optuna_kwargs : dict
                         Additional parameters for the `fit` method of the estimator, except `X` and `y`.
@@ -845,26 +912,42 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         OptunaBestEstimator
             Instance of OptunaBestEstimator configured with provided parameters.
         """
-        if 'kwargs' not in kwargs or not isinstance(kwargs['kwargs'], dict):
+        if "kwargs" not in kwargs or not isinstance(kwargs["kwargs"], dict):
             raise TypeError("The 'kwargs' key must exist and must be a dictionary.")
-        
-        required_kwargs = ['study_search_kwargs', 'main_optuna_kwargs', 'optimize_kwargs', 'train_test_split_kwargs']
-        for kwarg in required_kwargs:
-            if kwarg not in kwargs['kwargs']:
-                raise ValueError(f"Missing required keyword argument: {kwarg}")
-            if not isinstance(kwargs['kwargs'][kwarg], dict):
-                raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
-        
-        if 'fit_optuna_kwargs' in kwargs['kwargs'] and not isinstance(kwargs['kwargs']['fit_optuna_kwargs'], dict):
-            raise TypeError("Expected a dictionary for keyword argument: fit_optuna_kwargs")
 
-        if 'estimator' not in kwargs['kwargs']['main_optuna_kwargs']:
-            raise ValueError("The 'estimator' key must exist within the main_optuna_kwargs.")
-        if not hasattr(kwargs['kwargs']['main_optuna_kwargs']['estimator'], 'fit') or not hasattr(kwargs['kwargs']['main_optuna_kwargs']['estimator'], 'predict'):
-            raise TypeError("The 'estimator' within main_optuna_kwargs must have both 'fit' and 'predict' methods.")
+        required_kwargs = [
+            "study_search_kwargs",
+            "main_optuna_kwargs",
+            "optimize_kwargs",
+            "train_test_split_kwargs",
+        ]
+        for kwarg in required_kwargs:
+            if kwarg not in kwargs["kwargs"]:
+                raise ValueError(f"Missing required keyword argument: {kwarg}")
+            if not isinstance(kwargs["kwargs"][kwarg], dict):
+                raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
+
+        if "fit_optuna_kwargs" in kwargs["kwargs"] and not isinstance(
+            kwargs["kwargs"]["fit_optuna_kwargs"], dict
+        ):
+            raise TypeError(
+                "Expected a dictionary for keyword argument: fit_optuna_kwargs"
+            )
+
+        if "estimator" not in kwargs["kwargs"]["main_optuna_kwargs"]:
+            raise ValueError(
+                "The 'estimator' key must exist within the main_optuna_kwargs."
+            )
+        if not hasattr(
+            kwargs["kwargs"]["main_optuna_kwargs"]["estimator"], "fit"
+        ) or not hasattr(
+            kwargs["kwargs"]["main_optuna_kwargs"]["estimator"], "predict"
+        ):
+            raise TypeError(
+                "The 'estimator' within main_optuna_kwargs must have both 'fit' and 'predict' methods."
+            )
 
         return OptunaBestEstimator(**kwargs)
-
 
     @classmethod
     def optimize_by_tune(cls, *args, **kwargs):
@@ -880,7 +963,7 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
                 'kwargs' : dict
                     Additional keyword arguments including:
                     - tuner_kwargs : dict
-                        Arguments for the tuner from Ray. 
+                        Arguments for the tuner from Ray.
                         See https://docs.ray.io/en/latest/tune/index.html
                     - main_tune_kwargs : dict
                         Arguments for the main tuning process including `cv`, `scoring`, `estimator`, etc.
@@ -892,23 +975,33 @@ class BaseModel(BaseEstimator, metaclass=ABCMeta):
         TuneBestEstimator
             Instance of TuneBestEstimator configured with provided parameters.
         """
-        if 'kwargs' not in kwargs or not isinstance(kwargs['kwargs'], dict):
+        if "kwargs" not in kwargs or not isinstance(kwargs["kwargs"], dict):
             raise TypeError("The 'kwargs' key must exist and must be a dictionary.")
-        
-        required_kwargs = ['tuner_kwargs', 'main_tune_kwargs']
-        for kwarg in required_kwargs:
-            if kwarg not in kwargs['kwargs']:
-                raise ValueError(f"Missing required keyword argument: {kwarg}")
-            if not isinstance(kwargs['kwargs'][kwarg], dict):
-                raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
-        
-        if 'fit_tune_kwargs' in kwargs['kwargs'] and not isinstance(kwargs['kwargs']['fit_tune_kwargs'], dict):
-            raise TypeError("Expected a dictionary for keyword argument: fit_tune_kwargs")
 
-        if 'estimator' not in kwargs['kwargs']['main_tune_kwargs']:
-            raise ValueError("The 'estimator' key must exist within the main_tune_kwargs.")
-        if not hasattr(kwargs['kwargs']['main_tune_kwargs']['estimator'], 'fit') or not hasattr(kwargs['kwargs']['main_tune_kwargs']['estimator'], 'predict'):
-            raise TypeError("The 'estimator' within main_tune_kwargs must have both 'fit' and 'predict' methods.")
+        required_kwargs = ["tuner_kwargs", "main_tune_kwargs"]
+        for kwarg in required_kwargs:
+            if kwarg not in kwargs["kwargs"]:
+                raise ValueError(f"Missing required keyword argument: {kwarg}")
+            if not isinstance(kwargs["kwargs"][kwarg], dict):
+                raise TypeError(f"Expected a dictionary for keyword argument: {kwarg}")
+
+        if "fit_tune_kwargs" in kwargs["kwargs"] and not isinstance(
+            kwargs["kwargs"]["fit_tune_kwargs"], dict
+        ):
+            raise TypeError(
+                "Expected a dictionary for keyword argument: fit_tune_kwargs"
+            )
+
+        if "estimator" not in kwargs["kwargs"]["main_tune_kwargs"]:
+            raise ValueError(
+                "The 'estimator' key must exist within the main_tune_kwargs."
+            )
+        if not hasattr(
+            kwargs["kwargs"]["main_tune_kwargs"]["estimator"], "fit"
+        ) or not hasattr(kwargs["kwargs"]["main_tune_kwargs"]["estimator"], "predict"):
+            raise TypeError(
+                "The 'estimator' within main_tune_kwargs must have both 'fit' and 'predict' methods."
+            )
 
         return TuneBestEstimator(**kwargs)
 

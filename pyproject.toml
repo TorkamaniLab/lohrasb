@@ -2,7 +2,7 @@
 [tool.poetry]
 name = "lohrasb"
 version = "4.0.0"
-description = "A scalable estimator optimization tool compatible with scikit-learn APIs"
+description = "This versatile tool streamlines hyperparameter optimization in machine learning workflows. It supports a wide range of search methods, from GridSearchCV and RandomizedSearchCV to advanced techniques like OptunaSearchCV, Ray Tune, and Scikit-Learn Tune. Designed to enhance model performance and efficiency, it's suitable for tasks of any scale."
 authors = ["drhosseinjavedani <h.javedani@gmail.com>"]
 homepage = "https://github.com/drhosseinjavedani/lohrasb"
 license = "BSD-3-Clause license"

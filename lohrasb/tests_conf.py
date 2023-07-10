@@ -2,22 +2,15 @@
 # Linear models
 
 import optuna
-from ray import air,tune
-from ray.air import session
-
-from sklearn.linear_model import (
-    ElasticNet,
-    Lasso,
-    LinearRegression,
-    LogisticRegression,
-    Ridge,
-    SGDRegressor,
-)
 
 # Gradient boosting frameworks
 from catboost import CatBoostClassifier, CatBoostRegressor
+
+# Imbalanced-learn ensemble
+from imblearn.ensemble import BalancedRandomForestClassifier
 from lightgbm import LGBMClassifier, LGBMRegressor
-from xgboost import XGBClassifier, XGBRegressor
+from ray import air, tune
+from ray.air import session
 
 # Ensemble methods
 from sklearn.ensemble import (
@@ -30,16 +23,22 @@ from sklearn.ensemble import (
     RandomForestClassifier,
     RandomForestRegressor,
 )
+from sklearn.linear_model import (
+    ElasticNet,
+    Lasso,
+    LinearRegression,
+    LogisticRegression,
+    Ridge,
+    SGDRegressor,
+)
 
 # Other classifiers and regressors
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.neural_network import MLPClassifier, MLPRegressor
-from sklearn.svm import SVC, LinearSVR, SVR
+from sklearn.svm import SVC, SVR, LinearSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-
-# Imbalanced-learn ensemble
-from imblearn.ensemble import BalancedRandomForestClassifier
+from xgboost import XGBClassifier, XGBRegressor
 
 # for gridsearchcv, randomsearchcv
 # Define hyperparameters for each model
@@ -217,7 +216,7 @@ etc_params_clf_optuna_search = {"n_estimators": [50, 200], "max_depth": [5, 10]}
 
 
 # Put models and hyperparameters into a list of tuples
-estimators_params_clf_optuna_search = [
+estimators_params_optuna_clfs = [
     (LogisticRegression, lr_params_clf_optuna_search),
     (RandomForestClassifier, rf_params_clf_optuna_search),
     (XGBClassifier, xgb_params_clf_optuna_search),
@@ -293,7 +292,7 @@ sgr_params_reg_optuna_search = {
 }
 
 # Put models and hyperparameters into a list of tuples
-estimators_params_reg_optuna_search = [
+estimators_params_optuna_regs = [
     (LinearRegression, lr_params_reg_optuna_search),
     (Ridge, ridge_params_reg_optuna_search),
     (Lasso, lasso_params_reg_optuna_search),
@@ -375,7 +374,7 @@ etc_params_optunasearchcv_clf = {
 gnb_params_optunasearchcv_clf = {}
 
 # Put models and hyperparameters into a list of tuples
-estimators_params_optunasearchcv_clf = [
+estimators_params_optunasearchcv_clfs = [
     (LogisticRegression, lr_params_optunasearchcv_clf),
     (RandomForestClassifier, rf_params_optunasearchcv_clf),
     (XGBClassifier, xgb_params_optunasearchcv_clf),
@@ -476,7 +475,7 @@ sgr_params_optunasearchcv_reg = {
 }
 
 # Put models and hyperparameters into a list of tuples
-estimators_params_optunasearchcv_reg = [
+estimators_params_optunasearchcv_regs = [
     (LinearRegression, lr_params_optunasearchcv_reg),
     (Ridge, ridge_params_optunasearchcv_reg),
     (Lasso, lasso_params_optunasearchcv_reg),
@@ -538,14 +537,10 @@ svc_params_tunesearch_clfs = {
 }
 knn_params_tunesearch_clfs = {
     "n_neighbors": tune.randint(3, 7),
-    "weights": tune.choice(
-        ["uniform", "distance"]
-    ),
+    "weights": tune.choice(["uniform", "distance"]),
 }
 dtc_params_tunesearch_clfs = {
-    "criterion": tune.choice(
-        ["gini", "entropy"]
-    ),
+    "criterion": tune.choice(["gini", "entropy"]),
     "max_depth": tune.randint(5, 10),
 }
 etc_params_tunesearch_clfs = {
@@ -565,16 +560,14 @@ estimators_params_tunesearch_clfs = [
     (GradientBoostingClassifier, gbc_params_tunesearch_clfs),
     (AdaBoostClassifier, abc_params_tunesearch_clfs),
     (SVC, svc_params_tunesearch_clfs),
-   # (KNeighborsClassifier, knn_params_tunesearch_clfs),
+    # (KNeighborsClassifier, knn_params_tunesearch_clfs),
     (DecisionTreeClassifier, dtc_params_tunesearch_clfs),
     (ExtraTreesClassifier, etc_params_tunesearch_clfs),
-   # (GaussianNB, gnb_params_tunesearch_clfs),
+    # (GaussianNB, gnb_params_tunesearch_clfs),
 ]
 
 # Define hyperparameters for tune regression
-lr_params_tunesearch_regs = {
-    "fit_intercept": tune.choice([True, False])
-}
+lr_params_tunesearch_regs = {"fit_intercept": tune.choice([True, False])}
 ridge_params_tunesearch_regs = {"alpha": tune.uniform(0.5, 1.0)}
 lasso_params_tunesearch_regs = {"alpha": tune.uniform(0.5, 1.0)}
 elastic_params_tunesearch_regs = {
@@ -593,14 +586,32 @@ cb_params_tunesearch_regs = {
     "depth": tune.randint(3, 5),
     "learning_rate": tune.uniform(0.01, 0.10),
 }
-svr_params_tunesearch_regs = {'kernel': tune.choice(['linear', 'poly', 'rbf', 'sigmoid']), 'C': tune.uniform(0.1, 1.0)}
+svr_params_tunesearch_regs = {
+    "kernel": tune.choice(["linear", "poly", "rbf", "sigmoid"]),
+    "C": tune.uniform(0.1, 1.0),
+}
 lsvr_params_tunesearch_regs = {"C": tune.uniform(0.5, 1.0)}
-knr_params_tunesearch_regs = {'n_neighbors': tune.randint(30,50),  # Increasing the number of neighbors can help in making the model more generalized.
-    'weights': tune.choice(['uniform', 'distance']),  # The 'distance' option can give more importance to closer instances, which may help reduce overfitting.
-    'algorithm': tune.choice(['auto', 'ball_tree', 'kd_tree', 'brute']),  # The algorithm used to compute the nearest neighbors can sometimes have an effect on overfitting, but it generally depends more on the dataset.
-    'p': tune.randint(1, 2)  # This corresponds to the power parameter for the Minkowski metric. 1 is for manhattan_distance and 2 for euclidean_distance.
-    }
-dtr_params_tunesearch_regs = {'max_depth': tune.randint(3, 5), 'min_samples_split': tune.randint(2,  5),'min_samples_leaf': tune.randint(2,  5), 'max_features': tune.choice( ['auto', 'sqrt', 'log2']), 'max_leaf_nodes': tune.randint( 5, 10)}
+knr_params_tunesearch_regs = {
+    "n_neighbors": tune.randint(
+        30, 50
+    ),  # Increasing the number of neighbors can help in making the model more generalized.
+    "weights": tune.choice(
+        ["uniform", "distance"]
+    ),  # The 'distance' option can give more importance to closer instances, which may help reduce overfitting.
+    "algorithm": tune.choice(
+        ["auto", "ball_tree", "kd_tree", "brute"]
+    ),  # The algorithm used to compute the nearest neighbors can sometimes have an effect on overfitting, but it generally depends more on the dataset.
+    "p": tune.randint(
+        1, 2
+    ),  # This corresponds to the power parameter for the Minkowski metric. 1 is for manhattan_distance and 2 for euclidean_distance.
+}
+dtr_params_tunesearch_regs = {
+    "max_depth": tune.randint(3, 5),
+    "min_samples_split": tune.randint(2, 5),
+    "min_samples_leaf": tune.randint(2, 5),
+    "max_features": tune.choice(["auto", "sqrt", "log2"]),
+    "max_leaf_nodes": tune.randint(5, 10),
+}
 rfr_params_tunesearch_regs = {
     "n_estimators": tune.randint(50, 200),
     "max_depth": tune.randint(10, 20),
@@ -619,12 +630,8 @@ abr_params_tunesearch_regs = {
     "learning_rate": tune.uniform(0.001, 0.1),
 }
 sgr_params_tunesearch_regs = {
-    "loss": tune.choice(
-        ["squared_loss", "huber", "epsilon_insensitive"])
-    ,
-    "penalty": tune.choice(
-        {"l2", "l1", "elasticnet"})
-    ,
+    "loss": tune.choice(["squared_loss", "huber", "epsilon_insensitive"]),
+    "penalty": tune.choice({"l2", "l1", "elasticnet"}),
     "alpha": tune.uniform(0.0001, 0.01),
 }
 

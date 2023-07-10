@@ -1,4 +1,6 @@
 from lohrasb import logger
+
+
 def _trail_param_retrive(trial, params_dict, keyword):
     """
     An internal function that returns a trial suggestion using the dictionary of estimator parameters and a specific keyword.
@@ -14,7 +16,7 @@ def _trail_param_retrive(trial, params_dict, keyword):
 
     Parameters:
         trial (Optuna trial): A trial is a process of evaluating an objective function.
-                              For more information, visit: 
+                              For more information, visit:
                               https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html
         params_dict (dict): A dictionary of estimator parameters.
                             Example: {
@@ -50,6 +52,7 @@ def _trail_param_retrive(trial, params_dict, keyword):
             return trial.suggest_float(keyword, min(param_values), max(param_values))
     if isinstance(param_values[0], float):
         return trial.suggest_float(keyword, min(param_values), max(param_values))
+
 
 def _trail_params_retrive(trial, params_dict):
     """
