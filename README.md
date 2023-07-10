@@ -1,4 +1,15 @@
-![GitHub Repo stars](https://img.shields.io/github/stars/drhosseinjavedani/lohrasb) ![GitHub forks](https://img.shields.io/github/forks/drhosseinjavedani/lohrasb) ![GitHub language count](https://img.shields.io/github/languages/count/drhosseinjavedani/lohrasb) ![GitHub repo size](https://img.shields.io/github/repo-size/drhosseinjavedani/lohrasb) ![GitHub](https://img.shields.io/github/license/drhosseinjavedani/lohrasb)![PyPI - Downloads](https://img.shields.io/pypi/dd/lohrasb) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/lohrasb) 
+![GitHub Repo stars](https://img.shields.io/github/stars/drhosseinjavedani/lohrasb) 
+![GitHub forks](https://img.shields.io/github/forks/drhosseinjavedani/lohrasb) 
+![GitHub language count](https://img.shields.io/github/languages/count/drhosseinjavedani/lohrasb) 
+![GitHub repo size](https://img.shields.io/github/repo-size/drhosseinjavedani/lohrasb) 
+![GitHub](https://img.shields.io/github/license/drhosseinjavedani/lohrasb)
+![PyPI - Downloads](https://img.shields.io/pypi/dd/lohrasb) 
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/lohrasb)
+![GitHub issues](https://img.shields.io/github/issues/drhosseinjavedani/lohrasb)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
+![Codacy Badge](https://img.shields.io/codacy/grade/e27821fb6289410b8f58338c7e0bc686)
+![GitHub contributors](https://img.shields.io/github/contributors/drhosseinjavedani/lohrasb)
+![GitHub last commit](https://img.shields.io/github/last-commit/drhosseinjavedani/lohrasb)
 
 # Lohrasb
 Introducing **Lohrasb**, a powerful tool designed to streamline machine learning development by providing scalable hyperparameter tuning solutions. Lohrasb incorporates several robust optimization frameworks including [Optuna](https://optuna.readthedocs.io/en/stable/index.html), [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html), [RandomizedSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.RandomizedSearchCV.html), and [Ray Tune Scikit-Learn API](https://docs.ray.io/en/latest/tune/api_docs/sklearn.html). Its compatibility extends to the majority of estimators from Scikit-learn as well as popular machine learning libraries such as [CatBoost](https://catboost.ai/) and [LightGBM](https://lightgbm.readthedocs.io/en/latest/), offering a seamless hyperparameter tuning experience.
