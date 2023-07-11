@@ -5,7 +5,7 @@ pipeline {
      stages {
           stage('build-test-lohrasb') {
                steps {
-                    sh '''
+                                             sh '''
                                                  docker version
                                                  docker info
                                                  docker build -f Dockerfile.test -t build-image-test-lohrasb .
@@ -15,7 +15,7 @@ pipeline {
 
           stage('build-container-test-lohrasb') {
                steps {
-                    sh '''
+                                             sh '''
                                                  docker run build-image-test-lohrasb
                                                 '''
                }
@@ -23,7 +23,7 @@ pipeline {
 
           stage('build-image-pypi-lohrasb') {
                steps {
-                    sh '''
+                                                  sh '''
                                                  docker version
                                                  docker info
                                                  docker build -f Dockerfile.publish -t build-image-pypi-lohrasb .
@@ -46,7 +46,7 @@ pipeline {
                                               ])
 
                                               {
-                         sh '''
+                                             sh '''
                                                  docker run --env username=${username} --env password=${password} --env gitusername=${gitusername}  --env gitpassword=${gitpassword} build-image-pypi-lohrasb
                                                  '''
                                               }

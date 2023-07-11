@@ -29,12 +29,12 @@ RUN pip3 install --upgrade pip && \
 # Install project dependencies without installing the actual package (useful for development)
 RUN poetry install --no-root --no-interaction --no-ansi
 
-# Change to the 'admin' user
-USER admin
-
 # Build the project and make the entrypoint script executable
 RUN poetry build && \
     chmod +x ./entrypoint.sh
+
+# Change to the 'admin' user
+USER admin
 
 # Run entrypoint.sh
 CMD ["bash", "./entrypoint.sh"]
