@@ -1,24 +1,26 @@
 # Import necessary libraries
-from sklearn.datasets import make_classification, make_regression
 import optuna
-from sklearn.model_selection import KFold, train_test_split
-from sklearn.metrics import f1_score, r2_score
-from lohrasb.best_estimator import BaseModel
+from optuna.pruners import HyperbandPruner
+from optuna.samplers import TPESampler
+from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import Ridge
-from optuna.samplers import TPESampler
-from optuna.pruners import HyperbandPruner
+from sklearn.metrics import f1_score, r2_score
+from sklearn.model_selection import KFold, train_test_split
+
+from lohrasb.best_estimator import BaseModel
 
 # Define hyperparameters for the AdaBoostClassifier and Ridge regressor
 adb_params = {
-    'n_estimators': [50,  200],
-    'learning_rate': [0.01,  1.0],
-    'algorithm': ['SAMME', 'SAMME.R'],
+    "n_estimators": [50, 200],
+    "learning_rate": [0.01, 1.0],
+    "algorithm": ["SAMME", "SAMME.R"],
 }
 ridge_params_reg = {
-    'fit_intercept': [True, False],
-    'solver': ['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 'saga']
+    "fit_intercept": [True, False],
+    "solver": ["auto", "svd", "cholesky", "lsqr", "sparse_cg", "sag", "saga"],
 }
+
 
 # Function for training and evaluating a classification model
 def using_tune_classification(estimator, params):
@@ -42,8 +44,7 @@ def using_tune_classification(estimator, params):
     # Use Optuna for hyperparameter optimization
     obj = BaseModel().optimize_by_optuna(
         kwargs={
-            "fit_optuna_kwargs": {
-            },
+            "fit_optuna_kwargs": {},
             "main_optuna_kwargs": {
                 "estimator": est,
                 "estimator_params": params,
@@ -94,8 +95,7 @@ def using_tune_regression(estimator, params):
     # Use Optuna for hyperparameter optimization
     obj = BaseModel().optimize_by_optuna(
         kwargs={
-            "fit_optuna_kwargs": {
-            },
+            "fit_optuna_kwargs": {},
             "main_optuna_kwargs": {
                 "estimator": est,
                 "estimator_params": params,

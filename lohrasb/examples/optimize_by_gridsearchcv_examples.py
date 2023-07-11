@@ -1,14 +1,16 @@
 import os
 import time
-import pytest
+
 import joblib
 import numpy as np
+import pytest
 from sklearn.datasets import make_classification, make_regression
-from sklearn.model_selection import KFold, train_test_split
-from sklearn.metrics import f1_score, r2_score
-from lohrasb.best_estimator import BaseModel
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import Lasso, LinearRegression
+from sklearn.metrics import f1_score, r2_score
+from sklearn.model_selection import KFold, train_test_split
+
+from lohrasb.best_estimator import BaseModel
 
 # Define hyperparameters for the classifiers and regressors
 rf_params = {"n_estimators": [50, 100, 200], "max_depth": [None, 10, 20]}

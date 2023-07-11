@@ -1,10 +1,11 @@
 # Import necessary libraries
-from sklearn.datasets import make_classification, make_regression
-from sklearn.model_selection import KFold, train_test_split
-from sklearn.metrics import f1_score, r2_score
-from lohrasb.best_estimator import BaseModel
-from sklearn.neural_network import MLPRegressor
 from lightgbm import LGBMClassifier
+from sklearn.datasets import make_classification, make_regression
+from sklearn.metrics import f1_score, r2_score
+from sklearn.model_selection import KFold, train_test_split
+from sklearn.neural_network import MLPRegressor
+
+from lohrasb.best_estimator import BaseModel
 
 # Define hyperparameters for the MLPRegressor and LGBMClassifier
 # These will be the values that the hyperparameter search function will iterate through.
@@ -16,6 +17,7 @@ mlp_params_reg = {
     "learning_rate": ["constant", "adaptive"],
 }
 lgbm_params = {"max_depth": [5, 6, 7, 10]}
+
 
 # Function for training and evaluating a classification model
 def using_tune_classification(estimator, params):

@@ -1,7 +1,7 @@
 import os
 import time
 import pytest
-import joblib
+import dill
 import numpy as np
 from sklearn.datasets import make_classification, make_regression
 from sklearn.model_selection import KFold, train_test_split

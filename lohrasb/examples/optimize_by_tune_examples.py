@@ -1,30 +1,26 @@
-from ray.tune.search.hyperopt import HyperOptSearch
 import optuna
-
-# Datasets
-from sklearn.datasets import make_classification, make_regression
-
-# Custom estimator
-from lohrasb.best_estimator import BaseModel
 
 # Gradient boosting frameworks
 from catboost import CatBoostClassifier
-from xgboost import XGBClassifier
-
-# metrics
-from sklearn.metrics import r2_score, f1_score
 
 # Imbalanced-learn ensemble
 from imblearn.ensemble import BalancedRandomForestClassifier
 from ray import air, tune
+from ray.tune.search.hyperopt import HyperOptSearch
+
+# Datasets
+from sklearn.datasets import make_classification, make_regression
+from sklearn.linear_model import Ridge, SGDRegressor
+
+# metrics
+from sklearn.metrics import f1_score, r2_score
 
 # others
 from sklearn.model_selection import train_test_split
+from xgboost import XGBClassifier
 
-from sklearn.linear_model import (
-    Ridge,
-    SGDRegressor,
-)
+# Custom estimator
+from lohrasb.best_estimator import BaseModel
 
 # Define hyperparameters for each model
 xgb_params = {

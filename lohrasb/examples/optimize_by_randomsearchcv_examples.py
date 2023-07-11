@@ -1,9 +1,10 @@
 from sklearn.datasets import make_classification, make_regression
-from sklearn.model_selection import KFold, train_test_split
-from sklearn.metrics import f1_score, r2_score
-from lohrasb.best_estimator import BaseModel
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import Ridge
+from sklearn.metrics import f1_score, r2_score
+from sklearn.model_selection import KFold, train_test_split
+
+from lohrasb.best_estimator import BaseModel
 
 # Define hyperparameters for the classifiers and regressors
 adb_params = {"n_estimators": [50, 100, 200], "learning_rate": [0.001, 0.01, 0.1]}

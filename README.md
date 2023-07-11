@@ -7,7 +7,6 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/lohrasb)
 ![GitHub issues](https://img.shields.io/github/issues/drhosseinjavedani/lohrasb)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
-![Codacy Badge](https://img.shields.io/codacy/grade/e27821fb6289410b8f58338c7e0bc686)
 ![GitHub contributors](https://img.shields.io/github/contributors/drhosseinjavedani/lohrasb)
 ![GitHub last commit](https://img.shields.io/github/last-commit/drhosseinjavedani/lohrasb)
 
