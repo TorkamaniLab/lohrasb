@@ -1,6 +1,5 @@
 from lohrasb import __version__
-import pkg_resources
-lohrasb_version = pkg_resources.get_distribution('lohrasb').version
+lohrasb_version = __version__ 
 
 def test_version():
     """test version"""

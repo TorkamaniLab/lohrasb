@@ -3,7 +3,6 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import Ridge
 from sklearn.metrics import f1_score, r2_score
 from sklearn.model_selection import KFold, train_test_split
-
 from lohrasb.best_estimator import BaseModel
 
 # Define hyperparameters for the classifiers and regressors

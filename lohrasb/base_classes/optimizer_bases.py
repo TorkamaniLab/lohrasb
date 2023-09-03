@@ -1,45 +1,14 @@
 import numpy as np
 import optuna
 import pandas as pd
-import ray
-
-# Gradient boosting frameworks
 from catboost import *
-from catboost import CatBoostClassifier, CatBoostRegressor
-
-# Imbalanced-learn ensemble
-from imblearn.ensemble import *
 from imblearn.ensemble import BalancedRandomForestClassifier
-from interpret.blackbox import *
-from interpret.glassbox import *
 from lightgbm import *
-from lightgbm import LGBMClassifier, LGBMRegressor
 from optuna.integration import OptunaSearchCV
-from ray import tune
-from ray.air import session
+from ray import air, tune
 from ray.tune.sklearn import TuneGridSearchCV, TuneSearchCV
-
-# Ensemble methods
 from sklearn.ensemble import *
-from sklearn.ensemble import (
-    AdaBoostClassifier,
-    AdaBoostRegressor,
-    ExtraTreesClassifier,
-    ExtraTreesRegressor,
-    GradientBoostingClassifier,
-    GradientBoostingRegressor,
-    RandomForestClassifier,
-    RandomForestRegressor,
-)
 from sklearn.linear_model import *
-from sklearn.linear_model import (
-    ElasticNet,
-    Lasso,
-    LinearRegression,
-    LogisticRegression,
-    Ridge,
-    SGDRegressor,
-)
 from sklearn.metrics import *
 from sklearn.model_selection import (
     GridSearchCV,
@@ -47,25 +16,15 @@ from sklearn.model_selection import (
     cross_val_score,
     train_test_split,
 )
-
-# Other classifiers and regressors
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.neural_network import *
-from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.svm import *
-from sklearn.svm import SVC, SVR, LinearSVR
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import *
-from xgboost import XGBClassifier, XGBRegressor
-from xgbse import *
 
 from lohrasb import logger
 from lohrasb.abstracts.optimizers import OptimizerABC
 from lohrasb.decorators.decorators import trackcalls
 from lohrasb.utils.helper_funcs import _trail_params_retrive  # maping_mesurements,
 from lohrasb.utils.metrics import *
-from lohrasb.utils.metrics import CalcMetrics
 
 
 class OptunaSearch(OptimizerABC):

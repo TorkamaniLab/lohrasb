@@ -1,15 +1,16 @@
-__version__ = "4.0.0"
+__version__ = "4.1.0"
 
 import logging
 import logging.config
 import os
-from pathlib import Path, PurePath
 
-import ray
-import yaml
 from dotenv import load_dotenv
+from ruamel.yaml import YAML
 
 from .project_conf import ROOT_PROJECT
+
+yaml = YAML()
+
 
 PATH_TO_LOG_CONF = ROOT_PROJECT / "lohrasb" / "config.yaml"
 
@@ -20,7 +21,7 @@ DEFAULT_LEVEL = logging.ERROR
 def log_setup(log_cfg_path=PATH_TO_LOG_CONF):
     try:
         with open(PATH_TO_LOG_CONF, "r") as f:
-            config = yaml.safe_load(f.read())
+            config = yaml.load(f.read())
             logging.config.dictConfig(config)
             # set up logging configuration
             return True
@@ -42,14 +43,3 @@ else:
     print("default logger setting is applied !")
     logging.basicConfig(level=DEFAULT_LEVEL)
     logger = logging.getLogger()
-
-
-# # Use Ray to accelerate computing
-# try:
-#     # Try to connect to Ray cluster.
-#     ray.init(address="auto", ignore_reinit_error=True)
-#     logger.info("Connected to Ray cluster!")
-# except Exception as e:
-#     # If connection fails, start Ray locally.
-#     ray.init()
-#     logger.warning("This error happened {e}. So Ray Started locally.")

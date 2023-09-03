@@ -1,12 +1,11 @@
 # Import necessary libraries
-import optuna
 from optuna.pruners import HyperbandPruner
 from optuna.samplers import TPESampler
 from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import Ridge
 from sklearn.metrics import f1_score, r2_score
-from sklearn.model_selection import KFold, train_test_split
+from sklearn.model_selection import train_test_split
 
 from lohrasb.best_estimator import BaseModel
 

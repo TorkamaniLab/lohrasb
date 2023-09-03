@@ -369,10 +369,6 @@ class CalcMetrics:
             "mean_poisson_deviance": mean_poisson_deviance,
             "mean_gamma_deviance": mean_gamma_deviance,
             "mean_tweedie_deviance": mean_tweedie_deviance,
-            "d2_tweedie_score": d2_tweedie_score,
-            "mean_pinball_loss": mean_pinball_loss,
-            "d2_pinball_score": d2_pinball_score,
-            "d2_absolute_error_score": d2_absolute_error_score,
         },
         change_default_args_of_metric=False,
         *args,
@@ -587,10 +583,6 @@ class CalcMetrics:
             "mean_poisson_deviance",
             "mean_gamma_deviance",
             "mean_tweedie_deviance",
-            "d2_tweedie_score",
-            "mean_pinball_loss",
-            "d2_pinball_score",
-            "d2_absolute_error_score",
         ]
 
         if (

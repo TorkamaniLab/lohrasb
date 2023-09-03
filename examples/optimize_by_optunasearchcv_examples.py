@@ -1,14 +1,19 @@
-from catboost import CatBoostRegressor
-from lightgbm import LGBMClassifier
+import optuna
 from sklearn.datasets import make_classification, make_regression
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.linear_model import Ridge
 from sklearn.metrics import f1_score, r2_score
 from sklearn.model_selection import KFold, train_test_split
-
 from lohrasb.best_estimator import BaseModel
 
 # Define hyperparameters for the classifiers and regressors
-cat_params_reg = {"n_estimators": [50, 100, 200], "learning_rate": [0.001, 0.01, 0.1]}
-lgbm_params = {"max_depth": [5, 6, 7, 10], "gamma": [0.01, 0.1, 1, 1.2]}
+adb_params = {
+    "n_estimators": optuna.distributions.IntDistribution(50, 200),
+    "learning_rate": optuna.distributions.FloatDistribution(0.001, 0.1),
+}
+ridge_params_reg = {
+    "fit_intercept": optuna.distributions.CategoricalDistribution(choices=[True, False])
+}
 
 
 def using_tune_classification(estimator, params):
@@ -27,18 +32,18 @@ def using_tune_classification(estimator, params):
 
     # Initialize the estimator and create a model with the specified hyperparameters
     est = estimator()
-    obj = BaseModel().optimize_by_tunegridsearchcv(
+    obj = BaseModel().optimize_by_optunasearchcv(
         kwargs={
-            "fit_tunegrid_kwargs": {"sample_weight": None},
-            "tunegrid_search_kwargs": {
+            "fit_newoptuna_kwargs": {"sample_weight": None},
+            "newoptuna_search_kwargs": {
                 "estimator": est,
-                "param_grid": params,
+                "param_distributions": params,
                 "scoring": "f1_micro",
                 "verbose": 3,
                 "n_jobs": -1,
                 "cv": KFold(2),
             },
-            "main_tunegrid_kwargs": {},
+            "main_newoptuna_kwargs": {},
         }
     )
 
@@ -59,18 +64,18 @@ def using_tune_regression(estimator, params):
 
     # Initialize the estimator and create a model with the specified hyperparameters
     est = estimator()
-    obj = BaseModel().optimize_by_tunegridsearchcv(
+    obj = BaseModel().optimize_by_optunasearchcv(
         kwargs={
-            "fit_tunegrid_kwargs": {"sample_weight": None},
-            "tunegrid_search_kwargs": {
+            "fit_newoptuna_kwargs": {"sample_weight": None},
+            "newoptuna_search_kwargs": {
                 "estimator": est,
-                "param_grid": params,
+                "param_distributions": params,
                 "scoring": "r2",
                 "verbose": 3,
                 "n_jobs": -1,
                 "cv": KFold(2),
             },
-            "main_tunegrid_kwargs": {},
+            "main_newoptuna_kwargs": {},
         }
     )
 
@@ -84,7 +89,7 @@ def using_tune_regression(estimator, params):
 
 
 # Run regression examples
-using_tune_regression(CatBoostRegressor, cat_params_reg)
+using_tune_regression(Ridge, ridge_params_reg)
 
 # Run classification examples
-using_tune_classification(LGBMClassifier, lgbm_params)
+using_tune_classification(AdaBoostClassifier, adb_params)
