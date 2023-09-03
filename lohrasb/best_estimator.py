@@ -1,6 +1,8 @@
 from abc import ABCMeta
 from pickletools import optimize
+
 from sklearn.base import BaseEstimator
+
 from lohrasb import logger
 from lohrasb.abstracts.estimators import AbstractEstimator
 from lohrasb.base_classes.optimizer_bases import (
