@@ -25,6 +25,9 @@ from lohrasb.abstracts.optimizers import OptimizerABC
 from lohrasb.decorators.decorators import trackcalls
 from lohrasb.utils.helper_funcs import _trail_params_retrive  # maping_mesurements,
 from lohrasb.utils.metrics import *
+from interpret.blackbox import *
+from interpret.glassbox import *
+from xgbse import *
 
 
 class OptunaSearch(OptimizerABC):
