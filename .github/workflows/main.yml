@@ -3,9 +3,9 @@ name: Python package
 on:
   push:
     branches:
-      - main  # Replaced 'master' with 'main'
+      - main
     tags:
-      - 'v*'  # Will trigger for any tags starting with 'v'
+      - 'v*'
 
 jobs:
   build:
@@ -18,7 +18,22 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Setting up Python
+    # Clear pip cache (For Ubuntu/Linux)
+    - name: Clear pip cache (Ubuntu/Linux)
+      if: runner.os == 'Linux'
+      run: rm -rf ~/.cache/pip
+
+    # Clear pip cache (For Windows)
+    - name: Clear pip cache (Windows)
+      if: runner.os == 'Windows'
+      run: Remove-Item -Recurse -Force "$Env:LOCALAPPDATA\pip\Cache"
+
+    # Clear pip cache (For macOS)
+    - name: Clear pip cache (macOS)
+      if: runner.os == 'macOS'
+      run: rm -rf ~/Library/Caches/pip
+
+    # Set up Python
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -27,11 +42,11 @@ jobs:
     # Upgrade pip
     - name: Upgrade pip
       run: python -m pip install --upgrade pip
-        
+
     # Install Nox for test orchestration
     - name: Install Nox
       run: pip install nox
-      
+
     # Run tests
     - name: Run tests
       run: nox
@@ -42,7 +57,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Setting up Python 3.x
+    # Set up Python 3.x
     - name: Set up Python 3.x
       uses: actions/setup-python@v2
       with:
