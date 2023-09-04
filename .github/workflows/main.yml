@@ -18,21 +18,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Clear pip cache (For Ubuntu/Linux)
-    - name: Clear pip cache (Ubuntu/Linux)
-      if: runner.os == 'Linux'
-      run: rm -rf ~/.cache/pip
-
-    # Clear pip cache (For Windows)
-    - name: Clear pip cache (Windows)
-      if: runner.os == 'Windows'
-      run: Remove-Item -Recurse -Force "$Env:LOCALAPPDATA\pip\Cache"
-
-    # Clear pip cache (For macOS)
-    - name: Clear pip cache (macOS)
-      if: runner.os == 'macOS'
-      run: rm -rf ~/Library/Caches/pip
-
     # Set up Python
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
