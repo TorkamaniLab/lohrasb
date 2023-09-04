@@ -32,9 +32,31 @@ jobs:
     - name: Install Nox
       run: pip install nox
 
-    # Run tests
-    - name: Run tests
-      run: nox
+    # Install requirements (Run this only once)
+    - name: Install requirements
+      run: nox -s install_requirements
+
+    # Run individual tests
+    - name: Run test_optimize_by_tune
+      run: nox -s test_optimize_by_tune
+
+    - name: Run test_optimize_by_tunegridsearchcv
+      run: nox -s test_optimize_by_tunegridsearchcv
+      
+    - name: Run test_optimize_by_optunasearch
+      run: nox -s test_optimize_by_optunasearch
+
+    - name: Run test_optimize_by_optunasearchcv
+      run: nox -s test_optimize_by_optunasearchcv
+
+    - name: Run test_optimize_by_tunerandomsearchcv
+      run: nox -s test_optimize_by_tunerandomsearchcv
+
+    - name: Run test_optimize_by_gridsearchcv
+      run: nox -s test_optimize_by_gridsearchcv
+
+    - name: Run test_optimize_by_randomsearchcv
+      run: nox -s test_optimize_by_randomsearchcv
 
   deploy:
     needs: build
