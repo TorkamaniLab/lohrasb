@@ -860,7 +860,7 @@ using_tune_classification(AdaBoostClassifier, adb_params)
 ```
 #### More Real-World Scenarios 
 
-Lohrasb is not just limited to the above functionalities; it offers a multitude of solutions to tackle a variety of problems in machine learning. To get a better understanding of how Lohrasb can be utilized in real-world scenarios, you can visit the [examples](https://github.com/drhosseinjavedani/lohrasb/tree/main/lohrasb/examples) webpage. Here you will find a plethora of practical applications demonstrating how Lohrasb's various modules can be adapted to solve specific challenges in hyperparameter tuning across different machine learning frameworks.
+Lohrasb is not just limited to the above functionalities; it offers a multitude of solutions to tackle a variety of problems in machine learning. To get a better understanding of how Lohrasb can be utilized in real-world scenarios, you can visit the [examples](https://github.com/TorkamaniLab/lohrasb/tree/main/examples) webpage. Here you will find a plethora of practical applications demonstrating how Lohrasb's various modules can be adapted to solve specific challenges in hyperparameter tuning across different machine learning frameworks.
 
 ### Summary
 Lohrasb offers a range of modules specifically designed to simplify and streamline the process of hyperparameter optimization across multiple machine learning frameworks. It integrates the power of various hyperparameter optimization tools such as Tune, GridSearchCV, RandomizedSearchCV, OptunaSearchCV, TuneGridSearchCV, and TuneSearchCV, and brings them into a single, easy-to-use interface.

@@ -3,6 +3,8 @@ import optuna
 import pandas as pd
 from catboost import *
 from imblearn.ensemble import BalancedRandomForestClassifier
+from interpret.blackbox import *
+from interpret.glassbox import *
 from lightgbm import *
 from optuna.integration import OptunaSearchCV
 from ray import air, tune
@@ -19,15 +21,13 @@ from sklearn.model_selection import (
 from sklearn.neural_network import *
 from sklearn.svm import *
 from xgboost import *
+from xgbse import *
 
 from lohrasb import logger
 from lohrasb.abstracts.optimizers import OptimizerABC
 from lohrasb.decorators.decorators import trackcalls
 from lohrasb.utils.helper_funcs import _trail_params_retrive  # maping_mesurements,
 from lohrasb.utils.metrics import *
-from interpret.blackbox import *
-from interpret.glassbox import *
-from xgbse import *
 
 
 class OptunaSearch(OptimizerABC):

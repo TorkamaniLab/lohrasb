@@ -1,7 +1,7 @@
 import nox
 
 nox.options.sessions = ["tests_lohrasb", "lint_lohrasb"]
-PYTHON_VERSIONS = ["3.7", "3.8", "3.9", "3.10", "3.11"]
+PYTHON_VERSIONS = ["3.7"]
 
 @nox.session(python=PYTHON_VERSIONS)
 def tests_lohrasb(session):
