@@ -148,3 +148,4 @@ xgbse
 zipp
 zope.event
 zope.interface
+pytest

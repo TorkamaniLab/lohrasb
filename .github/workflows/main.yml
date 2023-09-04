@@ -35,11 +35,25 @@ jobs:
     # Install Requirements
     - name: Install Requirements
       run: nox -s install_requirements
-
     # Run individual test sessions
     - name: Run test_optimize_by_tune
       run: nox -s test_optimize_by_tune
-    # ...add similar steps for other test sessions
+
+    - name: Run test_optimize_by_tunegridsearchcv
+      run: nox -s test_optimize_by_tunegridsearchcv
+
+    - name: Run test_optimize_by_optunasearch
+      run: nox -s test_optimize_by_optunasearch
+
+    - name: Run test_optimize_by_optunasearchcv
+      run: nox -s test_optimize_by_optunasearchcv
+
+    - name: Run test_optimize_by_tunerandomsearchcv
+      run: nox -s test_optimize_by_tunerandomsearchcv
+
+    - name: Run test_optimize_by_gridsearchcv
+      run: nox -s test_optimize_by_gridsearchcv
+
     - name: Run test_optimize_by_randomsearchcv
       run: nox -s test_optimize_by_randomsearchcv
 

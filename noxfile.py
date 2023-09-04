@@ -10,12 +10,11 @@ test_files = [
     "tests/test_optimize_by_gridsearchcv.py",
     "tests/test_optimize_by_randomsearchcv.py",
 ]
-
-# Install requirements
 @nox.session(reuse_venv=True)
 def install_requirements(session):
     """Install test dependencies."""
     session.install("-r", "requirements_test.txt")
+    session.install("pytest")
 
 # Session for each test file
 @nox.session(reuse_venv=True)
