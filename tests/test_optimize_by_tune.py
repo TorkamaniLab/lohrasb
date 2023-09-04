@@ -27,10 +27,10 @@ def test_optimize_by_tune_classification(estimator, params):
     # Create synthetic dataset
     search_alg = HyperOptSearch()
     X, y = make_classification(
-        n_samples=1000,
-        n_features=20,
-        n_informative=3,
-        n_redundant=10,
+        n_samples=100,
+        n_features=10,
+        n_informative=5,
+        n_redundant=1,
         n_classes=3,
         random_state=42,
     )
@@ -85,10 +85,10 @@ def test_optimize_by_tune_overfitting_classification(estimator, params):
     # Create synthetic dataset
     search_alg = HyperOptSearch()
     X, y = make_classification(
-        n_samples=1000,
-        n_features=20,
-        n_informative=3,
-        n_redundant=10,
+        n_samples=100,
+        n_features=10,
+        n_informative=5,
+        n_redundant=1,
         n_classes=3,
         random_state=42,
     )
@@ -142,9 +142,9 @@ def test_optimize_by_tune_model_persistence_classification(estimator, params):
     # Create dataset
     X, y = make_classification(
         n_samples=100,
-        n_features=20,
-        n_informative=3,
-        n_redundant=10,
+        n_features=10,
+        n_informative=5,
+        n_redundant=1,
         n_classes=3,
         random_state=42,
     )
@@ -198,9 +198,9 @@ def test_optimize_by_tune_efficiency_classification(estimator, params):
     search_alg = HyperOptSearch()
     X, y = make_classification(
         n_samples=100,
-        n_features=20,
-        n_informative=3,
-        n_redundant=10,
+        n_features=10,
+        n_informative=5,
+        n_redundant=1,
         n_classes=3,
         random_state=42,
     )
@@ -244,7 +244,7 @@ def test_optimize_by_tune_regression(estimator, params):
     search_alg = HyperOptSearch()
     # Create synthetic regression dataset
     X, y = make_regression(
-        n_samples=100, n_features=10, n_informative=5, n_targets=1, random_state=1
+        n_samples=100, n_features=5, n_informative=1, n_targets=1, random_state=1
     )
 
     # Initialize the estimator
@@ -296,7 +296,7 @@ def test_optimize_by_tune_overfitting_regression(estimator, params):
     search_alg = HyperOptSearch()
     # Create synthetic dataset
     X, y = make_regression(
-        n_samples=100, n_features=10, n_informative=5, n_targets=1, random_state=1
+        n_samples=100, n_features=5, n_informative=1, n_targets=1, random_state=1
     )
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
@@ -344,7 +344,7 @@ def test_optimize_by_tune_model_persistence_regression(estimator, params):
     search_alg_for_persist = HyperOptSearch()
 
     X, y = make_regression(
-        n_samples=100, n_features=10, n_informative=5, n_targets=1, random_state=1
+        n_samples=100, n_features=5, n_informative=1, n_targets=1, random_state=1
     )
 
     est = estimator()

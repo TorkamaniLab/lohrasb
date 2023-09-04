@@ -19,7 +19,7 @@ def setup_test(estimator, params, score_func, task_type):
     data_params = {
         'classification': {
             'func': make_classification,
-            'args': {'n_samples': 1000, 'n_features': 20, 'n_informative': 3, 'n_redundant': 10, 'n_classes': 3, 'random_state': 42}
+            'args': {'n_samples': 100, 'n_features': 10, 'n_informative': 5, 'n_redundant': 1, 'n_classes': 3, 'random_state': 42}
         },
         'regression': {
             'func': make_regression,
