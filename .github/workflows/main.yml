@@ -18,11 +18,17 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Set up Python
+    - name: Cache Nox virtualenv
+      uses: actions/cache@v2
+      with:
+        path: .nox  # Nox's virtualenv directory
+        key: ${{ runner.os }}-nox-${{ hashFiles('**/requirements_test.txt') }}
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
 
     # Upgrade pip
     - name: Upgrade pip
