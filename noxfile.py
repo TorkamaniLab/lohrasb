@@ -1,71 +1,54 @@
 import nox
 
-nox.options.sessions = [
-    "install_requirements",
-    "test_optimize_by_tune",
-    "test_optimize_by_tunegridsearchcv",
-    "test_optimize_by_optunasearch",
-    "test_optimize_by_optunasearchcv",
-    "test_optimize_by_tunerandomsearchcv",
-    "test_optimize_by_gridsearchcv",
-    "test_optimize_by_randomsearchcv",
-    "lint_lohrasb"
+# The list of test files to be executed
+test_files = [
+    "tests/test_optimize_by_tune.py",
+    "tests/test_optimize_by_tunegridsearchcv.py",
+    "tests/test_optimize_by_optunasearch.py",
+    "tests/test_optimize_by_optunasearchcv.py",
+    "tests/test_optimize_by_tunerandomsearchcv.py",
+    "tests/test_optimize_by_gridsearchcv.py",
+    "tests/test_optimize_by_randomsearchcv.py",
 ]
 
-
-@nox.session
-def lint_lohrasb(session):
-    """Run lint session using nox"""
-    # Install linters
-    session.install("black", "isort")
-    # Run isort and black
-    session.run("isort", "./lohrasb/")
-    session.run("black", "./lohrasb/")
-
-# This function is to install requirements only once and will be reused by others.
+# Install requirements
 @nox.session(reuse_venv=True)
 def install_requirements(session):
-    """Install all test requirements."""
+    """Install test dependencies."""
     session.install("-r", "requirements_test.txt")
 
-
+# Session for each test file
 @nox.session(reuse_venv=True)
 def test_optimize_by_tune(session):
-    """Run tests for optimize_by_tune."""
-    session.run("pytest", "tests/test_optimize_by_tune.py")
-
+    """Run pytest for test_optimize_by_tune.py."""
+    session.run("pytest", test_files[0])
 
 @nox.session(reuse_venv=True)
 def test_optimize_by_tunegridsearchcv(session):
-    """Run tests for optimize_by_tunegridsearchcv."""
-    session.run("pytest", "tests/test_optimize_by_tunegridsearchcv.py")
-
+    """Run pytest for test_optimize_by_tunegridsearchcv.py."""
+    session.run("pytest", test_files[1])
 
 @nox.session(reuse_venv=True)
 def test_optimize_by_optunasearch(session):
-    """Run tests for optimize_by_optunasearch."""
-    session.run("pytest", "tests/test_optimize_by_optunasearch.py")
-
+    """Run pytest for test_optimize_by_optunasearch.py."""
+    session.run("pytest", test_files[2])
 
 @nox.session(reuse_venv=True)
 def test_optimize_by_optunasearchcv(session):
-    """Run tests for optimize_by_optunasearchcv."""
-    session.run("pytest", "tests/test_optimize_by_optunasearchcv.py")
-
+    """Run pytest for test_optimize_by_optunasearchcv.py."""
+    session.run("pytest", test_files[3])
 
 @nox.session(reuse_venv=True)
 def test_optimize_by_tunerandomsearchcv(session):
-    """Run tests for optimize_by_tunerandomsearchcv."""
-    session.run("pytest", "tests/test_optimize_by_tunerandomsearchcv.py")
-
+    """Run pytest for test_optimize_by_tunerandomsearchcv.py."""
+    session.run("pytest", test_files[4])
 
 @nox.session(reuse_venv=True)
 def test_optimize_by_gridsearchcv(session):
-    """Run tests for optimize_by_gridsearchcv."""
-    session.run("pytest", "tests/test_optimize_by_gridsearchcv.py")
-
+    """Run pytest for test_optimize_by_gridsearchcv.py."""
+    session.run("pytest", test_files[5])
 
 @nox.session(reuse_venv=True)
 def test_optimize_by_randomsearchcv(session):
-    """Run tests for optimize_by_randomsearchcv."""
-    session.run("pytest", "tests/test_optimize_by_randomsearchcv.py")
+    """Run pytest for test_optimize_by_randomsearchcv.py."""
+    session.run("pytest", test_files[6])

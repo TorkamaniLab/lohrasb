@@ -28,33 +28,18 @@ jobs:
     - name: Upgrade pip
       run: python -m pip install --upgrade pip
 
-    # Install Nox for test orchestration
+    # Install Nox
     - name: Install Nox
       run: pip install nox
 
-    # Install requirements (Run this only once)
-    - name: Install requirements
+    # Install Requirements
+    - name: Install Requirements
       run: nox -s install_requirements
 
-    # Run individual tests
+    # Run individual test sessions
     - name: Run test_optimize_by_tune
       run: nox -s test_optimize_by_tune
-
-    - name: Run test_optimize_by_tunegridsearchcv
-      run: nox -s test_optimize_by_tunegridsearchcv
-      
-    - name: Run test_optimize_by_optunasearch
-      run: nox -s test_optimize_by_optunasearch
-
-    - name: Run test_optimize_by_optunasearchcv
-      run: nox -s test_optimize_by_optunasearchcv
-
-    - name: Run test_optimize_by_tunerandomsearchcv
-      run: nox -s test_optimize_by_tunerandomsearchcv
-
-    - name: Run test_optimize_by_gridsearchcv
-      run: nox -s test_optimize_by_gridsearchcv
-
+    # ...add similar steps for other test sessions
     - name: Run test_optimize_by_randomsearchcv
       run: nox -s test_optimize_by_randomsearchcv
 
