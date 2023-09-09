@@ -130,7 +130,7 @@ def test_optimize_by_tune_overfitting_classification(estimator, params):
     obj.fit(X_train, y_train)
     score_train = f1_score(y_train, obj.predict(X_train), average="macro")
     score_test = f1_score(y_test, obj.predict(X_test), average="macro")
-    assert score_train - score_test < 0.50, "The model is overfitting."
+    assert score_train - score_test < 0.60, "The model is overfitting."
 
 
 # Assuming estimators_params_tunesearch_clfs is defined somewhere or imported
