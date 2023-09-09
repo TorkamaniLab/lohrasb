@@ -46,7 +46,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install twine
-        pip install wheel  # Add this line to install the wheel package
+        pip install wheel
   
     - name: Build and publish
       env:
@@ -55,4 +55,16 @@ jobs:
       run: |
         python setup.py sdist bdist_wheel
         twine upload dist/*
-  
+        
+    # Sending email notification after successful build and publish
+    - name: Send Email Notification
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.office365.com
+        server_port: 587
+        username: ${{secrets.MAIL_USERNAME}}
+        password: ${{secrets.MAIL_PASSWORD}}
+        subject: Automated Email From GitHub Action 
+        to: atorkama@scripps.edu
+        from: hjavedani@scripps.edu
+        body: A new version of Lohrasb has been successfully built and published to PyPI.
