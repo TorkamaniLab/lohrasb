@@ -10,7 +10,7 @@ with open("requirements_prod.txt", "r") as f:
 
 setup(
     name='lohrasb',
-    version='4.1.0',
+    version='4.2.0',
     author='drhosseinjavedani',
     author_email='h.javedani@gmail.com',
     description=("This versatile tool streamlines hyperparameter optimization in machine learning workflows."

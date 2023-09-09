@@ -1,33 +1,63 @@
-import numpy as np
-import optuna
-import pandas as pd
-from catboost import *
-from imblearn.ensemble import BalancedRandomForestClassifier
-from interpret.blackbox import *
-from interpret.glassbox import *
-from lightgbm import *
-from optuna.integration import OptunaSearchCV
-from ray import air, tune
-from ray.tune.sklearn import TuneGridSearchCV, TuneSearchCV
-from sklearn.ensemble import *
-from sklearn.linear_model import *
-from sklearn.metrics import *
-from sklearn.model_selection import (
+# Importing essential numerical libraries
+import numpy as np  # For numerical operations
+
+# Importing optimization library
+import optuna  # For hyperparameter optimization
+import pandas as pd  # For data manipulation and analysis
+
+# Importing CatBoost libraries
+from catboost import *  # For CatBoost algorithms
+
+# Importing Imbalanced-learn library for handling imbalanced datasets
+from imblearn.ensemble import (
+    BalancedRandomForestClassifier,
+)  # For balancing classes in random forests
+
+# Importing InterpretML for model explainability
+from interpret.blackbox import *  # For blackbox model explainability
+from interpret.glassbox import *  # For glassbox model explainability
+
+# Importing LightGBM libraries
+from lightgbm import *  # For LightGBM algorithms
+
+# Importing Optuna integrations
+from optuna.integration import OptunaSearchCV  # For hyperparameter search with Optuna
+
+# Importing Ray libraries for distributed computing
+from ray import air, tune  # For parallel and distributed computing
+from ray.air import session  # For managing ray sessions
+
+# Importing Ray Tune for Scikit-learn
+from ray.tune.sklearn import (  # For hyperparameter tuning with Ray
+    TuneGridSearchCV,
+    TuneSearchCV,
+)
+
+# Importing scikit-learn libraries for various machine learning algorithms and utilities
+from sklearn.ensemble import *  # Ensemble methods like Random Forest, AdaBoost, etc.
+from sklearn.linear_model import *  # Linear models like Logistic Regression, Ridge, etc.
+from sklearn.metrics import *  # For model evaluation
+from sklearn.model_selection import (  # For model selection utilities
     GridSearchCV,
     RandomizedSearchCV,
     cross_val_score,
     train_test_split,
 )
-from sklearn.neural_network import *
-from sklearn.svm import *
-from xgboost import *
-from xgbse import *
+from sklearn.neural_network import *  # For neural network models
+from sklearn.svm import *  # For Support Vector Machines
 
-from lohrasb import logger
-from lohrasb.abstracts.optimizers import OptimizerABC
-from lohrasb.decorators.decorators import trackcalls
-from lohrasb.utils.helper_funcs import _trail_params_retrive  # maping_mesurements,
-from lohrasb.utils.metrics import *
+# Importing XGBoost and XGBSE libraries
+from xgboost import *  # For XGBoost algorithms
+from xgbse import *  # Assuming this is for some specific XGBoost operations
+
+# Importing custom utility and logging libraries
+from lohrasb import logger  # Custom logging utility
+from lohrasb.abstracts.optimizers import (
+    OptimizerABC,
+)  # Custom abstract class for optimizers
+from lohrasb.decorators.decorators import trackcalls  # Custom decorators
+from lohrasb.utils.helper_funcs import _trail_params_retrive  # Custom helper function
+from lohrasb.utils.metrics import *  # Custom metrics for evaluation
 
 
 class OptunaSearch(OptimizerABC):

@@ -6,7 +6,7 @@ nox.options.sessions = ["tests_lohrasb", "lint_lohrasb"]
 # List of test files to be executed.
 test_files = [
     # TODO need to test more to see why it has problem in windows
-    # "tests/test_optimize_by_tune.py",
+    "tests/test_optimize_by_tune.py",
     "tests/test_optimize_by_tunegridsearchcv.py",
     "tests/test_optimize_by_optunasearch.py",
     "tests/test_optimize_by_optunasearchcv.py",
