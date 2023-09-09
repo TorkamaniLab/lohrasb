@@ -65,6 +65,6 @@ jobs:
         username: ${{secrets.MAIL_USERNAME}}
         password: ${{secrets.MAIL_PASSWORD}}
         subject: Automated Email From GitHub Action 
-        to: atorkama@scripps.edu
+        to: atorkama@scripps.edu, , h.javedani@gmail.com
         from: hjavedani@scripps.edu
         body: A new version of Lohrasb has been successfully built and published to PyPI.
