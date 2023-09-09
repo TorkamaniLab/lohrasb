@@ -64,7 +64,7 @@ jobs:
         server_port: 587
         username: ${{secrets.MAIL_USERNAME}}
         password: ${{secrets.MAIL_PASSWORD}}
-        subject: Automated Email From GitHub Action 
-        to: atorkama@scripps.edu, , h.javedani@gmail.com
-        from: hjavedani@scripps.edu
+        subject: Automated Email From GitHub Action
+        to: ${{secrets.EMAIL_RECIPIENTS}}
+        from: ${{secrets.MAIL_USERNAME}}
         body: A new version of Lohrasb has been successfully built and published to PyPI.
